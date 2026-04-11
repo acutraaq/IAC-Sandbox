@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, startTransition } from "react";
 import { Moon, Sun } from "lucide-react";
 
 const STORAGE_KEY = "sandbox-theme";
@@ -14,7 +14,7 @@ export function ThemeToggle() {
   useEffect(() => {
     const stored = localStorage.getItem(STORAGE_KEY);
     if (stored === "light" || stored === "dark") {
-      setTheme(stored);
+      startTransition(() => setTheme(stored));
     }
   }, []);
 

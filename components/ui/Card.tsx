@@ -12,9 +12,9 @@ export function Card({
 }: CardProps) {
   return (
     <div
-      className={`rounded-xl border border-border bg-surface p-6 transition-all ${
+      className={`rounded-md border border-border bg-surface p-6 transition-colors ${
         hoverable
-          ? "cursor-pointer hover:-translate-y-0.5 hover:border-accent/30 hover:shadow-lg hover:shadow-accent/5"
+          ? "cursor-pointer hover:border-accent/25 hover:bg-surface-elevated"
           : ""
       } ${className}`}
       {...props}

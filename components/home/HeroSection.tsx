@@ -1,162 +1,205 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { useRef, useEffect } from "react";
+import { motion, useInView, animate, useReducedMotion } from "framer-motion";
 import Link from "next/link";
 import { Button } from "@/components/ui/Button";
-import { useEffect, useRef } from "react";
+import { ArrowUpRight } from "lucide-react";
+
+const ease = [0.22, 1, 0.36, 1] as const;
+
+const container = {
+  hidden: {},
+  visible: { transition: { staggerChildren: 0.08, delayChildren: 0.05 } },
+};
+
+const item = {
+  hidden: { opacity: 0, y: 10 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.55, ease } },
+};
+
+interface StatDef {
+  value: number | string;
+  label: string;
+}
+
+const stats: StatDef[] = [
+  { value: 8, label: "Templates ready" },
+  { value: 8, label: "Resource types" },
+  { value: "~5 min", label: "Avg. deployment" },
+  { value: "Zero", label: "CLI required" },
+];
+
+interface Ring {
+  size: number;
+  opacity: number;
+  duration?: string;
+  delay?: string;
+}
+
+const rings: Ring[] = [
+  { size: 288, opacity: 0.055, duration: "7s", delay: "0s" },
+  { size: 220, opacity: 0.08, duration: "9s", delay: "-2.5s" },
+  { size: 152, opacity: 0.11, duration: "11s", delay: "-5s" },
+  { size: 92, opacity: 0.14 },
+  { size: 40, opacity: 0.18 },
+];
 
 export function HeroSection() {
   return (
-    <section className="relative flex min-h-[calc(100vh-4rem)] flex-col items-center justify-center overflow-hidden px-6 py-24 text-center">
-      <AnimatedDots />
+    <section className="relative flex min-h-[calc(100vh-4rem)] flex-col justify-center overflow-hidden px-6 py-24">
+      {/* Ambient radial glow — slow fade-in, then static */}
+      <motion.div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 2.5, ease: "easeOut" }}
+        style={{
+          background:
+            "radial-gradient(ellipse 65% 55% at 22% 58%, rgba(0, 120, 212, 0.09) 0%, transparent 70%)",
+        }}
+      />
 
-      <div className="relative z-10 flex flex-col items-center gap-6 max-w-3xl">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-        >
-          <span className="inline-flex items-center rounded-full border border-accent/30 bg-accent/10 px-4 py-1.5 text-sm text-accent">
-            Azure Cloud Playground
-          </span>
-        </motion.div>
+      {/* Right-side decorative target rings — desktop only */}
+      <TargetRings />
 
-        <motion.h1
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.1 }}
-          className="text-5xl font-bold leading-tight tracking-tight text-text sm:text-6xl"
-        >
-          Deploy Cloud Resources{" "}
-          <span className="text-accent">in Minutes</span>
-        </motion.h1>
-
+      <motion.div
+        variants={container}
+        initial="hidden"
+        animate="visible"
+        className="relative z-10 mx-auto w-full max-w-6xl"
+      >
+        {/* Terminal label + blinking cursor */}
         <motion.p
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.2 }}
-          className="max-w-xl text-lg text-text-muted"
+          variants={item}
+          className="mb-8 font-mono text-xs uppercase tracking-[0.2em] text-text-muted"
         >
-          No command line needed. Pick a ready-made template or build your own
-          setup — we handle the rest.
+          <span className="text-accent" aria-hidden="true">■</span>
+          &ensp;Azure Infrastructure Platform&ensp;/&ensp;v1.0
+          <span className="animate-cursor-blink ml-0.5 inline-block" aria-hidden="true">
+            _
+          </span>
         </motion.p>
 
+        {/* Headline */}
+        <motion.h1
+          variants={item}
+          className="font-display max-w-3xl text-6xl font-extrabold leading-[1.02] tracking-tight text-text sm:text-7xl lg:text-8xl"
+        >
+          Deploy Azure
+          <br />
+          <span className="text-accent">Cloud Resources</span>
+          <br />
+          <span className="text-text-muted">Without&nbsp;Code.</span>
+        </motion.h1>
+
+        {/* Description */}
+        <motion.p
+          variants={item}
+          className="mt-8 max-w-md text-base leading-relaxed text-text-muted"
+        >
+          Pick a ready-made template or build your own resource
+          configuration — submit for HOD approval in minutes, no
+          command&nbsp;line&nbsp;required.
+        </motion.p>
+
+        {/* CTAs */}
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.3 }}
-          className="flex flex-col items-center gap-3 sm:flex-row"
+          variants={item}
+          className="mt-10 flex flex-wrap items-center gap-4"
         >
           <Button size="lg" asChild>
-            <Link href="/templates">Browse Templates</Link>
+            <Link href="/templates" className="flex items-center gap-2">
+              Browse Templates
+              <ArrowUpRight className="h-4 w-4" aria-hidden="true" />
+            </Link>
           </Button>
           <Button variant="secondary" size="lg" asChild>
             <Link href="/builder">Build Custom</Link>
           </Button>
         </motion.div>
-      </div>
+
+        {/* Stats row — numeric values count up on first view */}
+        <motion.div
+          variants={item}
+          className="mt-16 flex flex-wrap gap-x-10 gap-y-5 border-t border-border pt-8"
+        >
+          {stats.map((stat) => (
+            <StatItem key={stat.label} {...stat} />
+          ))}
+        </motion.div>
+      </motion.div>
     </section>
   );
 }
 
-function AnimatedDots() {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
+/* ── Count-up stat item ── */
+function StatItem({ value, label }: StatDef) {
+  const isNumeric = typeof value === "number";
+  const ref = useRef<HTMLParagraphElement>(null);
+  const inView = useInView(ref, { once: true });
+  const prefersReduced = useReducedMotion();
 
   useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
-
-    let animationId: number;
-    const dots: { x: number; y: number; vx: number; vy: number; opacity: number }[] = [];
-    const DOT_COUNT = 80;
-    const CONNECTION_DISTANCE = 120;
-
-    function resize() {
-      if (!canvas) return;
-      canvas.width = canvas.offsetWidth;
-      canvas.height = canvas.offsetHeight;
+    if (!isNumeric || !ref.current) return;
+    if (prefersReduced || !inView) {
+      ref.current.textContent = String(value);
+      return;
     }
-
-    function initDots() {
-      if (!canvas) return;
-      dots.length = 0;
-      for (let i = 0; i < DOT_COUNT; i++) {
-        dots.push({
-          x: Math.random() * canvas.width,
-          y: Math.random() * canvas.height,
-          vx: (Math.random() - 0.5) * 0.3,
-          vy: (Math.random() - 0.5) * 0.3,
-          opacity: 0.2 + Math.random() * 0.3,
-        });
-      }
-    }
-
-    function draw() {
-      if (!canvas || !ctx) return;
-
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-      // Update positions
-      for (const dot of dots) {
-        dot.x += dot.vx;
-        dot.y += dot.vy;
-        if (dot.x < 0 || dot.x > canvas.width) dot.vx *= -1;
-        if (dot.y < 0 || dot.y > canvas.height) dot.vy *= -1;
-      }
-
-      // Draw connections
-      for (let i = 0; i < dots.length; i++) {
-        for (let j = i + 1; j < dots.length; j++) {
-          const dx = dots[i].x - dots[j].x;
-          const dy = dots[i].y - dots[j].y;
-          const dist = Math.sqrt(dx * dx + dy * dy);
-          if (dist < CONNECTION_DISTANCE) {
-            const alpha = (1 - dist / CONNECTION_DISTANCE) * 0.15;
-            ctx.strokeStyle = `rgba(0, 120, 212, ${alpha})`;
-            ctx.lineWidth = 0.5;
-            ctx.beginPath();
-            ctx.moveTo(dots[i].x, dots[i].y);
-            ctx.lineTo(dots[j].x, dots[j].y);
-            ctx.stroke();
-          }
-        }
-      }
-
-      // Draw dots
-      for (const dot of dots) {
-        ctx.fillStyle = `rgba(0, 120, 212, ${dot.opacity})`;
-        ctx.beginPath();
-        ctx.arc(dot.x, dot.y, 2, 0, Math.PI * 2);
-        ctx.fill();
-      }
-
-      animationId = requestAnimationFrame(draw);
-    }
-
-    resize();
-    initDots();
-    draw();
-
-    const resizeObserver = new ResizeObserver(() => {
-      resize();
-      initDots();
+    const controls = animate(0, value as number, {
+      duration: 1.2,
+      ease: [0.33, 1, 0.68, 1],
+      onUpdate(v) {
+        if (ref.current) ref.current.textContent = Math.round(v).toString();
+      },
     });
-    resizeObserver.observe(canvas);
-
-    return () => {
-      cancelAnimationFrame(animationId);
-      resizeObserver.disconnect();
-    };
-  }, []);
+    return () => controls.stop();
+  }, [isNumeric, inView, value, prefersReduced]);
 
   return (
-    <canvas
-      ref={canvasRef}
+    <div>
+      <p ref={ref} className="font-display text-2xl font-bold text-text">
+        {isNumeric ? "0" : value}
+      </p>
+      <p className="mt-0.5 font-mono text-[10px] uppercase tracking-widest text-text-muted">
+        {label}
+      </p>
+    </div>
+  );
+}
+
+/* ── Decorative breathing target rings ── */
+function TargetRings() {
+  return (
+    <div
       aria-hidden="true"
-      className="absolute inset-0 h-full w-full opacity-50"
-    />
+      className="pointer-events-none absolute right-0 top-1/2 hidden -translate-y-1/2 lg:block"
+    >
+      <div className="relative flex h-72 w-72 items-center justify-center">
+        {rings.map(({ size, opacity, duration, delay }) => (
+          <div
+            key={size}
+            className={`absolute rounded-full border border-accent${duration ? " animate-ring-breathe" : ""}`}
+            style={{
+              width: size,
+              height: size,
+              opacity,
+              ...(duration
+                ? { animationDuration: duration, animationDelay: delay ?? "0s" }
+                : {}),
+            }}
+          />
+        ))}
+        {/* Crosshairs */}
+        <div className="absolute h-px w-64 bg-accent" style={{ opacity: 0.07 }} />
+        <div className="absolute h-64 w-px bg-accent" style={{ opacity: 0.07 }} />
+        {/* Center dot */}
+        <div
+          className="h-2.5 w-2.5 animate-pulse rounded-full bg-accent"
+          style={{ opacity: 0.4 }}
+        />
+      </div>
+    </div>
   );
 }

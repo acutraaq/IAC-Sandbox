@@ -22,11 +22,17 @@ export function TemplateCard({ template }: TemplateCardProps) {
   return (
     <Link
       href={`/templates/${template.slug}`}
-      className="group flex flex-col gap-4 rounded-xl border border-border bg-surface p-6 transition-all hover:-translate-y-0.5 hover:border-accent/30 hover:shadow-lg hover:shadow-accent/5"
+      className="group relative flex flex-col gap-4 overflow-hidden rounded-md border border-border bg-surface p-6 transition-colors hover:border-accent/25 hover:bg-surface-elevated"
     >
+      {/* Left accent bar — scales in from top on hover */}
+      <div
+        aria-hidden="true"
+        className="absolute bottom-0 left-0 top-0 w-0.5 origin-top scale-y-0 bg-accent transition-transform duration-200 group-hover:scale-y-100"
+      />
+
       <div className="flex items-start justify-between gap-3">
-        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-accent/10">
-          <DynamicIcon name={template.icon} className="h-6 w-6 text-accent" />
+        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-accent/10">
+          <DynamicIcon name={template.icon} className="h-5 w-5 text-accent" />
         </div>
         <Badge variant="default">
           {categoryLabels[template.category] ?? template.category}
@@ -34,22 +40,22 @@ export function TemplateCard({ template }: TemplateCardProps) {
       </div>
 
       <div className="flex-1">
-        <h3 className="mb-1.5 font-semibold text-text transition-colors group-hover:text-accent">
+        <h3 className="mb-1.5 font-display font-semibold text-text transition-colors group-hover:text-accent">
           {template.name}
         </h3>
-        <p className="text-sm leading-relaxed text-text-muted line-clamp-2">
+        <p className="line-clamp-2 text-sm leading-relaxed text-text-muted">
           {template.description}
         </p>
       </div>
 
-      <div className="flex items-center gap-4 text-xs text-text-muted">
-        <span className="flex items-center gap-1">
-          <Layers className="h-3.5 w-3.5" />
-          {template.resourceCount}{" "}
+      <div className="flex items-center gap-5 font-mono text-[11px] text-text-muted">
+        <span className="flex items-center gap-1.5">
+          <Layers className="h-3.5 w-3.5" aria-hidden="true" />
+          {template.resourceCount}&nbsp;
           {template.resourceCount === 1 ? "resource" : "resources"}
         </span>
-        <span className="flex items-center gap-1">
-          <Clock className="h-3.5 w-3.5" />
+        <span className="flex items-center gap-1.5">
+          <Clock className="h-3.5 w-3.5" aria-hidden="true" />
           {template.estimatedTime}
         </span>
       </div>
