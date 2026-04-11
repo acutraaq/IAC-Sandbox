@@ -1,0 +1,654 @@
+[
+  {
+    "slug": "web-application",
+    "name": "Web Application",
+    "description": "Deploy a ready-to-use web application with automatic scaling and built-in security.",
+    "category": "compute",
+    "icon": "Globe",
+    "resourceCount": 3,
+    "estimatedTime": "~5 minutes",
+    "steps": [
+      {
+        "title": "Basic Details",
+        "description": "Give your web application a name and choose where it will run.",
+        "fields": [
+          {
+            "name": "appName",
+            "label": "What should we call your application?",
+            "type": "text",
+            "required": true,
+            "placeholder": "my-web-app",
+            "helpText": "This will be used as part of your application's web address."
+          },
+          {
+            "name": "region",
+            "label": "Where should it run?",
+            "type": "select",
+            "required": true,
+            "helpText": "Choose a location close to your users for the best performance.",
+            "options": [
+              { "label": "Southeast Asia (Singapore)", "value": "southeastasia" },
+              { "label": "East Asia (Hong Kong)", "value": "eastasia" },
+              { "label": "Australia East (Sydney)", "value": "australiaeast" },
+              { "label": "West Europe (Netherlands)", "value": "westeurope" }
+            ]
+          }
+        ]
+      },
+      {
+        "title": "Performance Settings",
+        "description": "Choose how powerful your application should be.",
+        "fields": [
+          {
+            "name": "planSize",
+            "label": "How much power does your app need?",
+            "type": "select",
+            "required": true,
+            "helpText": "You can change this later if your needs grow.",
+            "options": [
+              { "label": "Small — Good for testing and demos", "value": "B1" },
+              { "label": "Medium — Suitable for most teams", "value": "B2" },
+              { "label": "Large — High traffic or demanding apps", "value": "B3" }
+            ]
+          },
+          {
+            "name": "autoScale",
+            "label": "Automatically handle traffic spikes?",
+            "type": "toggle",
+            "required": false,
+            "helpText": "When enabled, your app will automatically scale up when more people use it."
+          }
+        ]
+      },
+      {
+        "title": "Networking",
+        "description": "Set up how people will access your application.",
+        "fields": [
+          {
+            "name": "customDomain",
+            "label": "Use a custom web address (domain)?",
+            "type": "toggle",
+            "required": false,
+            "helpText": "Enable this if you want your app at a custom domain like myapp.company.com. You'll configure the domain separately."
+          },
+          {
+            "name": "httpsOnly",
+            "label": "Enforce secure connections (HTTPS only)?",
+            "type": "toggle",
+            "required": false,
+            "helpText": "Recommended. Ensures all traffic to your app is encrypted."
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "slug": "virtual-machine",
+    "name": "Virtual Machine",
+    "description": "Set up a virtual computer in the cloud for running software, scripts, or development environments.",
+    "category": "compute",
+    "icon": "Monitor",
+    "resourceCount": 4,
+    "estimatedTime": "~8 minutes",
+    "steps": [
+      {
+        "title": "Basic Details",
+        "description": "Name your virtual machine and choose its operating system.",
+        "fields": [
+          {
+            "name": "vmName",
+            "label": "What should we call this virtual machine?",
+            "type": "text",
+            "required": true,
+            "placeholder": "my-vm",
+            "helpText": "Use a name that describes what this machine will be used for."
+          },
+          {
+            "name": "osType",
+            "label": "Which operating system?",
+            "type": "select",
+            "required": true,
+            "helpText": "Choose the operating system you're most comfortable with.",
+            "options": [
+              { "label": "Windows Server 2022", "value": "WindowsServer2022" },
+              { "label": "Ubuntu 22.04 (Linux)", "value": "Ubuntu2204" },
+              { "label": "Ubuntu 20.04 (Linux)", "value": "Ubuntu2004" }
+            ]
+          },
+          {
+            "name": "region",
+            "label": "Where should it run?",
+            "type": "select",
+            "required": true,
+            "helpText": "Choose a location close to your users or your office.",
+            "options": [
+              { "label": "Southeast Asia (Singapore)", "value": "southeastasia" },
+              { "label": "East Asia (Hong Kong)", "value": "eastasia" },
+              { "label": "Australia East (Sydney)", "value": "australiaeast" },
+              { "label": "West Europe (Netherlands)", "value": "westeurope" }
+            ]
+          }
+        ]
+      },
+      {
+        "title": "Size & Performance",
+        "description": "Choose how powerful your virtual machine should be.",
+        "fields": [
+          {
+            "name": "vmSize",
+            "label": "How powerful should this machine be?",
+            "type": "select",
+            "required": true,
+            "helpText": "Larger sizes cost more but can handle heavier workloads.",
+            "options": [
+              { "label": "Small (2 CPUs, 4 GB memory) — Light tasks", "value": "Standard_B2s" },
+              { "label": "Medium (4 CPUs, 8 GB memory) — Most workloads", "value": "Standard_B4ms" },
+              { "label": "Large (8 CPUs, 16 GB memory) — Heavy workloads", "value": "Standard_B8ms" }
+            ]
+          }
+        ]
+      },
+      {
+        "title": "Access Settings",
+        "description": "Set up how you'll log in to this machine.",
+        "fields": [
+          {
+            "name": "adminUsername",
+            "label": "What username do you want to use to log in?",
+            "type": "text",
+            "required": true,
+            "placeholder": "azureuser",
+            "helpText": "You'll use this username when connecting to the machine."
+          },
+          {
+            "name": "enableSSH",
+            "label": "Enable SSH access (for Linux machines)?",
+            "type": "toggle",
+            "required": false,
+            "helpText": "Allows secure remote access to Linux machines from your computer."
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "slug": "database",
+    "name": "Managed Database",
+    "description": "Create a fully managed database — no server maintenance needed. Great for apps that store data.",
+    "category": "data",
+    "icon": "Database",
+    "resourceCount": 2,
+    "estimatedTime": "~6 minutes",
+    "steps": [
+      {
+        "title": "Basic Details",
+        "description": "Name your database and choose its location.",
+        "fields": [
+          {
+            "name": "dbName",
+            "label": "What should we call this database?",
+            "type": "text",
+            "required": true,
+            "placeholder": "my-database",
+            "helpText": "Use a name that describes what data this database will store."
+          },
+          {
+            "name": "region",
+            "label": "Where should it run?",
+            "type": "select",
+            "required": true,
+            "helpText": "For best performance, choose the same location as your application.",
+            "options": [
+              { "label": "Southeast Asia (Singapore)", "value": "southeastasia" },
+              { "label": "East Asia (Hong Kong)", "value": "eastasia" },
+              { "label": "Australia East (Sydney)", "value": "australiaeast" },
+              { "label": "West Europe (Netherlands)", "value": "westeurope" }
+            ]
+          },
+          {
+            "name": "engineVersion",
+            "label": "Which database engine?",
+            "type": "select",
+            "required": true,
+            "helpText": "PostgreSQL is the most versatile choice for most projects.",
+            "options": [
+              { "label": "PostgreSQL 16 — Recommended", "value": "16" },
+              { "label": "PostgreSQL 15", "value": "15" },
+              { "label": "PostgreSQL 14", "value": "14" }
+            ]
+          }
+        ]
+      },
+      {
+        "title": "Storage & Capacity",
+        "description": "Configure how much space your database needs.",
+        "fields": [
+          {
+            "name": "storageGB",
+            "label": "How much storage space (in GB)?",
+            "type": "number",
+            "required": true,
+            "placeholder": "32",
+            "min": 32,
+            "max": 16384,
+            "helpText": "Start with 32 GB — you can increase this later as your data grows."
+          },
+          {
+            "name": "enableBackup",
+            "label": "Enable automatic backups?",
+            "type": "toggle",
+            "required": false,
+            "helpText": "Recommended. Automatically saves a copy of your data every day so you can recover if something goes wrong."
+          }
+        ]
+      },
+      {
+        "title": "Security",
+        "description": "Control who can access your database.",
+        "fields": [
+          {
+            "name": "enableFirewall",
+            "label": "Restrict access to specific locations only?",
+            "type": "toggle",
+            "required": false,
+            "helpText": "Recommended. Prevents unauthorized access by limiting who can connect to your database."
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "slug": "storage-account",
+    "name": "File Storage",
+    "description": "Store files, documents, images, and data securely in the cloud — accessible from anywhere.",
+    "category": "data",
+    "icon": "HardDrive",
+    "resourceCount": 1,
+    "estimatedTime": "~3 minutes",
+    "steps": [
+      {
+        "title": "Basic Details",
+        "description": "Name your storage and choose where it will be.",
+        "fields": [
+          {
+            "name": "storageName",
+            "label": "What should we call this storage?",
+            "type": "text",
+            "required": true,
+            "placeholder": "myfilestorage",
+            "helpText": "Use only lowercase letters and numbers. No spaces or special characters."
+          },
+          {
+            "name": "region",
+            "label": "Where should it be stored?",
+            "type": "select",
+            "required": true,
+            "helpText": "Choose a location close to where you'll be uploading and downloading files.",
+            "options": [
+              { "label": "Southeast Asia (Singapore)", "value": "southeastasia" },
+              { "label": "East Asia (Hong Kong)", "value": "eastasia" },
+              { "label": "Australia East (Sydney)", "value": "australiaeast" },
+              { "label": "West Europe (Netherlands)", "value": "westeurope" }
+            ]
+          }
+        ]
+      },
+      {
+        "title": "Redundancy & Access",
+        "description": "Choose how your files are protected and accessed.",
+        "fields": [
+          {
+            "name": "redundancy",
+            "label": "How many copies should we keep?",
+            "type": "select",
+            "required": true,
+            "helpText": "More copies means better protection against data loss.",
+            "options": [
+              { "label": "3 copies in the same location — Basic protection", "value": "LRS" },
+              { "label": "6 copies across 2 locations — Better protection", "value": "ZRS" },
+              { "label": "6 copies across distant locations — Best protection", "value": "GRS" }
+            ]
+          },
+          {
+            "name": "accessTier",
+            "label": "How often will you access these files?",
+            "type": "select",
+            "required": true,
+            "helpText": "Choose based on how often you need to access the files. Hot is faster but costs more.",
+            "options": [
+              { "label": "Frequently (Hot) — Daily use", "value": "Hot" },
+              { "label": "Occasionally (Cool) — Monthly access", "value": "Cool" },
+              { "label": "Rarely (Archive) — Long-term storage", "value": "Archive" }
+            ]
+          }
+        ]
+      },
+      {
+        "title": "Security",
+        "description": "Control who can access your files.",
+        "fields": [
+          {
+            "name": "publicAccess",
+            "label": "Allow public access to files?",
+            "type": "toggle",
+            "required": false,
+            "helpText": "Leave this off unless you specifically need files to be publicly accessible on the internet."
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "slug": "virtual-network",
+    "name": "Private Network",
+    "description": "Create an isolated private network so your cloud resources can communicate securely with each other.",
+    "category": "network",
+    "icon": "Network",
+    "resourceCount": 2,
+    "estimatedTime": "~4 minutes",
+    "steps": [
+      {
+        "title": "Basic Details",
+        "description": "Name your network and choose its location.",
+        "fields": [
+          {
+            "name": "vnetName",
+            "label": "What should we call this network?",
+            "type": "text",
+            "required": true,
+            "placeholder": "my-network",
+            "helpText": "Use a name that describes what this network connects."
+          },
+          {
+            "name": "region",
+            "label": "Where should it be created?",
+            "type": "select",
+            "required": true,
+            "helpText": "Must be in the same location as the resources that will use this network.",
+            "options": [
+              { "label": "Southeast Asia (Singapore)", "value": "southeastasia" },
+              { "label": "East Asia (Hong Kong)", "value": "eastasia" },
+              { "label": "Australia East (Sydney)", "value": "australiaeast" },
+              { "label": "West Europe (Netherlands)", "value": "westeurope" }
+            ]
+          }
+        ]
+      },
+      {
+        "title": "Address Space",
+        "description": "Define the IP address range for your network.",
+        "fields": [
+          {
+            "name": "addressSpace",
+            "label": "What IP address range should this network use?",
+            "type": "text",
+            "required": true,
+            "placeholder": "10.0.0.0/16",
+            "helpText": "The default (10.0.0.0/16) works for most setups and allows up to 65,000 addresses."
+          }
+        ]
+      },
+      {
+        "title": "Subnets",
+        "description": "Create a subnet to organize resources within your network.",
+        "fields": [
+          {
+            "name": "subnetName",
+            "label": "What should the first subnet be called?",
+            "type": "text",
+            "required": true,
+            "placeholder": "default",
+            "helpText": "Subnets help you organize and isolate groups of resources."
+          },
+          {
+            "name": "subnetRange",
+            "label": "What IP range should this subnet use?",
+            "type": "text",
+            "required": true,
+            "placeholder": "10.0.1.0/24",
+            "helpText": "Must be within your network's address range. The default (10.0.1.0/24) works for most cases."
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "slug": "key-vault",
+    "name": "Secret Manager",
+    "description": "Safely store passwords, API keys, certificates, and encryption keys — away from your code.",
+    "category": "security",
+    "icon": "KeyRound",
+    "resourceCount": 1,
+    "estimatedTime": "~3 minutes",
+    "steps": [
+      {
+        "title": "Basic Details",
+        "description": "Name your secret manager and choose its location.",
+        "fields": [
+          {
+            "name": "vaultName",
+            "label": "What should we call this secret manager?",
+            "type": "text",
+            "required": true,
+            "placeholder": "my-secrets",
+            "helpText": "Must be globally unique. Use a name like your-project-secrets."
+          },
+          {
+            "name": "region",
+            "label": "Where should it be created?",
+            "type": "select",
+            "required": true,
+            "helpText": "For best performance, choose the same location as your application.",
+            "options": [
+              { "label": "Southeast Asia (Singapore)", "value": "southeastasia" },
+              { "label": "East Asia (Hong Kong)", "value": "eastasia" },
+              { "label": "Australia East (Sydney)", "value": "australiaeast" },
+              { "label": "West Europe (Netherlands)", "value": "westeurope" }
+            ]
+          }
+        ]
+      },
+      {
+        "title": "Protection Settings",
+        "description": "Configure how your secrets are protected.",
+        "fields": [
+          {
+            "name": "softDelete",
+            "label": "Enable recovery period for deleted secrets?",
+            "type": "toggle",
+            "required": false,
+            "helpText": "Recommended. If a secret is accidentally deleted, you can recover it within 90 days."
+          },
+          {
+            "name": "purgeProtection",
+            "label": "Prevent permanent deletion?",
+            "type": "toggle",
+            "required": false,
+            "helpText": "Prevents anyone from permanently deleting secrets until the recovery period ends. Adds extra safety."
+          }
+        ]
+      },
+      {
+        "title": "Access",
+        "description": "Choose how applications will access your secrets.",
+        "fields": [
+          {
+            "name": "accessModel",
+            "label": "How should applications access secrets?",
+            "type": "select",
+            "required": true,
+            "helpText": "Role-based access is the modern and recommended approach.",
+            "options": [
+              { "label": "Role-based access — Recommended", "value": "rbac" },
+              { "label": "Vault access policies — Legacy approach", "value": "vault" }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "slug": "container-app",
+    "name": "Container Application",
+    "description": "Run containerized applications without managing servers — just provide your container image.",
+    "category": "compute",
+    "icon": "Box",
+    "resourceCount": 3,
+    "estimatedTime": "~6 minutes",
+    "steps": [
+      {
+        "title": "Basic Details",
+        "description": "Name your application and provide the container image.",
+        "fields": [
+          {
+            "name": "appName",
+            "label": "What should we call this application?",
+            "type": "text",
+            "required": true,
+            "placeholder": "my-container-app",
+            "helpText": "This will also be part of your app's web address."
+          },
+          {
+            "name": "containerImage",
+            "label": "What container image should we run?",
+            "type": "text",
+            "required": true,
+            "placeholder": "nginx:latest",
+            "helpText": "The Docker image name and tag, e.g. myregistry/myapp:v1.0"
+          },
+          {
+            "name": "region",
+            "label": "Where should it run?",
+            "type": "select",
+            "required": true,
+            "helpText": "Choose a location close to your users.",
+            "options": [
+              { "label": "Southeast Asia (Singapore)", "value": "southeastasia" },
+              { "label": "East Asia (Hong Kong)", "value": "eastasia" },
+              { "label": "Australia East (Sydney)", "value": "australiaeast" },
+              { "label": "West Europe (Netherlands)", "value": "westeurope" }
+            ]
+          }
+        ]
+      },
+      {
+        "title": "Scaling",
+        "description": "Configure how your application handles changing traffic.",
+        "fields": [
+          {
+            "name": "minReplicas",
+            "label": "Minimum number of running copies?",
+            "type": "number",
+            "required": true,
+            "placeholder": "1",
+            "min": 0,
+            "max": 10,
+            "helpText": "Set to 0 to scale down to zero when not in use (saves cost, but adds startup delay)."
+          },
+          {
+            "name": "maxReplicas",
+            "label": "Maximum number of copies during high traffic?",
+            "type": "number",
+            "required": true,
+            "placeholder": "3",
+            "min": 1,
+            "max": 30,
+            "helpText": "The app will automatically create more copies when traffic increases, up to this limit."
+          }
+        ]
+      },
+      {
+        "title": "Networking",
+        "description": "Configure external access to your application.",
+        "fields": [
+          {
+            "name": "externalAccess",
+            "label": "Allow access from the internet?",
+            "type": "toggle",
+            "required": false,
+            "helpText": "Enable if you want your app accessible from outside your organization's network."
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "slug": "landing-zone",
+    "name": "Landing Zone Starter",
+    "description": "A complete foundation setup — includes a private network, security controls, and monitoring for your project.",
+    "category": "landing-zone",
+    "icon": "LayoutGrid",
+    "resourceCount": 8,
+    "estimatedTime": "~12 minutes",
+    "steps": [
+      {
+        "title": "Project Details",
+        "description": "Name your project and choose where everything will be created.",
+        "fields": [
+          {
+            "name": "projectName",
+            "label": "What is this project called?",
+            "type": "text",
+            "required": true,
+            "placeholder": "my-project",
+            "helpText": "All resources will be named based on this project name."
+          },
+          {
+            "name": "region",
+            "label": "Where should everything be created?",
+            "type": "select",
+            "required": true,
+            "helpText": "Choose a location close to your team or users.",
+            "options": [
+              { "label": "Southeast Asia (Singapore)", "value": "southeastasia" },
+              { "label": "East Asia (Hong Kong)", "value": "eastasia" },
+              { "label": "Australia East (Sydney)", "value": "australiaeast" },
+              { "label": "West Europe (Netherlands)", "value": "westeurope" }
+            ]
+          }
+        ]
+      },
+      {
+        "title": "What to Include",
+        "description": "Choose which foundational components to set up.",
+        "fields": [
+          {
+            "name": "includeNetwork",
+            "label": "Include a private network?",
+            "type": "toggle",
+            "required": false,
+            "helpText": "Recommended. Creates an isolated network so your resources can communicate securely."
+          },
+          {
+            "name": "includeMonitoring",
+            "label": "Include monitoring and alerts?",
+            "type": "toggle",
+            "required": false,
+            "helpText": "Recommended. Sets up dashboards and alerts so you know when something needs attention."
+          },
+          {
+            "name": "includeSecurity",
+            "label": "Include security baseline?",
+            "type": "toggle",
+            "required": false,
+            "helpText": "Recommended. Enables security scanning and compliance checks for your resources."
+          }
+        ]
+      },
+      {
+        "title": "Naming Convention",
+        "description": "Set a prefix to keep your resources organized.",
+        "fields": [
+          {
+            "name": "namingPrefix",
+            "label": "What prefix should all resources use?",
+            "type": "text",
+            "required": true,
+            "placeholder": "proj",
+            "helpText": "A short prefix (2-5 letters) that will be added to all resource names. Helps identify resources in billing and reports."
+          }
+        ]
+      }
+    ]
+  }
+]

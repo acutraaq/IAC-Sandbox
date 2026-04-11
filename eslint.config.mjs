@@ -12,7 +12,16 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // MSW service worker (generated file)
+    "public/mockServiceWorker.js",
   ]),
+  {
+    // React Hook Form's watch() triggers the React Compiler incompatible-library
+    // warning. These are informational only and do not affect runtime correctness.
+    rules: {
+      "react-hooks/incompatible-library": "off",
+    },
+  },
 ]);
 
 export default eslintConfig;

@@ -1,0 +1,309 @@
+[
+  {
+    "type": "Microsoft.Web/sites",
+    "name": "Web Application",
+    "description": "Host a website or web API that scales automatically with your traffic.",
+    "category": "compute",
+    "icon": "Globe",
+    "fields": [
+      {
+        "name": "appName",
+        "label": "What should we call this application?",
+        "type": "text",
+        "required": true,
+        "placeholder": "my-web-app",
+        "helpText": "This will be part of your application's web address."
+      },
+      {
+        "name": "region",
+        "label": "Where should it run?",
+        "type": "select",
+        "required": true,
+        "helpText": "Choose a location close to your users.",
+        "options": [
+          { "label": "Southeast Asia (Singapore)", "value": "southeastasia" },
+          { "label": "East Asia (Hong Kong)", "value": "eastasia" },
+          { "label": "Australia East (Sydney)", "value": "australiaeast" },
+          { "label": "West Europe (Netherlands)", "value": "westeurope" }
+        ]
+      },
+      {
+        "name": "planSize",
+        "label": "How much power does it need?",
+        "type": "select",
+        "required": true,
+        "helpText": "Start small — you can scale up later.",
+        "options": [
+          { "label": "Small — Testing and demos", "value": "B1" },
+          { "label": "Medium — Most teams", "value": "B2" },
+          { "label": "Large — High traffic", "value": "B3" }
+        ]
+      }
+    ]
+  },
+  {
+    "type": "Microsoft.Compute/virtualMachines",
+    "name": "Virtual Machine",
+    "description": "A virtual computer in the cloud for running software, tools, or development environments.",
+    "category": "compute",
+    "icon": "Monitor",
+    "fields": [
+      {
+        "name": "vmName",
+        "label": "What should we call this virtual machine?",
+        "type": "text",
+        "required": true,
+        "placeholder": "my-vm",
+        "helpText": "Use a descriptive name for what this machine will do."
+      },
+      {
+        "name": "osType",
+        "label": "Which operating system?",
+        "type": "select",
+        "required": true,
+        "helpText": "Choose the OS you're most comfortable with.",
+        "options": [
+          { "label": "Windows Server 2022", "value": "WindowsServer2022" },
+          { "label": "Ubuntu 22.04 (Linux)", "value": "Ubuntu2204" }
+        ]
+      },
+      {
+        "name": "vmSize",
+        "label": "How powerful should it be?",
+        "type": "select",
+        "required": true,
+        "helpText": "Larger sizes cost more but handle heavier workloads.",
+        "options": [
+          { "label": "Small (2 CPUs, 4 GB) — Light tasks", "value": "Standard_B2s" },
+          { "label": "Medium (4 CPUs, 8 GB) — Most workloads", "value": "Standard_B4ms" },
+          { "label": "Large (8 CPUs, 16 GB) — Heavy workloads", "value": "Standard_B8ms" }
+        ]
+      }
+    ]
+  },
+  {
+    "type": "Microsoft.DBforPostgreSQL/flexibleServers",
+    "name": "Managed Database",
+    "description": "A fully managed database — no maintenance needed. Store and query structured data for your applications.",
+    "category": "data",
+    "icon": "Database",
+    "fields": [
+      {
+        "name": "dbName",
+        "label": "What should we call this database?",
+        "type": "text",
+        "required": true,
+        "placeholder": "my-database",
+        "helpText": "Use a name that describes what data it will store."
+      },
+      {
+        "name": "region",
+        "label": "Where should it run?",
+        "type": "select",
+        "required": true,
+        "helpText": "For best performance, choose the same location as your application.",
+        "options": [
+          { "label": "Southeast Asia (Singapore)", "value": "southeastasia" },
+          { "label": "East Asia (Hong Kong)", "value": "eastasia" },
+          { "label": "Australia East (Sydney)", "value": "australiaeast" },
+          { "label": "West Europe (Netherlands)", "value": "westeurope" }
+        ]
+      },
+      {
+        "name": "storageGB",
+        "label": "How much storage (in GB)?",
+        "type": "number",
+        "required": true,
+        "placeholder": "32",
+        "min": 32,
+        "max": 16384,
+        "helpText": "Start with 32 GB — you can increase this later."
+      }
+    ]
+  },
+  {
+    "type": "Microsoft.Storage/storageAccounts",
+    "name": "File Storage",
+    "description": "Store files, documents, images, and data securely — accessible from anywhere in the world.",
+    "category": "data",
+    "icon": "HardDrive",
+    "fields": [
+      {
+        "name": "storageName",
+        "label": "What should we call this storage?",
+        "type": "text",
+        "required": true,
+        "placeholder": "myfilestorage",
+        "helpText": "Lowercase letters and numbers only, no spaces."
+      },
+      {
+        "name": "region",
+        "label": "Where should files be stored?",
+        "type": "select",
+        "required": true,
+        "helpText": "Choose a location close to where you'll be accessing the files.",
+        "options": [
+          { "label": "Southeast Asia (Singapore)", "value": "southeastasia" },
+          { "label": "East Asia (Hong Kong)", "value": "eastasia" },
+          { "label": "Australia East (Sydney)", "value": "australiaeast" },
+          { "label": "West Europe (Netherlands)", "value": "westeurope" }
+        ]
+      },
+      {
+        "name": "accessTier",
+        "label": "How often will you access these files?",
+        "type": "select",
+        "required": true,
+        "helpText": "Hot is faster but costs more for infrequent access.",
+        "options": [
+          { "label": "Frequently (Hot) — Daily use", "value": "Hot" },
+          { "label": "Occasionally (Cool) — Monthly access", "value": "Cool" }
+        ]
+      }
+    ]
+  },
+  {
+    "type": "Microsoft.Network/virtualNetworks",
+    "name": "Private Network",
+    "description": "An isolated private network so your cloud resources can communicate securely without going through the internet.",
+    "category": "network",
+    "icon": "Network",
+    "fields": [
+      {
+        "name": "vnetName",
+        "label": "What should we call this network?",
+        "type": "text",
+        "required": true,
+        "placeholder": "my-network",
+        "helpText": "Use a name that describes what this network connects."
+      },
+      {
+        "name": "region",
+        "label": "Where should it be created?",
+        "type": "select",
+        "required": true,
+        "helpText": "Must be in the same location as the resources using this network.",
+        "options": [
+          { "label": "Southeast Asia (Singapore)", "value": "southeastasia" },
+          { "label": "East Asia (Hong Kong)", "value": "eastasia" },
+          { "label": "Australia East (Sydney)", "value": "australiaeast" },
+          { "label": "West Europe (Netherlands)", "value": "westeurope" }
+        ]
+      },
+      {
+        "name": "addressSpace",
+        "label": "What IP address range should this network use?",
+        "type": "text",
+        "required": true,
+        "placeholder": "10.0.0.0/16",
+        "helpText": "The default works for most setups. Leave it as-is if you're unsure."
+      }
+    ]
+  },
+  {
+    "type": "Microsoft.KeyVault/vaults",
+    "name": "Secret Manager",
+    "description": "A secure vault for storing passwords, API keys, certificates, and encryption keys — separate from your code.",
+    "category": "security",
+    "icon": "KeyRound",
+    "fields": [
+      {
+        "name": "vaultName",
+        "label": "What should we call this secret manager?",
+        "type": "text",
+        "required": true,
+        "placeholder": "my-secrets",
+        "helpText": "Must be globally unique. Try your-project-secrets."
+      },
+      {
+        "name": "region",
+        "label": "Where should it be created?",
+        "type": "select",
+        "required": true,
+        "helpText": "For best performance, choose the same location as your application.",
+        "options": [
+          { "label": "Southeast Asia (Singapore)", "value": "southeastasia" },
+          { "label": "East Asia (Hong Kong)", "value": "eastasia" },
+          { "label": "Australia East (Sydney)", "value": "australiaeast" },
+          { "label": "West Europe (Netherlands)", "value": "westeurope" }
+        ]
+      },
+      {
+        "name": "softDelete",
+        "label": "Enable recovery period for deleted secrets?",
+        "type": "toggle",
+        "required": false,
+        "helpText": "Recommended. Lets you recover accidentally deleted secrets within 90 days."
+      }
+    ]
+  },
+  {
+    "type": "Microsoft.App/containerApps",
+    "name": "Container Application",
+    "description": "Run a containerized application without managing any servers — just provide your Docker image.",
+    "category": "compute",
+    "icon": "Box",
+    "fields": [
+      {
+        "name": "appName",
+        "label": "What should we call this application?",
+        "type": "text",
+        "required": true,
+        "placeholder": "my-container-app",
+        "helpText": "This will also be part of your app's URL."
+      },
+      {
+        "name": "containerImage",
+        "label": "What container image should we run?",
+        "type": "text",
+        "required": true,
+        "placeholder": "nginx:latest",
+        "helpText": "The Docker image name, e.g. myregistry/myapp:v1.0"
+      },
+      {
+        "name": "externalAccess",
+        "label": "Allow access from the internet?",
+        "type": "toggle",
+        "required": false,
+        "helpText": "Enable if your app needs to be reachable from outside your organization's network."
+      }
+    ]
+  },
+  {
+    "type": "Microsoft.Network/networkSecurityGroups",
+    "name": "Firewall Rules",
+    "description": "Control which traffic is allowed in and out of your cloud resources — like a digital firewall.",
+    "category": "security",
+    "icon": "Shield",
+    "fields": [
+      {
+        "name": "nsgName",
+        "label": "What should we call these firewall rules?",
+        "type": "text",
+        "required": true,
+        "placeholder": "my-firewall-rules",
+        "helpText": "Use a name that describes what these rules protect."
+      },
+      {
+        "name": "region",
+        "label": "Where should it be created?",
+        "type": "select",
+        "required": true,
+        "helpText": "Must be in the same location as the resources it will protect.",
+        "options": [
+          { "label": "Southeast Asia (Singapore)", "value": "southeastasia" },
+          { "label": "East Asia (Hong Kong)", "value": "eastasia" },
+          { "label": "Australia East (Sydney)", "value": "australiaeast" },
+          { "label": "West Europe (Netherlands)", "value": "westeurope" }
+        ]
+      },
+      {
+        "name": "allowHTTPS",
+        "label": "Allow secure web traffic (HTTPS)?",
+        "type": "toggle",
+        "required": false,
+        "helpText": "Enable this if your resources serve web content over HTTPS (port 443)."
+      }
+    ]
+  }
+]
