@@ -5,14 +5,18 @@ import { Moon, Sun } from "lucide-react";
 
 const STORAGE_KEY = "sandbox-theme";
 
-function getInitialTheme(): "dark" | "light" {
-  if (typeof window === "undefined") return "dark";
-  const stored = localStorage.getItem(STORAGE_KEY);
-  return stored === "light" || stored === "dark" ? stored : "dark";
-}
-
 export function ThemeToggle() {
-  const [theme, setTheme] = useState<"dark" | "light">(getInitialTheme);
+  // Always initialize to "dark" to match the server-rendered HTML, then sync
+  // from localStorage after hydration. Using getInitialTheme as a lazy
+  // initializer causes a hydration mismatch when localStorage holds "light".
+  const [theme, setTheme] = useState<"dark" | "light">("dark");
+
+  useEffect(() => {
+    const stored = localStorage.getItem(STORAGE_KEY);
+    if (stored === "light" || stored === "dark") {
+      setTheme(stored);
+    }
+  }, []);
 
   // Sync DOM attribute whenever theme changes
   useEffect(() => {
