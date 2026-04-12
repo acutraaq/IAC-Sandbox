@@ -1,0 +1,91 @@
+- generic [active] [ref=e1]:
+  - navigation "Main navigation" [ref=e2]:
+    - generic [ref=e5]:
+      - link "Sandbox home" [ref=e6] [cursor=pointer]:
+        - /url: /
+        - generic [ref=e7]: SB
+        - generic [ref=e8]: Sandbox
+      - generic [ref=e9]:
+        - link "Templates" [ref=e10] [cursor=pointer]:
+          - /url: /templates
+        - link "Builder" [ref=e11] [cursor=pointer]:
+          - /url: /builder
+      - button "Switch to light mode" [ref=e12]:
+        - img [ref=e13]
+  - main [ref=e19]:
+    - generic [ref=e21]:
+      - paragraph [ref=e22]:
+        - text: ■ Azure Infrastructure Platform / v1.0
+        - generic [ref=e23]: _
+      - heading "Deploy Azure Cloud Resources Without Code." [level=1] [ref=e24]:
+        - text: Deploy Azure
+        - text: Cloud Resources
+        - text: Without Code.
+      - paragraph [ref=e25]: Pick a ready-made template or build your own resource configuration — submit for HOD approval in minutes, no command line required.
+      - generic [ref=e26]:
+        - link "Browse Templates" [ref=e27] [cursor=pointer]:
+          - /url: /templates
+          - text: Browse Templates
+          - img [ref=e28]
+        - link "Build Custom" [ref=e31] [cursor=pointer]:
+          - /url: /builder
+      - generic [ref=e32]:
+        - generic [ref=e33]:
+          - paragraph [ref=e34]: "8"
+          - paragraph [ref=e35]: Templates ready
+        - generic [ref=e36]:
+          - paragraph [ref=e37]: "8"
+          - paragraph [ref=e38]: Resource types
+        - generic [ref=e39]:
+          - paragraph [ref=e40]: ~5 min
+          - paragraph [ref=e41]: Avg. deployment
+        - generic [ref=e42]:
+          - paragraph [ref=e43]: Zero
+          - paragraph [ref=e44]: CLI required
+    - generic [ref=e46]:
+      - generic [ref=e47]:
+        - paragraph [ref=e48]: Process
+        - heading "How it works" [level=2] [ref=e49]
+      - generic [ref=e50]:
+        - generic [ref=e51]:
+          - paragraph [ref=e52]: "01"
+          - generic [ref=e53]:
+            - heading "Choose" [level=3] [ref=e54]
+            - paragraph [ref=e55]: Pick from ready-made templates for common setups, or build a custom configuration resource by resource.
+        - generic [ref=e56]:
+          - paragraph [ref=e57]: "02"
+          - generic [ref=e58]:
+            - heading "Configure" [level=3] [ref=e59]
+            - paragraph [ref=e60]: Answer simple questions about what you need. No technical expertise required — we guide you through every field.
+        - generic [ref=e61]:
+          - paragraph [ref=e62]: "03"
+          - generic [ref=e63]:
+            - heading "Submit" [level=3] [ref=e64]
+            - paragraph [ref=e65]: Review your choices and submit. A confirmation report is generated for HOD approval outside this system.
+    - generic [ref=e67]:
+      - generic [ref=e68]:
+        - paragraph [ref=e69]: Get started
+        - heading "Pick your deployment path" [level=2] [ref=e70]
+      - generic [ref=e71]:
+        - link "01 / Browse Templates Ready-made Azure configurations for common setups. The fastest path from zero to running infrastructure. View all templates" [ref=e72] [cursor=pointer]:
+          - /url: /templates
+          - generic [ref=e73]: 01 /
+          - generic [ref=e74]:
+            - heading "Browse Templates" [level=3] [ref=e75]
+            - paragraph [ref=e76]: Ready-made Azure configurations for common setups. The fastest path from zero to running infrastructure.
+          - generic [ref=e77]:
+            - text: View all templates
+            - img [ref=e78]
+        - link "02 / Build Custom Setup Pick individual Azure resources and configure them one by one. Complete flexibility over every detail. Open builder" [ref=e80] [cursor=pointer]:
+          - /url: /builder
+          - generic [ref=e81]: 02 /
+          - generic [ref=e82]:
+            - heading "Build Custom Setup" [level=3] [ref=e83]
+            - paragraph [ref=e84]: Pick individual Azure resources and configure them one by one. Complete flexibility over every detail.
+          - generic [ref=e85]:
+            - text: Open builder
+            - img [ref=e86]
+      - paragraph [ref=e88]: NOTE — Microsoft SSO is required to submit deployments. Contact your platform team for access.
+  - button "Open Next.js Dev Tools" [ref=e94] [cursor=pointer]:
+    - img [ref=e95]
+  - alert [ref=e98]

@@ -1,0 +1,189 @@
+openapi: 3.1.0
+info:
+  title: Sandbox Playground Backend API
+  version: 1.0.0
+  description: API contract for deployment submission intake.
+servers:
+  - url: http://localhost:3001
+paths:
+  /healthz:
+    get:
+      summary: Liveness probe
+      responses:
+        '200':
+          description: Service is alive
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: ok
+  /readyz:
+    get:
+      summary: Readiness probe
+      responses:
+        '200':
+          description: Service is ready
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: ready
+  /deployments:
+    post:
+      summary: Submit a deployment configuration
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DeploymentPayload'
+      responses:
+        '201':
+          description: Submission accepted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SubmitResponse'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /deployments/{submissionId}:
+    get:
+      summary: Get deployment submission by ID
+      parameters:
+        - in: path
+          name: submissionId
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Submission found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeploymentSubmission'
+        '404':
+          description: Submission not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+components:
+  schemas:
+    DeploymentPayload:
+      oneOf:
+        - $ref: '#/components/schemas/TemplateDeploymentPayload'
+        - $ref: '#/components/schemas/CustomDeploymentPayload'
+    TemplateDeploymentPayload:
+      type: object
+      required: [mode, template]
+      properties:
+        mode:
+          type: string
+          const: template
+        template:
+          type: object
+          required: [slug, formValues]
+          properties:
+            slug:
+              type: string
+            formValues:
+              type: object
+              additionalProperties: true
+    CustomDeploymentPayload:
+      type: object
+      required: [mode, resources]
+      properties:
+        mode:
+          type: string
+          const: custom
+        resources:
+          type: array
+          minItems: 1
+          items:
+            $ref: '#/components/schemas/SelectedResource'
+    SelectedResource:
+      type: object
+      required: [type, name, icon, config]
+      properties:
+        type:
+          type: string
+          example: Microsoft.KeyVault/vaults
+        name:
+          type: string
+          example: Key Vault
+        icon:
+          type: string
+          example: KeyRound
+        config:
+          type: object
+          additionalProperties: true
+    SubmitResponse:
+      type: object
+      required: [submissionId]
+      properties:
+        submissionId:
+          type: string
+          example: 01JQH4NZ4F3RD2RN5C6X7A8B9K
+    DeploymentSubmission:
+      type: object
+      required: [submissionId, mode, status, payload, createdAt, updatedAt]
+      properties:
+        submissionId:
+          type: string
+        mode:
+          type: string
+          enum: [template, custom]
+        status:
+          type: string
+          enum: [accepted, queued, running, succeeded, failed]
+        payload:
+          $ref: '#/components/schemas/DeploymentPayload'
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    ErrorResponse:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: object
+          required: [code, message]
+          properties:
+            code:
+              type: string
+              example: VALIDATION_ERROR
+            message:
+              type: string
+              example: Request validation failed
+            details:
+              type: array
+              items:
+                type: object
+                properties:
+                  path:
+                    type: string
+                  message:
+                    type: string
+        requestId:
+          type: string
