@@ -65,9 +65,10 @@ export function WizardStep({
               >
                 {field.label}
                 {field.required && (
-                  <span className="ml-1 text-error" aria-label="required">
-                    *
-                  </span>
+                  <>
+                    <span aria-hidden="true" className="ml-1 text-error">*</span>
+                    <span className="sr-only"> (required)</span>
+                  </>
                 )}
               </label>
             )}
@@ -78,9 +79,10 @@ export function WizardStep({
                 type="text"
                 placeholder={field.placeholder}
                 aria-invalid={!!errors[field.name]}
+                aria-required={field.required}
                 aria-describedby={errors[field.name] ? `${field.name}-error` : field.helpText ? `${field.name}-help` : undefined}
                 {...register(field.name)}
-                className={`w-full rounded-lg border bg-surface px-4 py-2.5 text-sm text-text placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-accent/50 ${
+                className={`w-full rounded-lg border bg-surface px-4 py-2.5 text-sm text-text placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-accent ${
                   errors[field.name] ? "border-error" : "border-border"
                 }`}
               />
@@ -94,8 +96,10 @@ export function WizardStep({
                 min={field.min}
                 max={field.max}
                 aria-invalid={!!errors[field.name]}
+                aria-required={field.required}
+                aria-describedby={errors[field.name] ? `${field.name}-error` : field.helpText ? `${field.name}-help` : undefined}
                 {...register(field.name)}
-                className={`w-full rounded-lg border bg-surface px-4 py-2.5 text-sm text-text placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-accent/50 ${
+                className={`w-full rounded-lg border bg-surface px-4 py-2.5 text-sm text-text placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-accent ${
                   errors[field.name] ? "border-error" : "border-border"
                 }`}
               />
@@ -105,8 +109,10 @@ export function WizardStep({
               <select
                 id={field.name}
                 aria-invalid={!!errors[field.name]}
+                aria-required={field.required}
+                aria-describedby={errors[field.name] ? `${field.name}-error` : field.helpText ? `${field.name}-help` : undefined}
                 {...register(field.name)}
-                className={`w-full rounded-lg border bg-surface px-4 py-2.5 text-sm text-text focus:outline-none focus:ring-2 focus:ring-accent/50 ${
+                className={`w-full rounded-lg border bg-surface px-4 py-2.5 text-sm text-text focus:outline-none focus:ring-2 focus:ring-accent ${
                   errors[field.name] ? "border-error" : "border-border"
                 }`}
               >
@@ -130,7 +136,7 @@ export function WizardStep({
                     onChange={(e) => setValue(field.name, e.target.checked)}
                     checked={watch(field.name) as boolean | undefined ?? false}
                   />
-                  <div className="h-6 w-11 rounded-full border border-border bg-surface transition-colors peer-checked:border-accent peer-checked:bg-accent peer-focus-visible:ring-2 peer-focus-visible:ring-accent/50" />
+                  <div className="h-6 w-11 rounded-full border border-border bg-surface transition-colors peer-checked:border-accent peer-checked:bg-accent peer-focus-visible:ring-2 peer-focus-visible:ring-accent peer-focus-visible:ring-offset-1 peer-focus-visible:ring-offset-surface-elevated" />
                   <div className="absolute left-0.5 top-0.5 h-5 w-5 rounded-full bg-text-muted transition-transform peer-checked:translate-x-5 peer-checked:bg-white" />
                 </div>
                 <div>

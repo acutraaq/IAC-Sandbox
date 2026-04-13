@@ -24,17 +24,44 @@ export function ResourceDrawer({
   onAdd,
 }: ResourceDrawerProps) {
   const drawerRef = useRef<HTMLDivElement>(null);
+  const previousFocusRef = useRef<HTMLElement | null>(null);
   const isOpen = resource !== null;
+
+  const FOCUSABLE =
+    'input:not([disabled]), select:not([disabled]), button:not([disabled]), [tabindex]:not([tabindex="-1"])';
 
   const handleKeyDown = useCallback(
     (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
+      if (e.key === "Escape") {
+        onClose();
+        return;
+      }
+      if (e.key === "Tab") {
+        const elements = Array.from(
+          drawerRef.current?.querySelectorAll<HTMLElement>(FOCUSABLE) ?? [],
+        );
+        if (elements.length === 0) return;
+        const first = elements[0];
+        const last = elements[elements.length - 1];
+        if (e.shiftKey) {
+          if (document.activeElement === first) {
+            e.preventDefault();
+            last.focus();
+          }
+        } else {
+          if (document.activeElement === last) {
+            e.preventDefault();
+            first.focus();
+          }
+        }
+      }
     },
     [onClose],
   );
 
   useEffect(() => {
     if (isOpen) {
+      previousFocusRef.current = document.activeElement as HTMLElement;
       document.addEventListener("keydown", handleKeyDown);
       document.body.style.overflow = "hidden";
       requestAnimationFrame(() => {
@@ -43,6 +70,8 @@ export function ResourceDrawer({
         );
         firstInput?.focus();
       });
+    } else {
+      previousFocusRef.current?.focus();
     }
     return () => {
       document.removeEventListener("keydown", handleKeyDown);
@@ -146,98 +175,119 @@ function DrawerContent({
           </div>
         ) : (
           <form id="resource-form" onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-5">
-            {resource.fields.map((field) => (
-              <div key={field.name} className="space-y-1.5">
-                {field.type !== "toggle" && (
-                  <label
-                    htmlFor={`drawer-${field.name}`}
-                    className="block text-sm font-medium text-text"
-                  >
-                    {field.label}
-                    {field.required && (
-                      <span className="ml-1 text-error" aria-label="required">*</span>
-                    )}
-                  </label>
-                )}
+            {resource.fields.map((field) => {
+              const fieldId = `drawer-${field.name}`;
+              const helpId = `${fieldId}-help`;
+              const errorId = `${fieldId}-error`;
+              const describedBy = errors[field.name]
+                ? errorId
+                : field.helpText
+                  ? helpId
+                  : undefined;
 
-                {field.type === "text" && (
-                  <input
-                    id={`drawer-${field.name}`}
-                    type="text"
-                    placeholder={field.placeholder}
-                    aria-invalid={!!errors[field.name]}
-                    {...register(field.name)}
-                    className={`w-full rounded-lg border bg-surface px-4 py-2.5 text-sm text-text placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-accent/50 ${
-                      errors[field.name] ? "border-error" : "border-border"
-                    }`}
-                  />
-                )}
-
-                {field.type === "number" && (
-                  <input
-                    id={`drawer-${field.name}`}
-                    type="number"
-                    placeholder={field.placeholder}
-                    min={field.min}
-                    max={field.max}
-                    aria-invalid={!!errors[field.name]}
-                    {...register(field.name)}
-                    className={`w-full rounded-lg border bg-surface px-4 py-2.5 text-sm text-text placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-accent/50 ${
-                      errors[field.name] ? "border-error" : "border-border"
-                    }`}
-                  />
-                )}
-
-                {field.type === "select" && (
-                  <select
-                    id={`drawer-${field.name}`}
-                    aria-invalid={!!errors[field.name]}
-                    {...register(field.name)}
-                    className={`w-full rounded-lg border bg-surface px-4 py-2.5 text-sm text-text focus:outline-none focus:ring-2 focus:ring-accent/50 ${
-                      errors[field.name] ? "border-error" : "border-border"
-                    }`}
-                  >
-                    <option value="">Select an option...</option>
-                    {field.options?.map((opt) => (
-                      <option key={opt.value} value={opt.value}>{opt.label}</option>
-                    ))}
-                  </select>
-                )}
-
-                {field.type === "toggle" && (
-                  <label className="flex cursor-pointer items-start gap-3">
-                    <div className="relative mt-0.5 shrink-0">
-                      <input
-                        id={`drawer-${field.name}`}
-                        type="checkbox"
-                        {...register(field.name)}
-                        className="peer sr-only"
-                        onChange={(e) => setValue(field.name, e.target.checked)}
-                        checked={watch(field.name) as boolean | undefined ?? false}
-                      />
-                      <div className="h-6 w-11 rounded-full border border-border bg-surface transition-colors peer-checked:border-accent peer-checked:bg-accent" />
-                      <div className="absolute left-0.5 top-0.5 h-5 w-5 rounded-full bg-text-muted transition-transform peer-checked:translate-x-5 peer-checked:bg-white" />
-                    </div>
-                    <div>
-                      <span className="text-sm font-medium text-text">{field.label}</span>
-                      {field.helpText && (
-                        <p className="mt-0.5 text-xs text-text-muted">{field.helpText}</p>
+              return (
+                <div key={field.name} className="space-y-1.5">
+                  {field.type !== "toggle" && (
+                    <label
+                      htmlFor={fieldId}
+                      className="block text-sm font-medium text-text"
+                    >
+                      {field.label}
+                      {field.required && (
+                        <>
+                          <span aria-hidden="true" className="ml-1 text-error">*</span>
+                          <span className="sr-only"> (required)</span>
+                        </>
                       )}
-                    </div>
-                  </label>
-                )}
+                    </label>
+                  )}
 
-                {field.type !== "toggle" && field.helpText && (
-                  <p className="text-xs text-text-muted">{field.helpText}</p>
-                )}
+                  {field.type === "text" && (
+                    <input
+                      id={fieldId}
+                      type="text"
+                      placeholder={field.placeholder}
+                      aria-invalid={!!errors[field.name]}
+                      aria-required={field.required}
+                      aria-describedby={describedBy}
+                      {...register(field.name)}
+                      className={`w-full rounded-lg border bg-surface px-4 py-2.5 text-sm text-text placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-accent ${
+                        errors[field.name] ? "border-error" : "border-border"
+                      }`}
+                    />
+                  )}
 
-                {errors[field.name] && (
-                  <p role="alert" className="text-xs text-error">
-                    {String(errors[field.name]?.message)}
-                  </p>
-                )}
-              </div>
-            ))}
+                  {field.type === "number" && (
+                    <input
+                      id={fieldId}
+                      type="number"
+                      placeholder={field.placeholder}
+                      min={field.min}
+                      max={field.max}
+                      aria-invalid={!!errors[field.name]}
+                      aria-required={field.required}
+                      aria-describedby={describedBy}
+                      {...register(field.name)}
+                      className={`w-full rounded-lg border bg-surface px-4 py-2.5 text-sm text-text placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-accent ${
+                        errors[field.name] ? "border-error" : "border-border"
+                      }`}
+                    />
+                  )}
+
+                  {field.type === "select" && (
+                    <select
+                      id={fieldId}
+                      aria-invalid={!!errors[field.name]}
+                      aria-required={field.required}
+                      aria-describedby={describedBy}
+                      {...register(field.name)}
+                      className={`w-full rounded-lg border bg-surface px-4 py-2.5 text-sm text-text focus:outline-none focus:ring-2 focus:ring-accent ${
+                        errors[field.name] ? "border-error" : "border-border"
+                      }`}
+                    >
+                      <option value="">Select an option...</option>
+                      {field.options?.map((opt) => (
+                        <option key={opt.value} value={opt.value}>{opt.label}</option>
+                      ))}
+                    </select>
+                  )}
+
+                  {field.type === "toggle" && (
+                    <label className="flex cursor-pointer items-start gap-3">
+                      <div className="relative mt-0.5 shrink-0">
+                        <input
+                          id={fieldId}
+                          type="checkbox"
+                          aria-describedby={field.helpText ? helpId : undefined}
+                          {...register(field.name)}
+                          className="peer sr-only"
+                          onChange={(e) => setValue(field.name, e.target.checked)}
+                          checked={watch(field.name) as boolean | undefined ?? false}
+                        />
+                        <div className="h-6 w-11 rounded-full border border-border bg-surface transition-colors peer-checked:border-accent peer-checked:bg-accent peer-focus-visible:ring-2 peer-focus-visible:ring-accent peer-focus-visible:ring-offset-1 peer-focus-visible:ring-offset-surface-elevated" />
+                        <div className="absolute left-0.5 top-0.5 h-5 w-5 rounded-full bg-text-muted transition-transform peer-checked:translate-x-5 peer-checked:bg-white" />
+                      </div>
+                      <div>
+                        <span className="text-sm font-medium text-text">{field.label}</span>
+                        {field.helpText && (
+                          <p id={helpId} className="mt-0.5 text-xs text-text-muted">{field.helpText}</p>
+                        )}
+                      </div>
+                    </label>
+                  )}
+
+                  {field.type !== "toggle" && field.helpText && (
+                    <p id={helpId} className="text-xs text-text-muted">{field.helpText}</p>
+                  )}
+
+                  {errors[field.name] && (
+                    <p id={errorId} role="alert" className="text-xs text-error">
+                      {String(errors[field.name]?.message)}
+                    </p>
+                  )}
+                </div>
+              );
+            })}
           </form>
         )}
       </div>

@@ -7,7 +7,7 @@ interface BadgeProps {
 }
 
 const variantClasses: Record<BadgeVariant, string> = {
-  default: "bg-surface-elevated text-text-muted",
+  default: "bg-surface-elevated text-text",
   accent: "bg-accent/15 text-accent",
   success: "bg-success/15 text-success",
   warning: "bg-warning/15 text-warning",

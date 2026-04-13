@@ -47,7 +47,7 @@ const rings: Ring[] = [
 
 export function HeroSection() {
   return (
-    <section className="relative flex min-h-[calc(100vh-4rem)] flex-col justify-center overflow-hidden px-6 py-24">
+    <section className="relative flex min-h-[calc(100vh-4rem)] flex-col justify-center overflow-hidden px-6 py-12 sm:py-24">
       {/* Ambient radial glow — slow fade-in, then static */}
       <motion.div
         aria-hidden="true"

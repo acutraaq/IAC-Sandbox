@@ -27,7 +27,7 @@ const options = [
 
 export function GetStartedSection() {
   return (
-    <section className="px-6 py-24">
+    <section className="flex min-h-screen flex-col justify-center px-6 py-24">
       <div className="mx-auto max-w-6xl">
         <motion.div
           initial={{ opacity: 0, y: 10 }}

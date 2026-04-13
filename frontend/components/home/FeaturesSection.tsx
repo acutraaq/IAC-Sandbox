@@ -25,7 +25,7 @@ const steps = [
 
 export function FeaturesSection() {
   return (
-    <section className="border-y border-border bg-surface px-6 py-24">
+    <section className="flex min-h-screen flex-col justify-center border-y border-border bg-surface px-6 py-24">
       <div className="mx-auto max-w-6xl">
         {/* Section label */}
         <motion.div

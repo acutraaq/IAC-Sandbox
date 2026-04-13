@@ -4,6 +4,7 @@ import Link from "next/link";
 import { ThemeToggle } from "./ThemeToggle";
 import { usePathname } from "next/navigation";
 import { motion, useScroll } from "framer-motion";
+import { Box } from "lucide-react";
 
 const navLinks = [
   { href: "/templates", label: "Templates" },
@@ -25,18 +26,36 @@ export function Nav() {
           {/* Logo */}
           <Link
             href="/"
-            className="flex items-center gap-2.5 text-text transition-opacity hover:opacity-80"
+            className="group flex items-center gap-3 text-text transition-colors"
             aria-label="Sandbox home"
           >
-            <span
-              aria-hidden="true"
-              className="flex h-7 w-7 shrink-0 items-center justify-center rounded border border-accent/40 bg-accent/10 font-mono text-[10px] font-bold text-accent"
-            >
-              SB
-            </span>
-            <span className="font-display text-sm font-semibold tracking-wide text-text">
-              Sandbox
-            </span>
+            <div className="relative flex h-9 w-9 shrink-0 items-center justify-center">
+              {/* Decorative background glow on hover */}
+              <div
+                className="absolute inset-0 scale-75 rounded-lg bg-accent/20 blur-[2px] transition-transform duration-300 group-hover:scale-110 group-hover:bg-accent/30"
+                aria-hidden="true"
+              />
+              <div className="relative flex h-8 w-8 items-center justify-center rounded-lg border border-accent/30 bg-surface-elevated shadow-sm transition-all duration-300 group-hover:border-accent group-hover:shadow-accent/10">
+                <motion.div
+                  whileHover={{ rotate: 90 }}
+                  transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                >
+                  <Box
+                    className="h-4.5 w-4.5 text-accent"
+                    strokeWidth={2.5}
+                    aria-hidden="true"
+                  />
+                </motion.div>
+              </div>
+            </div>
+            <div className="flex flex-col leading-tight">
+              <span className="font-display text-base font-extrabold tracking-tight text-text">
+                Sandbox
+              </span>
+              <span className="hidden font-mono text-[8.5px] font-medium uppercase tracking-[0.22em] text-text-muted sm:inline-block">
+                Cloud Automation
+              </span>
+            </div>
           </Link>
 
           {/* Nav links */}
@@ -48,8 +67,9 @@ export function Nav() {
                 <Link
                   key={href}
                   href={href}
+                  aria-current={active ? "page" : undefined}
                   className={`group relative font-mono text-xs uppercase tracking-[0.12em] transition-colors ${
-                    active ? "text-accent" : "text-text-muted hover:text-text"
+                    active ? "text-text" : "text-text-muted hover:text-text"
                   }`}
                 >
                   {label}
