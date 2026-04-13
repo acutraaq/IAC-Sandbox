@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { ResourceCatalog } from "@/components/builder/ResourceCatalog";
 import { ResourceDrawer } from "@/components/builder/ResourceDrawer";
 import { SelectedPanel } from "@/components/builder/SelectedPanel";
@@ -16,9 +16,9 @@ export default function BuilderPage() {
   );
 
   // Set mode to custom when visiting builder
-  useState(() => {
+  useEffect(() => {
     setMode("custom");
-  });
+  }, [setMode]);
 
   const selectedTypes = selectedResources.map((r) => r.type);
   const isDuplicate = activeResource
