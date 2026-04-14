@@ -1,6 +1,6 @@
 # Sandbox Azure Deployer — Complete Specification
 
-> **Version:** v1.0.0 | **Date:** 2026-04-11 | **Status:** Contract-Frozen, Ready for Development
+> **Version:** v1.2.0 | **Date:** 2026-04-13 | **Status:** Contract-Frozen, Ready for Development
 >
 > This is the single source of truth for the entire project. It consolidates all previously separate implementation documents. The only other file in this directory is `API_SPEC_OPENAPI.yaml` (machine-readable contract).
 
@@ -278,23 +278,24 @@ Centralized builder in `lib/schema.ts`:
 - Node.js 22 LTS + Fastify + TypeScript
 - Prisma + PostgreSQL 16
 - Zod for request validation
-- Worker process for Bicep execution
-- Docker containerized
+- In-process async executor for Bicep (no separate worker process needed)
+- `tsx` for local dev — run the app with `npm run dev`, no Docker required for the app itself
 - Vitest + Supertest
+
+> **Local database setup:** PostgreSQL runs via Docker Compose (`docker-compose up -d`) — one command, no configuration. The app itself is never containerised; it just connects to that database.
 
 ### Service Layers
 - **API layer:** Routes, middleware, error normalization
-- **Domain layer:** Submission intake + orchestration trigger
-- **Persistence layer:** Submissions/events repositories
-- **Worker layer:** Bicep adapter and status update pipeline
+- **Domain layer:** Submission intake + Azure deployment trigger
+- **Persistence layer:** Submissions and events repositories (Prisma)
 
 ### Backend Responsibilities
-- Auth token verification
-- Payload validation
-- Durable persistence
-- Deployment execution trigger
-- Status retrieval
-- Operational telemetry
+- Auth token verification (Entra ID JWT)
+- Payload validation (Zod)
+- Durable persistence (PostgreSQL via Prisma)
+- Azure deployment execution (Azure CLI, in-process async)
+- Status lifecycle management
+- Structured logging
 
 ### Suggested Project Structure
 ```
@@ -309,14 +310,16 @@ backend/
       deployment.schema.ts
       deployment.service.ts
       deployment.repo.ts
+      bicep-executor.ts
     lib/
       logger.ts
       errors.ts
-      request-id.ts
+      jwt.ts
       env.ts
   prisma/
     schema.prisma
     migrations/
+  docker-compose.yml    ← starts PostgreSQL only
   tests/
     api/
       deployments.test.ts
@@ -324,7 +327,7 @@ backend/
 ```
 
 ### Validation and Error Format
-Standard error response:
+Standard error response (ADR-007):
 ```json
 {
   "error": {
@@ -345,13 +348,13 @@ Standard error response:
 ### Backend Environment
 | Variable | Description |
 |----------|-------------|
-| `PORT` | Server port |
+| `PORT` | Server port (default `3001`) |
 | `NODE_ENV` | Runtime environment |
 | `DATABASE_URL` | PostgreSQL connection string |
+| `ENTRA_TENANT_ID` | Azure AD tenant ID for JWT validation |
+| `ENTRA_CLIENT_ID` | Backend app registration client ID |
 | `CORS_ORIGINS` | Allowed CORS origins (comma-separated) |
-| `LOG_LEVEL` | Logging verbosity |
-| `BODY_LIMIT_BYTES` | Max request body size |
-| `ENABLE_GET_DEPLOYMENT` | Feature flag for `GET /deployments/:id` |
+| `ENABLE_GET_DEPLOYMENT` | Feature flag for `GET /deployments/:id` (default `true`) |
 
 ---
 
@@ -360,7 +363,7 @@ Standard error response:
 ### Table: `deployment_submissions`
 | Column | Type | Notes |
 |--------|------|-------|
-| `submission_id` | text (PK) | ULID or UUIDv7 |
+| `submission_id` | text (PK) | `crypto.randomUUID()` |
 | `user_id` | text | From JWT `oid` claim |
 | `user_email` | text | From JWT `preferred_username` |
 | `user_name` | text | From JWT `name` |
@@ -371,7 +374,7 @@ Standard error response:
 | `target_subscription` | text | |
 | `target_resource_group` | text | |
 | `created_at` | timestamptz | |
-| `updated_at` | timestamptz | |
+| `updated_at` | timestamptz | Auto-updated |
 | `correlation_id` | text | Request ID for tracing |
 
 **Indexes:** PK on `submission_id`, index on `created_at DESC`
@@ -386,12 +389,7 @@ Standard error response:
 | `created_at` | timestamptz | |
 
 ### Table: `idempotency_records` (v1.1, optional)
-| Column | Type | Notes |
-|--------|------|-------|
-| `idempotency_key_hash` | text | |
-| `request_fingerprint` | text | |
-| `submission_id` | text | |
-| `created_at` | timestamptz | |
+Deferred — see ADR-014.
 
 ---
 
@@ -462,42 +460,67 @@ Canonical source: `API_SPEC_OPENAPI.yaml` (in this directory).
 ## 11. Authentication and Identity
 
 ### Entra Configuration (minimum)
-- App registration for frontend
+- App registration for frontend (SPA, redirect URIs configured)
 - App registration for backend API audience
-- Configured redirect URIs
-- Allowed tenant strategy (single or multi-tenant)
+- Allowed tenant strategy (single-tenant for internal tool)
 
 ### Token Handling
-- Frontend acquires access token for backend API scope
-- Backend validates: signature, issuer, audience, tenant, expiration
+- Frontend acquires access token for the backend API scope via MSAL
+- Every request to a protected endpoint includes `Authorization: Bearer <token>`
+- Backend validates: signature (JWKS), issuer, audience (`ENTRA_CLIENT_ID`), tenant (`ENTRA_TENANT_ID`), expiration
+- Invalid or missing token → `401 UNAUTHORIZED`
 
 ### Identity Persistence
-Store identity claims on submission for audit:
-- `oid` (user object ID)
-- `name`
-- `preferred_username` / email
-- `tid` (tenant ID)
+JWT claims stored on every submission for audit trail:
+- `oid` → `user_id`
+- `name` → `user_name`
+- `preferred_username` → `user_email`
+- `tid` → `tenant_id`
 
 ---
 
 ## 12. Bicep Deployment Execution
 
 ### Execution Path
-1. API accepts request → writes status `accepted`.
-2. API enqueues deployment job.
-3. Worker marks status `running`.
-4. Worker resolves template/resource config into Bicep parameters.
-5. Worker executes deployment in target scope.
-6. Worker marks `succeeded` or `failed` with details.
+1. API persists submission with status `accepted` → responds `201`.
+2. In-process async function fires immediately (fire-and-forget — API does not wait for it).
+3. Status updated to `running`, event appended to `deployment_events`.
+4. Payload is mapped to Bicep parameters and `az deployment group create` is executed.
+5. On success: status updated to `succeeded`, event appended.
+6. On failure: status updated to `failed`, error reason captured and logged.
+
+### Payload → Bicep Parameter Mapping
+
+**Template mode:**
+- Look up the template from `frontend/data/templates.json` by `payload.template.slug`
+- Map each field in `payload.template.formValues` → `--parameters key=value`
+
+**Custom mode:**
+- For each resource in `payload.resources`, look up from `frontend/data/resources.json` by `type`
+- Map each field in `resource.config` → `--parameters key=value`
+
+### Azure CLI Command
+```sh
+az deployment group create \
+  --subscription <targetSubscription> \
+  --resource-group <targetResourceGroup> \
+  --template-file bicep/<slug-or-type>.bicep \
+  --parameters key=value ...
+```
+
+- Requires Azure CLI installed (`az --version` to verify)
+- Local development: `az login` before running the backend
+- Production: managed identity (no login needed)
+- Exit code `0` → `succeeded`
+- Non-zero exit code → `failed`, stderr captured as the failure reason
+
+### Retry Policy
+- 3 attempts with exponential backoff: 1s → 2s → 4s
+- After all attempts exhausted: status set to `failed`, full error logged with `submissionId` and `correlationId`
 
 ### Deployment Scope
-- V1: resource-group scope only (ADR-015).
-
-### Implementation Approach
-- Async queue model
-- Retry policy with capped attempts
-- Dead-letter handling for repeated failures
-- Azure CLI or ARM SDK for Bicep execution
+- V1: resource-group scope only (ADR-015)
+- `targetSubscription` and `targetResourceGroup` are required fields
 
 ---
 
@@ -595,8 +618,8 @@ Note: Manual HOD approval is required outside this system.
 
 ### ADR-013: Backend tech stack
 - **Status:** Accepted
-- **Decision:** Fastify + TypeScript + Zod + Prisma + PostgreSQL.
-- **Consequences:** Strong type safety and runtime validation, Prisma migration discipline needed.
+- **Decision:** Fastify + TypeScript + Zod + Prisma + PostgreSQL. App runs with `tsx` (no Docker for the app). PostgreSQL started locally via Docker Compose.
+- **Consequences:** Strong type safety and runtime validation, Prisma migration discipline needed. Docker Compose used only for the database — one command to start it.
 
 ### ADR-014: Idempotency behavior
 - **Status:** Proposed (v1.1)
@@ -669,34 +692,34 @@ Note: Manual HOD approval is required outside this system.
 ### Sprint B1 — Service Foundation
 | Story | Priority | Acceptance Criteria |
 |-------|----------|---------------------|
-| B1-1: Bootstrap service | P0 | Fastify TypeScript starts, `/healthz` and `/readyz` return 200 |
-| B1-2: Config/env validation | P0 | Required env vars validated, fails fast on invalid config |
-| B1-3: Structured logging + request IDs | P0 | Request ID in logs and response headers |
-| B1-4: DB and Prisma baseline | P0 | Schema + migration created, connection verified in readiness check |
+| B1-1: Bootstrap service | P0 | Fastify + TypeScript starts with `npm run dev`, `/healthz` returns 200 |
+| B1-2: Config/env validation | P0 | `env.ts` validates all vars with Zod, process exits clearly on missing required var |
+| B1-3: Structured logging + request IDs | P0 | `X-Request-Id` header on every response, pino JSON logs include `requestId` |
+| B1-4: PostgreSQL + Prisma baseline | P0 | `docker-compose up -d` starts DB, migration runs, `/readyz` checks DB connection |
 
 ### Sprint B2 — Deployments API
 | Story | Priority | Acceptance Criteria |
 |-------|----------|---------------------|
-| B2-1: Payload schemas/validators | P0 | Supports template + custom modes, errors mapped to standard format |
-| B2-2: `POST /deployments` | P0 | Valid request persists, returns 201 + `submissionId` |
-| B2-3: `GET /deployments/:submissionId` | P1 | Returns record on hit, 404 on miss |
-| B2-4: API tests + contract checks | P0 | Supertest happy/error paths, OpenAPI aligned |
+| B2-1: Payload schemas/validators | P0 | Zod schemas for template + custom modes, errors mapped to standard format |
+| B2-2: `POST /deployments` | P0 | Persists to PostgreSQL, returns 201 + `submissionId`, Bicep executor fires async |
+| B2-3: `GET /deployments/:submissionId` | P1 | Returns record + current status on hit, 404 on miss |
+| B2-4: Bicep executor | P0 | `az deployment group create` runs; exit code maps to `succeeded`/`failed`; status events written |
+| B2-5: API tests | P0 | Supertest covers happy paths (both modes) + validation errors + 404 |
 
 ### Sprint B3 — Hardening and Security
 | Story | Priority | Acceptance Criteria |
 |-------|----------|---------------------|
-| B3-1: CORS and body limits | P0 | Origins configurable, body size capped |
-| B3-2: Rate limiting | P0 | Per-IP limit, 429 tested |
-| B3-3: Idempotency key (optional) | P1 | Duplicate replay semantics |
-| B3-4: Error normalization | P0 | All errors use stable machine-readable codes |
+| B3-1: JWT validation | P0 | Entra ID token validated (signature, issuer, audience, tenant, expiry); 401 on failure |
+| B3-2: CORS | P0 | Origins restricted to `CORS_ORIGINS` env; no wildcard |
+| B3-3: Error normalization | P0 | All errors return `{ error: { code, message }, requestId }` |
+| B3-4: Rate limiting | P1 | Per-IP limit on `POST /deployments`, 429 response |
 
-### Sprint B4 — Observability and Release
+### Sprint B4 — Release Gate
 | Story | Priority | Acceptance Criteria |
 |-------|----------|---------------------|
-| B4-1: Metrics/dashboards | P0 | Request/error/latency metrics exposed |
-| B4-2: Docker + deployment | P0 | Container builds in CI, probes configured |
-| B4-3: Runbook | P0 | Operational runbook + on-call triage documented |
-| B4-4: Release quality gate | P0 | Lint/tests/build/migrations pass, smoke from frontend works |
+| B4-1: Quality gate | P0 | Lint (0 errors), tests (all pass), build (tsc clean), migrations apply |
+| B4-2: Frontend smoke | P0 | Both flows (template + custom) submit to real backend, status visible via GET |
+| B4-3: Logging + observability | P0 | JSON logs with `requestId`/`submissionId`, probes active |
 
 ---
 
@@ -902,63 +925,43 @@ Each PR must include:
 ### Authentication and Authorization
 - Microsoft Entra ID SSO mandatory
 - JWT token validation (signature, issuer, audience, tenant, expiration)
-- Bearer token propagation to all protected endpoints
-- User identity captured for audit trail
+- Bearer token required on all protected endpoints
+- User identity captured and stored on every submission for audit
 
 ### Network and API Security
 - HTTPS everywhere
-- CORS allowlist from env (no wildcard in production)
-- Request body size limit (e.g., 1MB)
-- Rate limiting per IP/API key
-- Input validation at API boundary
+- CORS restricted to `CORS_ORIGINS` env (no wildcard in production)
+- Request body size limit
+- Rate limiting on submission endpoint
+- Input validation at API boundary (Zod)
 
 ### Data Protection
 - Parameterized DB queries via Prisma (no raw SQL)
-- Secrets only via environment/secret manager (Key Vault)
-- Retention policy: 90-180 days recommended
-- Redact sensitive values if future payloads include secrets
+- Secrets only via environment variables / Azure Key Vault
+- Never log `Authorization` headers or credential values
 
 ### Deployment Security
-- Managed identity for Azure resource access
-- Least-privilege IAM role assignments
-- Dependency + container vulnerability scanning in CI
+- Managed identity for Azure resource access (no stored credentials)
+- Least-privilege RBAC role assignments
+- `az login` for local dev; managed identity for production
 
 ---
 
 ## 22. Observability and Operations
 
 ### Logging
-- JSON structured logs only
-- Fields: `timestamp`, `level`, `requestId`, `route`, `statusCode`, `latencyMs`, `submissionId`
-- Never log secrets or raw credentials
-
-### Metrics
-- `http_requests_total`
-- `http_request_duration_ms`
-- `deployment_submissions_total`
-- `deployment_validation_failures_total`
+- JSON structured logs (pino)
+- Every request logs: `timestamp`, `level`, `requestId`, `route`, `statusCode`, `latencyMs`
+- Submission routes additionally log: `submissionId`, `mode`
+- Never log `Authorization` headers or credentials
 
 ### Probes
-- **Liveness:** `GET /healthz`
-- **Readiness:** `GET /readyz` (checks DB connectivity)
-
-### Alerts (minimum)
-- High 5xx rate
-- Readiness failures
-- P95 latency breach for `POST /deployments`
-- Deployment failure ratio threshold
-
-### Incident Response
-1. Confirm probe status and latest deploy diff
-2. Inspect error rate and top failing route
-3. Correlate by `requestId` in logs
-4. Roll back if regression confirmed
-5. File postmortem with root cause and prevention action
+- **Liveness:** `GET /healthz` — returns 200 if process is alive
+- **Readiness:** `GET /readyz` — returns 200 only if DB connection is healthy
 
 ### Rollback Plan
-- **Frontend:** Redeploy previous static artifact
-- **Backend:** Revert to previous image tag
-- **DB:** Forward-fix preferred; only reversible migrations for safe rollbacks
+- **Frontend:** Redeploy previous static build artifact
+- **Backend:** Restart previous version; Prisma migrations are forward-only
 
 ---
 
