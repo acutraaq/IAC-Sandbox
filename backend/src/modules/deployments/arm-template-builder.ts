@@ -378,7 +378,7 @@ function buildLandingZone(
     buildNetworkSecurityGroup(`${prefix}-nsg`, location, { allowHTTPS: true })
   );
 
-  if (config.includeNetwork !== false) {
+  if (config.includeNetwork === true) {
     resources.push(
       buildVirtualNetwork(`${prefix}-vnet`, location, {
         addressSpace: "10.0.0.0/16",
@@ -388,13 +388,13 @@ function buildLandingZone(
     );
   }
 
-  if (config.includeSecurity !== false) {
+  if (config.includeSecurity === true) {
     resources.push(
       buildKeyVault(`${prefix}-kv`, location, { softDelete: true, purgeProtection: false, accessModel: "rbac" }, tenantId)
     );
   }
 
-  if (config.includeMonitoring !== false) {
+  if (config.includeMonitoring === true) {
     resources.push({
       type: "Microsoft.OperationalInsights/workspaces",
       apiVersion: "2023-09-01",
