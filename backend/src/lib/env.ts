@@ -18,6 +18,7 @@ const envSchema = z.object({
     .default("true")
     .transform((v) => v.toLowerCase() === "true"),
   AZURE_SUBSCRIPTION_ID: z.string().min(1, "AZURE_SUBSCRIPTION_ID is required"),
+  AZURE_TENANT_ID: z.string().min(1, "AZURE_TENANT_ID is required"),
 });
 
 const parsed = envSchema.safeParse(process.env);
