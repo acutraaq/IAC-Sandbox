@@ -148,4 +148,8 @@ describe("deriveLocation", () => {
       })
     ).toBe("southeastasia");
   });
+
+  it("falls back to southeastasia in custom mode with no resources", () => {
+    expect(deriveLocation({ mode: "custom", resources: [] })).toBe("southeastasia");
+  });
 });

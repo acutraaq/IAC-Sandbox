@@ -38,12 +38,12 @@ export function deriveLocation(payload: DeploymentPayload): string {
 }
 
 function sanitise(name: string): string {
-  return (
-    name
-      .toLowerCase()
-      .replace(/\s+/g, "-")
-      .replace(/[^a-z0-9\-_.()]/g, "")
-      .replace(/\.+$/, "")
-      .slice(0, 87) || "sandbox"
-  );
+  const result = name
+    .toLowerCase()
+    .replace(/\s+/g, "-")
+    .replace(/[^a-z0-9\-_.()]/g, "")
+    .replace(/\.+$/, "")
+    .replace(/^[^a-z0-9]+/, "")
+    .slice(0, 87);
+  return result || "sandbox";
 }
