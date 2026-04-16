@@ -8,6 +8,7 @@ import {
   findDeployment,
 } from "./deployment.repo.js";
 import { executeBicepDeployment } from "./bicep-executor.js";
+import { deriveResourceGroupName, deriveLocation } from "./rg-name.js";
 
 export interface SubmitDeploymentUser {
   submittedBy: string;
@@ -36,11 +37,15 @@ export async function submitDeployment(
     try {
       await updateDeploymentStatus(submissionId, DeploymentStatus.running);
 
+      const resourceGroupName = deriveResourceGroupName(payload);
+      const location = deriveLocation(payload);
+
       const bicepOutput = await executeBicepDeployment({
         subscriptionId: user.subscriptionId,
-        resourceGroup: user.resourceGroup,
+        resourceGroupName,
         deploymentName: submissionId,
         payload,
+        location,
       });
 
       await updateDeploymentStatus(submissionId, DeploymentStatus.succeeded, {
