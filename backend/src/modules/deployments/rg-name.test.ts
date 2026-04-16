@@ -111,6 +111,12 @@ describe("deriveResourceGroupName", () => {
       })
     ).toBe("my-app-name-rg");
   });
+
+  it("falls back to sandbox-rg in custom mode with no resources", () => {
+    expect(
+      deriveResourceGroupName({ mode: "custom", resources: [] })
+    ).toBe("sandbox-rg");
+  });
 });
 
 describe("deriveLocation", () => {
