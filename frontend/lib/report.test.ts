@@ -13,7 +13,7 @@ describe("generateReport — subscription and resource group", () => {
       wizardState: { currentStep: 0, completedSteps: [], formValues: { appName: "my-app" } },
       selectedResources: [],
     });
-    expect(report).toContain("Target Sub    : sub-epf-sandbox-cloud");
+    expect(report).toContain("Target Sub    : sub-epf-sandbox-internal");
   });
 
   it("derives RG name from template appName", () => {

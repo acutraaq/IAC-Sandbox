@@ -1,4 +1,4 @@
-import type { DeploymentState } from "@/types";
+import type { DeploymentState, ResourceGroupTags } from "@/types";
 
 const SLUG_PRIMARY_FIELD: Record<string, string> = {
   "web-application": "appName",
@@ -49,6 +49,7 @@ export function generateReport(
     DeploymentState,
     "mode" | "selectedTemplate" | "wizardState" | "selectedResources"
   >,
+  tags?: ResourceGroupTags,
 ): string {
   const now = new Date().toLocaleString("en-MY", {
     dateStyle: "full",
@@ -63,9 +64,15 @@ export function generateReport(
     `Tenant        : contoso.onmicrosoft.com`,
     `Date/Time     : ${now}`,
     `Mode          : ${state.mode === "template" ? "Template" : "Custom"}`,
-    `Target Sub    : sub-epf-sandbox-cloud`,
+    `Target Sub    : sub-epf-sandbox-internal`,
     `Target RG     : ${deriveRgName(state)}`,
     `Status        : accepted`,
+    "",
+    "Tags:",
+    `  Cost Center  : ${tags?.["Cost Center"] ?? ""}`,
+    `  Project ID   : ${tags?.["Project ID"] ?? ""}`,
+    `  Project Owner: ${tags?.["Project Owner"] ?? ""}`,
+    `  Expiry Date  : ${tags?.["Expiry Date"] ?? ""}`,
     "",
     "Selection:",
   ];

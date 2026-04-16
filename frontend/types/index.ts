@@ -49,10 +49,20 @@ export interface SelectedResource {
   config: Record<string, unknown>;
 }
 
+/* ── Resource Group Tags (required by policy COE-Enforce-Tag-RG) ── */
+
+export interface ResourceGroupTags {
+  "Cost Center": string;
+  "Project ID": string;
+  "Project Owner": string;
+  "Expiry Date": string; // YYYY-MM-DD
+}
+
 /* ── Deployment Payloads (match OpenAPI spec) ── */
 
 export interface TemplateDeploymentPayload {
   mode: "template";
+  tags: ResourceGroupTags;
   template: {
     slug: string;
     formValues: Record<string, unknown>;
@@ -61,6 +71,7 @@ export interface TemplateDeploymentPayload {
 
 export interface CustomDeploymentPayload {
   mode: "custom";
+  tags: ResourceGroupTags;
   resources: SelectedResource[];
 }
 

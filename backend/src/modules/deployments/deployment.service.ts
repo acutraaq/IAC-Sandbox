@@ -38,6 +38,7 @@ export async function submitDeployment(
         deploymentName: submissionId,
         payload,
         location,
+        tags: payload.tags,
       });
 
       await updateDeploymentStatus(submissionId, DeploymentStatus.succeeded, {

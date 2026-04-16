@@ -1,5 +1,52 @@
 import type { DeploymentPayload } from "./deployment.schema.js";
 
+// ---------------------------------------------------------------------------
+// Subscription policy: COE-Allowed-Resources
+// Deny effect — any resource type NOT in this list will be rejected by Azure.
+// ---------------------------------------------------------------------------
+
+export const POLICY_ALLOWED_RESOURCE_TYPES = new Set([
+  "Microsoft.Compute/virtualMachines",
+  "Microsoft.Compute/virtualMachines/extensions",
+  "Microsoft.ContainerInstance/containerGroups",
+  "Microsoft.ContainerService/managedClusters",
+  "Microsoft.App/managedEnvironments",
+  "Microsoft.App/containerApps",
+  "Microsoft.Web/serverfarms",
+  "Microsoft.Web/sites",
+  "Microsoft.Web/staticSites",
+  "Microsoft.Network/virtualNetworks",
+  "Microsoft.Network/virtualNetworks/subnets",
+  "Microsoft.Network/privateEndpoints",
+  "Microsoft.Network/publicIPAddresses",
+  "Microsoft.Network/applicationGateways",
+  "Microsoft.Storage/storageAccounts",
+  "Microsoft.Sql/servers",
+  "Microsoft.Sql/servers/databases",
+  "Microsoft.DocumentDB/databaseAccounts",
+  "Microsoft.DBforPostgreSQL/flexibleServers",
+  "Microsoft.DBforMySQL/flexibleServers",
+  "Microsoft.Synapse/workspaces",
+  "Microsoft.KeyVault/vaults",
+  "Microsoft.ManagedIdentity/userAssignedIdentities",
+  "Microsoft.EventGrid/topics",
+  "Microsoft.ServiceBus/namespaces",
+  "Microsoft.EventHub/namespaces",
+  "Microsoft.OperationalInsights/workspaces",
+  "Microsoft.ApiManagement/service",
+  "Microsoft.Logic/workflows",
+]);
+
+/**
+ * Returns the list of resource types in the template that are blocked by the
+ * COE-Allowed-Resources policy. An empty array means the template is clean.
+ */
+export function validateTemplateAgainstPolicy(template: ArmTemplate): string[] {
+  return template.resources
+    .map((r) => r.type)
+    .filter((type) => !POLICY_ALLOWED_RESOURCE_TYPES.has(type));
+}
+
 export interface ArmResource {
   type: string;
   apiVersion: string;
@@ -85,39 +132,6 @@ function buildVirtualNetwork(
       addressSpace: { addressPrefixes: [addressSpace] },
       subnets: [{ name: subnetName, properties: { addressPrefix: subnetRange } }],
     },
-  };
-}
-
-function buildNetworkSecurityGroup(
-  name: string,
-  location: string,
-  config: Record<string, unknown>
-): ArmResource {
-  const securityRules =
-    config.allowHTTPS !== false
-      ? [
-          {
-            name: "AllowHTTPS",
-            properties: {
-              priority: 100,
-              protocol: "Tcp",
-              access: "Allow",
-              direction: "Inbound",
-              sourceAddressPrefix: "*",
-              sourcePortRange: "*",
-              destinationAddressPrefix: "*",
-              destinationPortRange: "443",
-            },
-          },
-        ]
-      : [];
-
-  return {
-    type: "Microsoft.Network/networkSecurityGroups",
-    apiVersion: "2023-09-01",
-    name,
-    location,
-    properties: { securityRules },
   };
 }
 
@@ -392,11 +406,6 @@ function buildLandingZone(
     typeof config.namingPrefix === "string" ? config.namingPrefix : "proj";
   const resources: ArmResource[] = [];
 
-  // NSG — always included
-  resources.push(
-    buildNetworkSecurityGroup(`${prefix}-nsg`, location, { allowHTTPS: true })
-  );
-
   if (config.includeNetwork === true) {
     resources.push(
       buildVirtualNetwork(`${prefix}-vnet`, location, {
@@ -542,9 +551,6 @@ function buildCustomResources(
         break;
       case "Microsoft.App/containerApps":
         armResources.push(...buildContainerApp(resource.name, location, resource.config));
-        break;
-      case "Microsoft.Network/networkSecurityGroups":
-        armResources.push(buildNetworkSecurityGroup(resource.name, location, resource.config));
         break;
     }
   }

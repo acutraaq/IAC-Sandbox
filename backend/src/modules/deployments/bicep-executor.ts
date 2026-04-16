@@ -2,7 +2,7 @@ import { ResourceManagementClient } from "@azure/arm-resources";
 import { DefaultAzureCredential } from "@azure/identity";
 import env from "../../lib/env.js";
 import type { DeploymentPayload } from "./deployment.schema.js";
-import { buildArmTemplate } from "./arm-template-builder.js";
+import { buildArmTemplate, validateTemplateAgainstPolicy } from "./arm-template-builder.js";
 
 export interface BicepExecutorOptions {
   subscriptionId: string;
@@ -10,6 +10,7 @@ export interface BicepExecutorOptions {
   deploymentName: string;
   payload: DeploymentPayload;
   location: string;
+  tags: Record<string, string>;
 }
 
 export async function executeBicepDeployment(
@@ -18,13 +19,25 @@ export async function executeBicepDeployment(
   const credential = new DefaultAzureCredential();
   const client = new ResourceManagementClient(credential, opts.subscriptionId);
 
-  // Step 1: create the resource group (idempotent — safe to call if it already exists)
+  // Step 1: build and validate the ARM template against subscription policy
+  // before touching Azure — avoids creating an empty RG on policy violations.
+  const template = buildArmTemplate(opts.payload, { tenantId: env.AZURE_TENANT_ID });
+
+  const blockedTypes = validateTemplateAgainstPolicy(template);
+  if (blockedTypes.length > 0) {
+    throw new Error(
+      `Deployment blocked by subscription policy COE-Allowed-Resources. ` +
+      `The following resource types are not permitted: ${blockedTypes.join(", ")}`
+    );
+  }
+
+  // Step 2: create the resource group with required policy tags (idempotent)
   await client.resourceGroups.createOrUpdate(opts.resourceGroupName, {
     location: opts.location,
+    tags: opts.tags,
   });
 
-  // Step 2: deploy ARM template into the resource group
-  const template = buildArmTemplate(opts.payload, { tenantId: env.AZURE_TENANT_ID });
+  // Step 3: deploy ARM template into the resource group
 
   let result;
   try {

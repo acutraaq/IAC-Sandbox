@@ -9,7 +9,8 @@ import { ReviewSection } from "@/components/review/ReviewSection";
 import { ConfirmModal } from "@/components/review/ConfirmModal";
 import { Button } from "@/components/ui/Button";
 import { toast } from "@/components/ui/Toast";
-import { Send, Loader2, ArrowLeft } from "lucide-react";
+import { Send, Loader2, ArrowLeft, Tag } from "lucide-react";
+import type { ResourceGroupTags } from "@/types";
 import Link from "next/link";
 import { useEffect } from "react";
 
@@ -21,6 +22,27 @@ export default function ReviewPage() {
   const [submitting, setSubmitting] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
   const [proofText, setProofText] = useState("");
+  const [tags, setTags] = useState<ResourceGroupTags>({
+    "Cost Center": "",
+    "Project ID": "",
+    "Project Owner": "",
+    "Expiry Date": "",
+  });
+  const [tagErrors, setTagErrors] = useState<Partial<Record<keyof ResourceGroupTags, string>>>({});
+
+  function validateTags(): boolean {
+    const errors: Partial<Record<keyof ResourceGroupTags, string>> = {};
+    if (!tags["Cost Center"]) errors["Cost Center"] = "Required";
+    if (!tags["Project ID"]) errors["Project ID"] = "Required";
+    if (!tags["Project Owner"]) errors["Project Owner"] = "Required";
+    if (!tags["Expiry Date"]) {
+      errors["Expiry Date"] = "Required";
+    } else if (!/^\d{4}-\d{2}-\d{2}$/.test(tags["Expiry Date"])) {
+      errors["Expiry Date"] = "Must be YYYY-MM-DD";
+    }
+    setTagErrors(errors);
+    return Object.keys(errors).length === 0;
+  }
 
   // Guard: redirect if no mode selected
   useEffect(() => {
@@ -38,6 +60,7 @@ export default function ReviewPage() {
 
   async function handleSubmit() {
     if (!canSubmit) return;
+    if (!validateTags()) return;
 
     setSubmitting(true);
     try {
@@ -45,6 +68,7 @@ export default function ReviewPage() {
       if (mode === "template" && selectedTemplate) {
         payload = {
           mode: "template" as const,
+          tags,
           template: {
             slug: selectedTemplate.slug,
             formValues: wizardState.formValues,
@@ -53,6 +77,7 @@ export default function ReviewPage() {
       } else {
         payload = {
           mode: "custom" as const,
+          tags,
           resources: selectedResources,
         };
       }
@@ -63,7 +88,7 @@ export default function ReviewPage() {
         selectedTemplate,
         wizardState,
         selectedResources,
-      });
+      }, tags);
 
       setSubmissionResult(result.submissionId, report);
       setProofText(report);
@@ -113,7 +138,56 @@ export default function ReviewPage() {
         selectedResources={selectedResources}
       />
 
-      <div className="mt-8 rounded-xl border border-border bg-surface p-5">
+      <div className="mt-6 rounded-xl border border-border bg-surface p-5">
+        <div className="mb-4 flex items-center gap-2">
+          <Tag className="h-4 w-4 text-accent" />
+          <p className="text-sm font-semibold text-text">Resource Group Tags</p>
+        </div>
+        <p className="mb-4 text-xs text-text-muted">
+          Required by subscription policy. All four tags must be provided.
+        </p>
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          {(["Cost Center", "Project ID", "Project Owner"] as const).map((field) => (
+            <div key={field}>
+              <label className="mb-1 block text-xs font-medium text-text-muted">
+                {field} <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="text"
+                value={tags[field]}
+                onChange={(e) => {
+                  setTags((prev) => ({ ...prev, [field]: e.target.value }));
+                  if (tagErrors[field]) setTagErrors((prev) => ({ ...prev, [field]: undefined }));
+                }}
+                className="w-full rounded-lg border border-border bg-bg px-3 py-2 text-sm text-text placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-accent"
+                placeholder={field}
+              />
+              {tagErrors[field] && (
+                <p className="mt-1 text-xs text-red-500">{tagErrors[field]}</p>
+              )}
+            </div>
+          ))}
+          <div>
+            <label className="mb-1 block text-xs font-medium text-text-muted">
+              Expiry Date <span className="text-red-500">*</span>
+            </label>
+            <input
+              type="date"
+              value={tags["Expiry Date"]}
+              onChange={(e) => {
+                setTags((prev) => ({ ...prev, "Expiry Date": e.target.value }));
+                if (tagErrors["Expiry Date"]) setTagErrors((prev) => ({ ...prev, "Expiry Date": undefined }));
+              }}
+              className="w-full rounded-lg border border-border bg-bg px-3 py-2 text-sm text-text focus:outline-none focus:ring-2 focus:ring-accent"
+            />
+            {tagErrors["Expiry Date"] && (
+              <p className="mt-1 text-xs text-red-500">{tagErrors["Expiry Date"]}</p>
+            )}
+          </div>
+        </div>
+      </div>
+
+      <div className="mt-4 rounded-xl border border-border bg-surface p-5">
         <p className="mb-4 text-sm text-text-muted">
           By submitting, you confirm this configuration is correct. A proof
           report will be generated for your approver.
