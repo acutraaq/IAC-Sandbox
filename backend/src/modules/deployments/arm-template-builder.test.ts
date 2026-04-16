@@ -43,7 +43,7 @@ describe("buildArmTemplate — storage-account template", () => {
       { mode: "template", template: { slug: "storage-account", formValues: { storageName: "myfiles", region: "southeastasia", redundancy: "GRS", accessTier: "Hot" } } },
       opts
     );
-    expect((result.resources[0] as { sku: { name: string } }).sku.name).toBe("GRS");
+    expect((result.resources[0] as unknown as { sku: { name: string } }).sku.name).toBe("GRS");
   });
 });
 
@@ -59,7 +59,7 @@ describe("buildArmTemplate — virtual-network template", () => {
       { mode: "template", template: { slug: "virtual-network", formValues: { vnetName: "my-vnet", region: "southeastasia", addressSpace: "192.168.0.0/16", subnetName: "default", subnetRange: "192.168.1.0/24" } } },
       opts
     );
-    const props = (result.resources[0] as { properties: { addressSpace: { addressPrefixes: string[] } } }).properties;
+    const props = (result.resources[0] as unknown as { properties: { addressSpace: { addressPrefixes: string[] } } }).properties;
     expect(props.addressSpace.addressPrefixes).toEqual(["192.168.0.0/16"]);
   });
 });
@@ -76,7 +76,7 @@ describe("buildArmTemplate — key-vault template", () => {
       { mode: "template", template: { slug: "key-vault", formValues: { vaultName: "my-secrets", region: "southeastasia", softDelete: true, purgeProtection: false, accessModel: "rbac" } } },
       opts
     );
-    expect((result.resources[0] as { properties: { tenantId: string } }).properties.tenantId).toBe(TENANT_ID);
+    expect((result.resources[0] as unknown as { properties: { tenantId: string } }).properties.tenantId).toBe(TENANT_ID);
   });
 });
 
@@ -92,7 +92,7 @@ describe("buildArmTemplate — database template", () => {
       { mode: "template", template: { slug: "database", formValues: { dbName: "my-db", region: "southeastasia", engineVersion: "15", storageGB: 32, enableBackup: true, enableFirewall: false } } },
       opts
     );
-    expect((result.resources[0] as { properties: { version: string } }).properties.version).toBe("15");
+    expect((result.resources[0] as unknown as { properties: { version: string } }).properties.version).toBe("15");
   });
 });
 
