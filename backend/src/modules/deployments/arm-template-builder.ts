@@ -17,6 +17,25 @@ export interface ArmTemplate {
 }
 
 // ---------------------------------------------------------------------------
+// Helpers
+// ---------------------------------------------------------------------------
+
+// Azure storage SKU names require the "Standard_" or "Premium_" prefix.
+// The frontend sends short forms ("LRS", "GRS", etc.) — map them here.
+const STORAGE_SKU_MAP: Record<string, string> = {
+  LRS: "Standard_LRS",
+  GRS: "Standard_GRS",
+  ZRS: "Standard_ZRS",
+  RAGRS: "Standard_RAGRS",
+  GZRS: "Standard_GZRS",
+  RAGZRS: "Standard_RAGZRS",
+};
+
+function toStorageSku(value: string): string {
+  return STORAGE_SKU_MAP[value.toUpperCase()] ?? value;
+}
+
+// ---------------------------------------------------------------------------
 // Single-resource builders
 // ---------------------------------------------------------------------------
 
@@ -36,7 +55,7 @@ function buildStorageAccount(
     apiVersion: "2023-01-01",
     name: safeName,
     location,
-    sku: { name: typeof config.redundancy === "string" ? config.redundancy : "LRS" },
+    sku: { name: toStorageSku(typeof config.redundancy === "string" ? config.redundancy : "LRS") },
     kind: "StorageV2",
     properties: {
       accessTier: typeof config.accessTier === "string" ? config.accessTier : "Hot",

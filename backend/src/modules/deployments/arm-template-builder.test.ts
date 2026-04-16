@@ -43,7 +43,7 @@ describe("buildArmTemplate — storage-account template", () => {
       { mode: "template", template: { slug: "storage-account", formValues: { storageName: "myfiles", region: "southeastasia", redundancy: "GRS", accessTier: "Hot" } } },
       opts
     );
-    expect((result.resources[0] as unknown as { sku: { name: string } }).sku.name).toBe("GRS");
+    expect((result.resources[0] as unknown as { sku: { name: string } }).sku.name).toBe("Standard_GRS");
   });
 });
 
