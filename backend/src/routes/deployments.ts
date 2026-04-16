@@ -8,7 +8,6 @@ import {
 } from "../modules/deployments/deployment.service.js";
 
 const deploymentsRoutes: FastifyPluginAsync = async (fastify) => {
-  // POST /deployments
   fastify.post("/", async (req, reply) => {
     const parseResult = deploymentPayloadSchema.safeParse(req.body);
 
@@ -22,41 +21,17 @@ const deploymentsRoutes: FastifyPluginAsync = async (fastify) => {
       );
     }
 
-    const payload = parseResult.data;
-
-    // Phase B3 will replace these with real JWT claims
-    const user = {
-      submittedBy: "demo@sandbox.local",
-      tenantId: "demo-tenant",
-      subscriptionId:
-        (req.body as Record<string, unknown>)["subscriptionId"] !== undefined &&
-        typeof (req.body as Record<string, unknown>)["subscriptionId"] ===
-          "string"
-          ? ((req.body as Record<string, unknown>)["subscriptionId"] as string)
-          : "demo-subscription",
-      resourceGroup:
-        (req.body as Record<string, unknown>)["resourceGroup"] !== undefined &&
-        typeof (req.body as Record<string, unknown>)["resourceGroup"] ===
-          "string"
-          ? ((req.body as Record<string, unknown>)["resourceGroup"] as string)
-          : "demo-rg",
-    };
-
-    const result = await submitDeployment(payload, user);
+    const result = await submitDeployment(parseResult.data);
 
     return reply.status(201).send(result);
   });
 
-  // GET /deployments/:submissionId (feature-flagged)
   fastify.get<{ Params: { submissionId: string } }>(
     "/:submissionId",
     async (req, reply) => {
       if (!env.ENABLE_GET_DEPLOYMENT) {
         return reply.status(404).send({
-          error: {
-            code: "NOT_FOUND",
-            message: "Not found",
-          },
+          error: { code: "NOT_FOUND", message: "Not found" },
           requestId: req.id,
         });
       }
