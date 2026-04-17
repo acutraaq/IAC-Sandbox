@@ -21,7 +21,7 @@ export async function executeBicepDeployment(
 
   // Step 1: build and validate the ARM template against subscription policy
   // before touching Azure — avoids creating an empty RG on policy violations.
-  const template = buildArmTemplate(opts.payload, { tenantId: env.AZURE_TENANT_ID });
+  const template = buildArmTemplate(opts.payload, { tenantId: env.AZURE_TENANT_ID, tags: opts.tags });
 
   const blockedTypes = validateTemplateAgainstPolicy(template);
   if (blockedTypes.length > 0) {
@@ -47,7 +47,7 @@ export async function executeBicepDeployment(
       {
         properties: {
           mode: "Incremental",
-          template,
+          template: template as unknown as Record<string, unknown>,
           parameters: {},
         },
       }

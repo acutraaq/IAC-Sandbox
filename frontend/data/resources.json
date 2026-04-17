@@ -44,6 +44,7 @@
   {
     "type": "Microsoft.Compute/virtualMachines",
     "name": "Virtual Machine",
+    "policyBlocked": true,
     "description": "A virtual computer in the cloud for running software, tools, or development environments.",
     "category": "compute",
     "icon": "Monitor",
@@ -272,6 +273,7 @@
   {
     "type": "Microsoft.Network/networkSecurityGroups",
     "name": "Firewall Rules",
+    "policyBlocked": true,
     "description": "Control which traffic is allowed in and out of your cloud resources — like a digital firewall.",
     "category": "security",
     "icon": "Shield",

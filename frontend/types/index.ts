@@ -29,6 +29,7 @@ export interface Template {
   resourceCount: number;
   estimatedTime: string;
   steps: TemplateStep[];
+  policyBlocked?: boolean;
 }
 
 /* ── Resources (custom builder) ── */
@@ -40,6 +41,7 @@ export interface AzureResource {
   category: string;
   icon: string;
   fields: FieldSchema[];
+  policyBlocked?: boolean;
 }
 
 export interface SelectedResource {

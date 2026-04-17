@@ -64,6 +64,13 @@ export interface ArmTemplate {
 }
 
 // ---------------------------------------------------------------------------
+// Subscription policy: Sandbox - Restrict App Service SKUs
+// Only F1, B1, B2, B3 are permitted for Microsoft.Web/serverfarms.
+// ---------------------------------------------------------------------------
+
+const ALLOWED_APP_SERVICE_SKUS = new Set(["F1", "B1", "B2", "B3"]);
+
+// ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
 
@@ -205,7 +212,8 @@ function buildWebApplication(
   location: string,
   config: Record<string, unknown>
 ): ArmResource[] {
-  const planSize = typeof config.planSize === "string" ? config.planSize : "B1";
+  const rawPlanSize = typeof config.planSize === "string" ? config.planSize : "B1";
+  const planSize = ALLOWED_APP_SERVICE_SKUS.has(rawPlanSize) ? rawPlanSize : "B1";
   const planName = `${name}-plan`;
 
   return [
@@ -564,12 +572,19 @@ function buildCustomResources(
 
 export function buildArmTemplate(
   payload: DeploymentPayload,
-  opts: { tenantId: string }
+  opts: { tenantId: string; tags?: Record<string, string> }
 ): ArmTemplate {
   const resources =
     payload.mode === "template"
       ? buildTemplateResources(payload.template, opts.tenantId)
       : buildCustomResources(payload.resources, opts.tenantId);
+
+  // COE-Enforce-Tag-Resources: every individual resource must carry the 4 policy tags.
+  if (opts.tags) {
+    for (const resource of resources) {
+      resource.tags = opts.tags;
+    }
+  }
 
   return {
     $schema:

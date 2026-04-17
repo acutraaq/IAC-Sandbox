@@ -3,6 +3,12 @@ import { buildArmTemplate } from "./arm-template-builder.js";
 
 const TENANT_ID = "test-tenant-id";
 const opts = { tenantId: TENANT_ID };
+const SAMPLE_TAGS = {
+  "Cost Center": "cc-001",
+  "Project ID": "proj-001",
+  "Project Owner": "test-user",
+  "Expiry Date": "2026-12-31",
+};
 
 function resourceTypes(payload: Parameters<typeof buildArmTemplate>[0]): string[] {
   return buildArmTemplate(payload, opts).resources.map((r) => r.type as string);
@@ -11,7 +17,7 @@ function resourceTypes(payload: Parameters<typeof buildArmTemplate>[0]): string[
 describe("buildArmTemplate — schema", () => {
   it("returns valid ARM schema envelope", () => {
     const result = buildArmTemplate(
-      { mode: "template", template: { slug: "storage-account", formValues: { storageName: "myfiles", region: "southeastasia", redundancy: "LRS", accessTier: "Hot" } } },
+      { mode: "template", tags: SAMPLE_TAGS, template: { slug: "storage-account", formValues: { storageName: "myfiles", region: "southeastasia", redundancy: "LRS", accessTier: "Hot" } } },
       opts
     );
     expect(result.$schema).toBe(
@@ -23,16 +29,38 @@ describe("buildArmTemplate — schema", () => {
   });
 });
 
+describe("buildArmTemplate — tags propagation", () => {
+  it("applies tags to every resource when opts.tags is provided", () => {
+    const result = buildArmTemplate(
+      { mode: "template", tags: SAMPLE_TAGS, template: { slug: "storage-account", formValues: { storageName: "myfiles", region: "southeastasia", redundancy: "LRS", accessTier: "Hot" } } },
+      { tenantId: TENANT_ID, tags: SAMPLE_TAGS }
+    );
+    for (const resource of result.resources) {
+      expect(resource.tags).toEqual(SAMPLE_TAGS);
+    }
+  });
+
+  it("does not add tags when opts.tags is omitted", () => {
+    const result = buildArmTemplate(
+      { mode: "template", tags: SAMPLE_TAGS, template: { slug: "storage-account", formValues: { storageName: "myfiles", region: "southeastasia", redundancy: "LRS", accessTier: "Hot" } } },
+      { tenantId: TENANT_ID }
+    );
+    for (const resource of result.resources) {
+      expect(resource.tags).toBeUndefined();
+    }
+  });
+});
+
 describe("buildArmTemplate — storage-account template", () => {
   it("creates a storage account resource", () => {
     expect(
-      resourceTypes({ mode: "template", template: { slug: "storage-account", formValues: { storageName: "myfiles", region: "southeastasia", redundancy: "LRS", accessTier: "Hot" } } })
+      resourceTypes({ mode: "template", tags: SAMPLE_TAGS, template: { slug: "storage-account", formValues: { storageName: "myfiles", region: "southeastasia", redundancy: "LRS", accessTier: "Hot" } } })
     ).toEqual(["Microsoft.Storage/storageAccounts"]);
   });
 
   it("uses the storageName as the resource name (lowercase alphanumeric)", () => {
     const result = buildArmTemplate(
-      { mode: "template", template: { slug: "storage-account", formValues: { storageName: "MyFiles", region: "southeastasia", redundancy: "LRS", accessTier: "Hot" } } },
+      { mode: "template", tags: SAMPLE_TAGS, template: { slug: "storage-account", formValues: { storageName: "MyFiles", region: "southeastasia", redundancy: "LRS", accessTier: "Hot" } } },
       opts
     );
     expect((result.resources[0].name as string)).toBe("myfiles");
@@ -40,7 +68,7 @@ describe("buildArmTemplate — storage-account template", () => {
 
   it("sets the SKU from redundancy field", () => {
     const result = buildArmTemplate(
-      { mode: "template", template: { slug: "storage-account", formValues: { storageName: "myfiles", region: "southeastasia", redundancy: "GRS", accessTier: "Hot" } } },
+      { mode: "template", tags: SAMPLE_TAGS, template: { slug: "storage-account", formValues: { storageName: "myfiles", region: "southeastasia", redundancy: "GRS", accessTier: "Hot" } } },
       opts
     );
     expect((result.resources[0] as unknown as { sku: { name: string } }).sku.name).toBe("Standard_GRS");
@@ -50,13 +78,13 @@ describe("buildArmTemplate — storage-account template", () => {
 describe("buildArmTemplate — virtual-network template", () => {
   it("creates a virtual network resource", () => {
     expect(
-      resourceTypes({ mode: "template", template: { slug: "virtual-network", formValues: { vnetName: "my-vnet", region: "southeastasia", addressSpace: "10.0.0.0/16", subnetName: "default", subnetRange: "10.0.1.0/24" } } })
+      resourceTypes({ mode: "template", tags: SAMPLE_TAGS, template: { slug: "virtual-network", formValues: { vnetName: "my-vnet", region: "southeastasia", addressSpace: "10.0.0.0/16", subnetName: "default", subnetRange: "10.0.1.0/24" } } })
     ).toEqual(["Microsoft.Network/virtualNetworks"]);
   });
 
   it("sets addressSpace from formValues", () => {
     const result = buildArmTemplate(
-      { mode: "template", template: { slug: "virtual-network", formValues: { vnetName: "my-vnet", region: "southeastasia", addressSpace: "192.168.0.0/16", subnetName: "default", subnetRange: "192.168.1.0/24" } } },
+      { mode: "template", tags: SAMPLE_TAGS, template: { slug: "virtual-network", formValues: { vnetName: "my-vnet", region: "southeastasia", addressSpace: "192.168.0.0/16", subnetName: "default", subnetRange: "192.168.1.0/24" } } },
       opts
     );
     const props = (result.resources[0] as unknown as { properties: { addressSpace: { addressPrefixes: string[] } } }).properties;
@@ -67,13 +95,13 @@ describe("buildArmTemplate — virtual-network template", () => {
 describe("buildArmTemplate — key-vault template", () => {
   it("creates a key vault resource", () => {
     expect(
-      resourceTypes({ mode: "template", template: { slug: "key-vault", formValues: { vaultName: "my-secrets", region: "southeastasia", softDelete: true, purgeProtection: false, accessModel: "rbac" } } })
+      resourceTypes({ mode: "template", tags: SAMPLE_TAGS, template: { slug: "key-vault", formValues: { vaultName: "my-secrets", region: "southeastasia", softDelete: true, purgeProtection: false, accessModel: "rbac" } } })
     ).toEqual(["Microsoft.KeyVault/vaults"]);
   });
 
   it("sets tenantId from opts", () => {
     const result = buildArmTemplate(
-      { mode: "template", template: { slug: "key-vault", formValues: { vaultName: "my-secrets", region: "southeastasia", softDelete: true, purgeProtection: false, accessModel: "rbac" } } },
+      { mode: "template", tags: SAMPLE_TAGS, template: { slug: "key-vault", formValues: { vaultName: "my-secrets", region: "southeastasia", softDelete: true, purgeProtection: false, accessModel: "rbac" } } },
       opts
     );
     expect((result.resources[0] as unknown as { properties: { tenantId: string } }).properties.tenantId).toBe(TENANT_ID);
@@ -83,13 +111,13 @@ describe("buildArmTemplate — key-vault template", () => {
 describe("buildArmTemplate — database template", () => {
   it("creates a PostgreSQL flexible server", () => {
     expect(
-      resourceTypes({ mode: "template", template: { slug: "database", formValues: { dbName: "my-db", region: "southeastasia", engineVersion: "16", storageGB: 32, enableBackup: true, enableFirewall: false } } })
+      resourceTypes({ mode: "template", tags: SAMPLE_TAGS, template: { slug: "database", formValues: { dbName: "my-db", region: "southeastasia", engineVersion: "16", storageGB: 32, enableBackup: true, enableFirewall: false } } })
     ).toEqual(["Microsoft.DBforPostgreSQL/flexibleServers"]);
   });
 
   it("sets the PostgreSQL version from formValues", () => {
     const result = buildArmTemplate(
-      { mode: "template", template: { slug: "database", formValues: { dbName: "my-db", region: "southeastasia", engineVersion: "15", storageGB: 32, enableBackup: true, enableFirewall: false } } },
+      { mode: "template", tags: SAMPLE_TAGS, template: { slug: "database", formValues: { dbName: "my-db", region: "southeastasia", engineVersion: "15", storageGB: 32, enableBackup: true, enableFirewall: false } } },
       opts
     );
     expect((result.resources[0] as unknown as { properties: { version: string } }).properties.version).toBe("15");
@@ -101,6 +129,7 @@ describe("buildArmTemplate — custom mode", () => {
     expect(
       resourceTypes({
         mode: "custom",
+        tags: SAMPLE_TAGS,
         resources: [{ type: "Microsoft.Storage/storageAccounts", name: "mystore", icon: "HardDrive", config: { region: "southeastasia", redundancy: "LRS", accessTier: "Hot" } }],
       })
     ).toEqual(["Microsoft.Storage/storageAccounts"]);
@@ -110,6 +139,7 @@ describe("buildArmTemplate — custom mode", () => {
     expect(
       resourceTypes({
         mode: "custom",
+        tags: SAMPLE_TAGS,
         resources: [{ type: "Microsoft.KeyVault/vaults", name: "my-vault", icon: "KeyRound", config: { region: "southeastasia", softDelete: true, purgeProtection: false, accessModel: "rbac" } }],
       })
     ).toEqual(["Microsoft.KeyVault/vaults"]);
@@ -119,23 +149,26 @@ describe("buildArmTemplate — custom mode", () => {
     expect(
       resourceTypes({
         mode: "custom",
+        tags: SAMPLE_TAGS,
         resources: [{ type: "Microsoft.Network/virtualNetworks", name: "my-net", icon: "Network", config: { region: "southeastasia", addressSpace: "10.0.0.0/16" } }],
       })
     ).toEqual(["Microsoft.Network/virtualNetworks"]);
   });
 
-  it("maps Microsoft.Network/networkSecurityGroups to an NSG resource", () => {
+  it("ignores Microsoft.Network/networkSecurityGroups (blocked by COE-Allowed-Resources policy)", () => {
     expect(
       resourceTypes({
         mode: "custom",
+        tags: SAMPLE_TAGS,
         resources: [{ type: "Microsoft.Network/networkSecurityGroups", name: "my-nsg", icon: "Shield", config: { region: "southeastasia", allowHTTPS: true } }],
       })
-    ).toEqual(["Microsoft.Network/networkSecurityGroups"]);
+    ).toEqual([]);
   });
 
   it("combines multiple resource types into one resources array", () => {
     const types = resourceTypes({
       mode: "custom",
+      tags: SAMPLE_TAGS,
       resources: [
         { type: "Microsoft.Storage/storageAccounts", name: "mystore", icon: "HardDrive", config: { region: "southeastasia", redundancy: "LRS", accessTier: "Hot" } },
         { type: "Microsoft.KeyVault/vaults", name: "my-vault", icon: "KeyRound", config: { region: "southeastasia", softDelete: true, purgeProtection: false, accessModel: "rbac" } },
@@ -150,10 +183,20 @@ describe("buildArmTemplate — web-application template", () => {
   it("creates App Service Plan and Web App", () => {
     const types = resourceTypes({
       mode: "template",
+      tags: SAMPLE_TAGS,
       template: { slug: "web-application", formValues: { appName: "my-app", region: "southeastasia", planSize: "B1", httpsOnly: true } },
     });
     expect(types).toContain("Microsoft.Web/serverfarms");
     expect(types).toContain("Microsoft.Web/sites");
+  });
+
+  it("clamps disallowed App Service SKU to B1 (COE policy allows F1/B1/B2/B3 only)", () => {
+    const result = buildArmTemplate(
+      { mode: "template", tags: SAMPLE_TAGS, template: { slug: "web-application", formValues: { appName: "my-app", region: "southeastasia", planSize: "P1v2" } } },
+      opts
+    );
+    const plan = result.resources.find((r) => r.type === "Microsoft.Web/serverfarms") as unknown as { sku: { name: string } };
+    expect(plan.sku.name).toBe("B1");
   });
 });
 
@@ -161,6 +204,7 @@ describe("buildArmTemplate — container-app template", () => {
   it("creates Managed Environment and Container App", () => {
     const types = resourceTypes({
       mode: "template",
+      tags: SAMPLE_TAGS,
       template: { slug: "container-app", formValues: { appName: "my-app", region: "southeastasia", containerImage: "nginx:latest", minReplicas: 1, maxReplicas: 3, externalAccess: true } },
     });
     expect(types).toContain("Microsoft.App/managedEnvironments");
@@ -172,6 +216,7 @@ describe("buildArmTemplate — virtual-machine template", () => {
   it("creates Public IP, VNet, NIC, and VM", () => {
     const types = resourceTypes({
       mode: "template",
+      tags: SAMPLE_TAGS,
       template: { slug: "virtual-machine", formValues: { vmName: "my-vm", region: "southeastasia", osType: "Ubuntu2204", vmSize: "Standard_B2s", adminUsername: "azureuser", enableSSH: true } },
     });
     expect(types).toContain("Microsoft.Network/publicIPAddresses");
@@ -182,17 +227,19 @@ describe("buildArmTemplate — virtual-machine template", () => {
 });
 
 describe("buildArmTemplate — landing-zone template", () => {
-  it("always includes NSG", () => {
+  it("does not include NSG (blocked by COE-Allowed-Resources policy)", () => {
     const types = resourceTypes({
       mode: "template",
+      tags: SAMPLE_TAGS,
       template: { slug: "landing-zone", formValues: { projectName: "myproj", region: "southeastasia", namingPrefix: "proj", includeNetwork: false, includeMonitoring: false, includeSecurity: false } },
     });
-    expect(types).toContain("Microsoft.Network/networkSecurityGroups");
+    expect(types).not.toContain("Microsoft.Network/networkSecurityGroups");
   });
 
   it("includes VNet when includeNetwork is true", () => {
     const types = resourceTypes({
       mode: "template",
+      tags: SAMPLE_TAGS,
       template: { slug: "landing-zone", formValues: { projectName: "myproj", region: "southeastasia", namingPrefix: "proj", includeNetwork: true, includeMonitoring: false, includeSecurity: false } },
     });
     expect(types).toContain("Microsoft.Network/virtualNetworks");
@@ -201,6 +248,7 @@ describe("buildArmTemplate — landing-zone template", () => {
   it("includes Key Vault when includeSecurity is true", () => {
     const types = resourceTypes({
       mode: "template",
+      tags: SAMPLE_TAGS,
       template: { slug: "landing-zone", formValues: { projectName: "myproj", region: "southeastasia", namingPrefix: "proj", includeNetwork: false, includeMonitoring: false, includeSecurity: true } },
     });
     expect(types).toContain("Microsoft.KeyVault/vaults");
@@ -209,6 +257,7 @@ describe("buildArmTemplate — landing-zone template", () => {
   it("includes Log Analytics when includeMonitoring is true", () => {
     const types = resourceTypes({
       mode: "template",
+      tags: SAMPLE_TAGS,
       template: { slug: "landing-zone", formValues: { projectName: "myproj", region: "southeastasia", namingPrefix: "proj", includeNetwork: false, includeMonitoring: true, includeSecurity: false } },
     });
     expect(types).toContain("Microsoft.OperationalInsights/workspaces");
@@ -219,6 +268,7 @@ describe("buildArmTemplate — custom mode multi-resource", () => {
   it("maps Microsoft.Web/sites to App Service Plan + Web App", () => {
     const types = resourceTypes({
       mode: "custom",
+      tags: SAMPLE_TAGS,
       resources: [{ type: "Microsoft.Web/sites", name: "my-app", icon: "Globe", config: { region: "southeastasia", planSize: "B1" } }],
     });
     expect(types).toContain("Microsoft.Web/serverfarms");
@@ -228,6 +278,7 @@ describe("buildArmTemplate — custom mode multi-resource", () => {
   it("maps Microsoft.Compute/virtualMachines to 4 VM resources", () => {
     const types = resourceTypes({
       mode: "custom",
+      tags: SAMPLE_TAGS,
       resources: [{ type: "Microsoft.Compute/virtualMachines", name: "my-vm", icon: "Monitor", config: { region: "southeastasia", vmSize: "Standard_B2s", osType: "Ubuntu2204", adminUsername: "azureuser" } }],
     });
     expect(types).toContain("Microsoft.Network/publicIPAddresses");
@@ -237,6 +288,7 @@ describe("buildArmTemplate — custom mode multi-resource", () => {
   it("maps Microsoft.App/containerApps to environment + app", () => {
     const types = resourceTypes({
       mode: "custom",
+      tags: SAMPLE_TAGS,
       resources: [{ type: "Microsoft.App/containerApps", name: "my-app", icon: "Box", config: { region: "southeastasia", containerImage: "nginx:latest" } }],
     });
     expect(types).toContain("Microsoft.App/managedEnvironments");

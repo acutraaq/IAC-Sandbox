@@ -85,6 +85,7 @@
   {
     "slug": "virtual-machine",
     "name": "Virtual Machine",
+    "policyBlocked": true,
     "description": "Set up a virtual computer in the cloud for running software, scripts, or development environments.",
     "category": "compute",
     "icon": "Monitor",

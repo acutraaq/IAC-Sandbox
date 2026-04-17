@@ -1,11 +1,19 @@
 import { describe, it, expect } from "vitest";
 import { deriveResourceGroupName, deriveLocation } from "./rg-name.js";
 
+const SAMPLE_TAGS = {
+  "Cost Center": "cc-001",
+  "Project ID": "proj-001",
+  "Project Owner": "test-user",
+  "Expiry Date": "2026-12-31",
+};
+
 describe("deriveResourceGroupName", () => {
   it("uses appName for web-application template", () => {
     expect(
       deriveResourceGroupName({
         mode: "template",
+        tags: SAMPLE_TAGS,
         template: { slug: "web-application", formValues: { appName: "my-app" } },
       })
     ).toBe("my-app-rg");
@@ -15,6 +23,7 @@ describe("deriveResourceGroupName", () => {
     expect(
       deriveResourceGroupName({
         mode: "template",
+        tags: SAMPLE_TAGS,
         template: { slug: "virtual-machine", formValues: { vmName: "my-vm" } },
       })
     ).toBe("my-vm-rg");
@@ -24,6 +33,7 @@ describe("deriveResourceGroupName", () => {
     expect(
       deriveResourceGroupName({
         mode: "template",
+        tags: SAMPLE_TAGS,
         template: { slug: "database", formValues: { dbName: "my-db" } },
       })
     ).toBe("my-db-rg");
@@ -33,6 +43,7 @@ describe("deriveResourceGroupName", () => {
     expect(
       deriveResourceGroupName({
         mode: "template",
+        tags: SAMPLE_TAGS,
         template: { slug: "storage-account", formValues: { storageName: "myfiles" } },
       })
     ).toBe("myfiles-rg");
@@ -42,6 +53,7 @@ describe("deriveResourceGroupName", () => {
     expect(
       deriveResourceGroupName({
         mode: "template",
+        tags: SAMPLE_TAGS,
         template: { slug: "virtual-network", formValues: { vnetName: "my-network" } },
       })
     ).toBe("my-network-rg");
@@ -51,6 +63,7 @@ describe("deriveResourceGroupName", () => {
     expect(
       deriveResourceGroupName({
         mode: "template",
+        tags: SAMPLE_TAGS,
         template: { slug: "key-vault", formValues: { vaultName: "my-secrets" } },
       })
     ).toBe("my-secrets-rg");
@@ -60,6 +73,7 @@ describe("deriveResourceGroupName", () => {
     expect(
       deriveResourceGroupName({
         mode: "template",
+        tags: SAMPLE_TAGS,
         template: { slug: "container-app", formValues: { appName: "my-container" } },
       })
     ).toBe("my-container-rg");
@@ -69,6 +83,7 @@ describe("deriveResourceGroupName", () => {
     expect(
       deriveResourceGroupName({
         mode: "template",
+        tags: SAMPLE_TAGS,
         template: { slug: "landing-zone", formValues: { projectName: "my-project" } },
       })
     ).toBe("my-project-rg");
@@ -78,6 +93,7 @@ describe("deriveResourceGroupName", () => {
     expect(
       deriveResourceGroupName({
         mode: "template",
+        tags: SAMPLE_TAGS,
         template: { slug: "web-application", formValues: {} },
       })
     ).toBe("web-application-rg");
@@ -87,6 +103,7 @@ describe("deriveResourceGroupName", () => {
     expect(
       deriveResourceGroupName({
         mode: "custom",
+        tags: SAMPLE_TAGS,
         resources: [
           { type: "Microsoft.Storage/storageAccounts", name: "my-storage", icon: "HardDrive", config: {} },
         ],
@@ -98,6 +115,7 @@ describe("deriveResourceGroupName", () => {
     expect(
       deriveResourceGroupName({
         mode: "template",
+        tags: SAMPLE_TAGS,
         template: { slug: "web-application", formValues: { appName: "MyApp" } },
       })
     ).toBe("myapp-rg");
@@ -107,6 +125,7 @@ describe("deriveResourceGroupName", () => {
     expect(
       deriveResourceGroupName({
         mode: "template",
+        tags: SAMPLE_TAGS,
         template: { slug: "web-application", formValues: { appName: "my app name" } },
       })
     ).toBe("my-app-name-rg");
@@ -114,7 +133,7 @@ describe("deriveResourceGroupName", () => {
 
   it("falls back to sandbox-rg in custom mode with no resources", () => {
     expect(
-      deriveResourceGroupName({ mode: "custom", resources: [] })
+      deriveResourceGroupName({ mode: "custom", tags: SAMPLE_TAGS, resources: [] })
     ).toBe("sandbox-rg");
   });
 });
@@ -124,6 +143,7 @@ describe("deriveLocation", () => {
     expect(
       deriveLocation({
         mode: "template",
+        tags: SAMPLE_TAGS,
         template: { slug: "web-application", formValues: { region: "southeastasia" } },
       })
     ).toBe("southeastasia");
@@ -133,6 +153,7 @@ describe("deriveLocation", () => {
     expect(
       deriveLocation({
         mode: "custom",
+        tags: SAMPLE_TAGS,
         resources: [
           { type: "Microsoft.Storage/storageAccounts", name: "x", icon: "HardDrive", config: { region: "eastasia" } },
         ],
@@ -144,12 +165,13 @@ describe("deriveLocation", () => {
     expect(
       deriveLocation({
         mode: "template",
+        tags: SAMPLE_TAGS,
         template: { slug: "web-application", formValues: {} },
       })
     ).toBe("southeastasia");
   });
 
   it("falls back to southeastasia in custom mode with no resources", () => {
-    expect(deriveLocation({ mode: "custom", resources: [] })).toBe("southeastasia");
+    expect(deriveLocation({ mode: "custom", tags: SAMPLE_TAGS, resources: [] })).toBe("southeastasia");
   });
 });
