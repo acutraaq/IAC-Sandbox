@@ -40,17 +40,19 @@ export default function BuilderPage() {
 
   return (
     <div className="mx-auto max-w-6xl px-6 py-12">
-      <div className="mb-8">
-        <p className="mb-3 font-mono text-xs uppercase tracking-[0.2em] text-text-muted">
-          Custom builder
-        </p>
-        <h1 className="font-display text-4xl font-bold text-text">
-          Build Your Own Setup
-        </h1>
-        <p className="mt-3 text-text-muted">
-          Choose Azure resources one at a time and configure each one. Review
-          your complete setup before submitting.
-        </p>
+      <div className="mb-8 flex flex-col items-start justify-between gap-4 border-b border-border pb-6 sm:flex-row sm:items-end">
+        <div className="flex flex-col">
+          <span className="mb-2 font-mono text-[10px] font-semibold uppercase tracking-widest text-text-muted">
+            Custom builder
+          </span>
+          <h1 className="font-display text-3xl font-extrabold tracking-tight text-text">
+            Build Your Own Setup
+          </h1>
+          <p className="mt-2 text-sm text-text-muted">
+            Choose Azure resources one at a time and configure each one. Review
+            your complete setup before submitting.
+          </p>
+        </div>
       </div>
 
       <div className="grid gap-8 lg:grid-cols-[1fr_300px]">

@@ -7,7 +7,7 @@ import { MockProvider } from "@/components/MockProvider";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Sandbox Playground",
+  title: "Sandbox IAC",
   description:
     "Deploy cloud resources in minutes. Pick a template or build your own configuration.",
 };

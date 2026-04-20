@@ -1,13 +1,13 @@
-import { HeroSection } from "@/components/home/HeroSection";
-import { FeaturesSection } from "@/components/home/FeaturesSection";
-import { GetStartedSection } from "@/components/home/GetStartedSection";
+import { DashboardHeader } from "@/components/home/DashboardHeader";
+import { TemplateGrid } from "@/components/home/TemplateGrid";
+import { DeployedList } from "@/components/home/DeployedList";
 
 export default function Home() {
   return (
-    <>
-      <HeroSection />
-      <FeaturesSection />
-      <GetStartedSection />
-    </>
+    <div className="mx-auto max-w-7xl">
+      <DashboardHeader />
+      <TemplateGrid />
+      <DeployedList />
+    </div>
   );
 }

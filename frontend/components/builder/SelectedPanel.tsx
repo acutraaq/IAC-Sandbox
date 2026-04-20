@@ -17,14 +17,14 @@ export function SelectedPanel({ resources, onRemove }: SelectedPanelProps) {
       aria-label="Your selected resources"
       className="rounded-xl border border-border bg-surface p-5"
     >
-      <h3 className="mb-4 flex items-center gap-2 text-sm font-semibold text-text">
+      <h2 className="mb-4 flex items-center gap-2 text-sm font-semibold text-text">
         Your Setup
         {resources.length > 0 && (
           <span className="flex h-5 w-5 items-center justify-center rounded-full bg-accent text-xs text-white">
             {resources.length}
           </span>
         )}
-      </h3>
+      </h2>
 
       {resources.length === 0 ? (
         <div className="flex flex-col items-center gap-2 py-6 text-center">

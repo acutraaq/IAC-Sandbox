@@ -39,7 +39,7 @@ export default async function TemplatePage({ params }: Props) {
       <div className="mb-8">
         <Link
           href="/templates"
-          className="mb-4 inline-flex items-center gap-1.5 text-sm text-text-muted hover:text-text"
+          className="mb-4 inline-flex items-center gap-1.5 text-sm text-text-muted hover:text-text focus-visible:underline"
         >
           <ArrowLeft className="h-4 w-4" />
           All templates
