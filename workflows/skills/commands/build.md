@@ -5,6 +5,15 @@ description: Run the Next.js static export build for IAC Sandbox and verify /out
 
 # Build Static Export
 
+## Overview
+Compiles the Next.js frontend into a static export at `frontend/out/`. Run this to confirm the app builds cleanly before marking any phase done. Must exit 0 with `frontend/out/index.html` present.
+
+## Quick Reference
+| Task | Command |
+|---|---|
+| Run build | `cd frontend && npm run build` |
+| Verify output exists | `ls frontend/out/index.html` |
+
 ```bash
 cd frontend && npm run build
 ```

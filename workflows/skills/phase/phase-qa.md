@@ -5,7 +5,17 @@ description: Quality gate phase (Phase 4): lint, tests, build, smoke checklist, 
 
 # Phase: QA + Release Gates (Phase 4)
 
-This phase IS the quality gate. Nothing passes until all checks are green.
+## Overview
+The final quality gate — not a feature phase. Run the five checks below in strict order; stop on any failure. All five must be green before any PR is opened or phase is marked complete.
+
+## Quick Reference
+| Step | Command / Action |
+|---|---|
+| 1. Lint | `cd frontend && npm run lint` |
+| 2. Tests | `cd frontend && npm run test:run` |
+| 3. Build | `cd frontend && npm run build` |
+| 4. Smoke | Run `/smoke` skill with live dev server |
+| 5. Security | Work through security checklist below |
 
 ## Sequence (run in order — stop on any failure)
 
