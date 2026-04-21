@@ -95,3 +95,43 @@ jobs:
           app-name: epf-experimental-sandbox-playground
           publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
           package: ./backend
+
+  functions:
+    name: Functions
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: functions
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: functions/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Generate Prisma client
+        run: npx prisma generate
+
+      - name: Type check
+        run: npx tsc --noEmit
+
+      - name: Build
+        run: npm run build
+
+      - name: Prune dev dependencies
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        run: npm prune --omit=dev
+
+      - name: Deploy to Azure Functions
+        uses: Azure/functions-action@v1
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        with:
+          app-name: epf-sandbox-functions
+          package: ./functions
+          publish-profile: ${{ secrets.AZURE_FUNCTIONAPP_PUBLISH_PROFILE }}

@@ -1,15 +1,15 @@
 import { type Deployment, DeploymentStatus } from "@prisma/client";
+import { QueueServiceClient } from "@azure/storage-queue";
 import { AppError } from "../../lib/errors.js";
 import logger from "../../lib/logger.js";
 import env from "../../lib/env.js";
 import type { DeploymentPayload } from "./deployment.schema.js";
 import {
   createDeployment,
-  updateDeploymentStatus,
   findDeployment,
 } from "./deployment.repo.js";
-import { executeBicepDeployment } from "./bicep-executor.js";
 import { deriveResourceGroupName, deriveLocation } from "./rg-name.js";
+import type { DeploymentJobMessage } from "./deployment.job.js";
 
 export async function submitDeployment(
   payload: DeploymentPayload
@@ -28,36 +28,23 @@ export async function submitDeployment(
 
   const submissionId = deployment.id;
 
-  void (async () => {
-    try {
-      await updateDeploymentStatus(submissionId, DeploymentStatus.running);
+  const message: DeploymentJobMessage = {
+    submissionId,
+    resourceGroupName,
+    location,
+    payload,
+    tags: payload.tags,
+  };
 
-      const bicepOutput = await executeBicepDeployment({
-        subscriptionId: env.AZURE_SUBSCRIPTION_ID,
-        resourceGroupName,
-        deploymentName: submissionId,
-        payload,
-        location,
-        tags: payload.tags,
-      });
+  const queueClient = QueueServiceClient.fromConnectionString(
+    env.AZURE_STORAGE_CONNECTION_STRING
+  ).getQueueClient("deployment-jobs");
 
-      await updateDeploymentStatus(submissionId, DeploymentStatus.succeeded, {
-        bicepOutput,
-      });
+  await queueClient.sendMessage(
+    Buffer.from(JSON.stringify(message)).toString("base64")
+  );
 
-      logger.info({ submissionId, resourceGroupName }, "Deployment completed successfully");
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : String(err);
-
-      logger.error({ submissionId, err }, "Deployment failed");
-
-      await updateDeploymentStatus(submissionId, DeploymentStatus.failed, {
-        errorMessage,
-      }).catch((updateErr) => {
-        logger.error({ submissionId, err: updateErr }, "Failed to update deployment status to failed");
-      });
-    }
-  })();
+  logger.info({ submissionId, resourceGroupName }, "Deployment enqueued");
 
   return { submissionId };
 }
