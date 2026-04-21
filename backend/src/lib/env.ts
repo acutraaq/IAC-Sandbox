@@ -6,8 +6,8 @@ const envSchema = z.object({
     .enum(["development", "production", "test"])
     .default("development"),
   DATABASE_URL: z.string().min(1, "DATABASE_URL is required"),
-  ENTRA_TENANT_ID: z.string().min(1, "ENTRA_TENANT_ID is required"),
-  ENTRA_CLIENT_ID: z.string().min(1, "ENTRA_CLIENT_ID is required"),
+  ENTRA_TENANT_ID: z.string().optional(),
+  ENTRA_CLIENT_ID: z.string().optional(),
   CORS_ORIGINS: z.string().default("http://localhost:3000"),
   LOG_LEVEL: z
     .enum(["fatal", "error", "warn", "info", "debug", "trace"])
