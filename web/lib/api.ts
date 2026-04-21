@@ -1,8 +1,5 @@
 import type { DeploymentPayload, DeploymentStatusResponse, DeploymentListItem, SubmitResponse, ErrorResponse } from "@/types";
 
-const API_URL =
-  process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001";
-
 export class ApiError extends Error {
   constructor(
     public code: string,
@@ -33,7 +30,7 @@ async function parseErrorBody(response: Response): Promise<never> {
 export async function submitDeployment(
   payload: DeploymentPayload,
 ): Promise<SubmitResponse> {
-  const response = await fetch(`${API_URL}/deployments`, {
+  const response = await fetch("/api/deployments", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -49,7 +46,7 @@ export async function submitDeployment(
 }
 
 export async function listDeployments(): Promise<DeploymentListItem[]> {
-  const response = await fetch(`${API_URL}/deployments`);
+  const response = await fetch("/api/deployments");
 
   if (response.status === 200) {
     return response.json() as Promise<DeploymentListItem[]>;
@@ -61,7 +58,7 @@ export async function listDeployments(): Promise<DeploymentListItem[]> {
 export async function getDeployment(
   submissionId: string,
 ): Promise<DeploymentStatusResponse> {
-  const response = await fetch(`${API_URL}/deployments/${submissionId}`);
+  const response = await fetch(`/api/deployments/${submissionId}`);
 
   if (response.status === 200) {
     return response.json() as Promise<DeploymentStatusResponse>;

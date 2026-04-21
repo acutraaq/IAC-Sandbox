@@ -1,12 +1,12 @@
 ---
 name: test
-description: Run the Vitest test suite for the IAC Sandbox frontend
+description: Run the Vitest test suite for IAC Sandbox
 ---
 
 # Run Tests
 
 ```bash
-cd frontend && npm run test:run
+cd web && npm run test:run
 ```
 
 Runs all tests via Vitest. Output shows pass/fail per file with test names.
@@ -15,12 +15,12 @@ Runs all tests via Vitest. Output shows pass/fail per file with test names.
 
 **Run a single file:**
 ```bash
-cd frontend && npx vitest run path/to/Component.test.tsx
+cd web && npx vitest run path/to/Component.test.tsx
 ```
 
 **Run by test name pattern:**
 ```bash
-cd frontend && npx vitest run -t "should prevent duplicate resources"
+cd web && npx vitest run -t "should prevent duplicate resources"
 ```
 
 All tests must pass before any phase is complete.

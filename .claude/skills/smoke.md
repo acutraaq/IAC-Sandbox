@@ -7,7 +7,7 @@ description: Manual smoke test checklist for IAC Sandbox — run after build to 
 
 Start the dev server first:
 ```bash
-cd frontend && npm run dev
+cd web && npm run dev
 ```
 
 Open **http://localhost:3000** and work through this checklist. Check each item only when verified in the browser.

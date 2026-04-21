@@ -1,4 +1,4 @@
-import type { DeploymentPayload } from "./deployment.schema.js";
+import type { DeploymentPayload } from "./schema";
 
 const SLUG_PRIMARY_FIELD: Record<string, string> = {
   "web-application": "appName",

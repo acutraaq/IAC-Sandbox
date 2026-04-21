@@ -1,12 +1,12 @@
 ---
 name: lint
-description: Run ESLint on the IAC Sandbox frontend — must exit 0 before any phase is done
+description: Run ESLint on IAC Sandbox — must exit 0 before any phase is done
 ---
 
 # Run Linter
 
 ```bash
-cd frontend && npm run lint
+cd web && npm run lint
 ```
 
 Must exit with **code 0** (zero errors reported) before any phase is considered complete.

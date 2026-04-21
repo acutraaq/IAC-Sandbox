@@ -11,12 +11,12 @@ Manual browser verification of both user flows end-to-end. Every checkbox must b
 ## Quick Reference
 | Task | Command |
 |---|---|
-| Start dev server | `cd frontend && npm run dev` |
+| Start dev server | `cd web && npm run dev` |
 | Open app | http://localhost:3000 |
 
 Start the dev server first:
 ```bash
-cd frontend && npm run dev
+cd web && npm run dev
 ```
 
 Open **http://localhost:3000** and work through this checklist. Check each item only when verified in the browser.

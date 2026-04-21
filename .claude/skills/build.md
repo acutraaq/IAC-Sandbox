@@ -1,23 +1,17 @@
 ---
 name: build
-description: Run the Next.js static export build for IAC Sandbox and verify /out is produced
+description: Run the Next.js server build for IAC Sandbox
 ---
 
-# Build Static Export
+# Build
 
 ```bash
-cd frontend && npm run build
+cd web && npm run build
 ```
 
-Produces a static export in `frontend/out/`. Verify success:
-
-```bash
-ls frontend/out/index.html
-```
+Produces a server build in `web/.next/`. Start in production with `npm start` (runs `next start`).
 
 **Common failure causes:**
-- Dynamic routes missing `generateStaticParams` — add static params for all template slugs from `data/templates.json`
-- `useSearchParams()` outside a `<Suspense>` boundary — wrap the component
-- Server-only imports in a client component — add `'use client'` directive or move the import
-
-The `/out` directory must exist before any phase is marked done.
+- Missing `"use client"` on components that use browser APIs
+- Server-only imports in client components
+- Type errors — run `npx tsc --noEmit` to diagnose

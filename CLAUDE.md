@@ -49,8 +49,8 @@ Run the install script after cloning or after editing any file in `workflows/`.
 
 ## Tech Stack
 
-### Frontend (`frontend/`)
-- **Framework:** Next.js 16 — App Router, static export (`output: 'export'`)
+### Web App (`web/`)
+- **Framework:** Next.js 16 — App Router with Route Handlers (server-rendered, not static export)
 - **Language:** TypeScript (strict mode — no `any`)
 - **Styling:** Tailwind CSS v4 with CSS variable design tokens
 - **State:** Zustand — single `deploymentStore` for all cross-route state
@@ -58,10 +58,12 @@ Run the install script after cloning or after editing any file in `workflows/`.
 - **Icons:** Lucide React (`getIcon` utility in `lib/icons.ts`)
 - **Animations:** Framer Motion (reduced-motion safe)
 - **Testing:** Vitest + React Testing Library
-- **API Mocking:** MSW (Mock Service Worker) for `POST /deployments` during frontend-only development
+- **Database:** Prisma + PostgreSQL 16 (via `lib/db.ts` singleton)
+- **Queue:** Azure Storage Queue (`@azure/storage-queue`) for async ARM dispatch
 
-### Backend (`backend/`) — deferred
-- Node.js 22 LTS, Fastify, TypeScript, Zod, Prisma, PostgreSQL 16
+### Azure Functions (`functions/`)
+- Node.js 22 LTS, TypeScript, Azure Functions v4 SDK
+- Queue-triggered `processDeployment` — picks up jobs from `deployment-jobs` queue and runs ARM deployments via Azure SDK + managed identity
 
 ### Infrastructure (`infra/`) — deferred
 - Azure Bicep (resource-group scope), Azure Container Apps, Azure Key Vault, Managed Identity
@@ -72,15 +74,19 @@ Run the install script after cloning or after editing any file in `workflows/`.
 
 ```
 /
-├── frontend/               # Next.js 16 app (active development)
-│   ├── app/                # App Router pages and layouts
+├── web/                    # Next.js 16 app — UI + API routes + DB access
+│   ├── app/                # App Router pages, layouts, and route handlers
 │   │   ├── globals.css     # CSS variable design tokens (dark + light)
 │   │   ├── layout.tsx      # RootLayout
 │   │   ├── page.tsx        # Home (/)
 │   │   ├── login/          # /login (SSO entry — deferred)
 │   │   ├── templates/      # /templates and /templates/[slug]
 │   │   ├── builder/        # /builder
-│   │   └── review/         # /review
+│   │   ├── review/         # /review
+│   │   └── api/
+│   │       ├── deployments/         # GET list, POST create
+│   │       │   └── [submissionId]/  # GET by ID
+│   │       └── healthz/             # GET health check
 │   ├── components/
 │   │   ├── layout/         # PageShell, Nav, ThemeToggle
 │   │   ├── ui/             # Button, Card, Badge, Modal, Toast
@@ -91,23 +97,32 @@ Run the install script after cloning or after editing any file in `workflows/`.
 │   ├── store/
 │   │   └── deploymentStore.ts
 │   ├── lib/
+│   │   ├── api.ts          # Client-side fetch helpers (relative /api/* paths)
+│   │   ├── db.ts           # Prisma singleton
+│   │   ├── errors.ts       # AppError class + toErrorResponse()
+│   │   ├── server-env.ts   # Server-side env validation (Zod)
 │   │   ├── schema.ts       # buildSchema(fields: FieldSchema[]) → ZodObject
 │   │   ├── icons.ts        # getIcon(name: string) → LucideIcon
-│   │   ├── api.ts          # submitDeployment(payload) → SubmitResponse
-│   │   └── report.ts       # generateReport(submissionId, store) → string
+│   │   ├── report.ts       # generateReport(submissionId, store) → string
+│   │   └── deployments/
+│   │       ├── schema.ts   # Zod deployment payload schemas
+│   │       └── rg-name.ts  # deriveResourceGroupName / deriveLocation
+│   ├── prisma/
+│   │   └── schema.prisma   # Deployment model (mirrors functions/prisma)
 │   ├── types/
 │   │   └── index.ts        # All shared TypeScript types
 │   ├── data/
 │   │   ├── templates.json  # 8 Azure deployment templates
 │   │   └── resources.json  # 8 Azure resource types
-│   ├── mocks/              # MSW handlers for API mocking
+│   ├── mocks/              # MSW handlers (used in tests)
 │   │   └── handlers.ts
 │   └── __tests__/          # Co-located preferred, fallback here
 │       ├── store/
 │       ├── lib/
 │       └── components/
 │
-├── backend/                # Fastify API — deferred
+├── functions/              # Azure Functions v4 — queue-triggered ARM deployment
+├── docker-compose.yml      # Local PostgreSQL for development
 ├── infra/                  # Azure Bicep — deferred
 └── implementation/         # Frozen specs (READ-ONLY)
     ├── SPEC.md
@@ -119,9 +134,10 @@ Run the install script after cloning or after editing any file in `workflows/`.
 ## Development Commands
 
 ```sh
-# Run from frontend/
+# Run from web/
 npm run dev          # Start dev server (localhost:3000)
-npm run build        # Static export to /out
+npm run build        # Next.js server build to .next/
+npm start            # Start production server
 npm run lint         # ESLint — must pass with 0 errors
 npm run test:run     # Vitest — must all pass
 
@@ -129,6 +145,9 @@ npm run test:run     # Vitest — must all pass
 npx vitest run path/to/Component.test.tsx
 # Run tests matching a name pattern
 npx vitest run -t "should prevent duplicate resources"
+
+# Local database (requires Docker)
+docker-compose up -d   # Start PostgreSQL on port 5432
 ```
 
 ---
@@ -274,7 +293,7 @@ All of these must pass before any phase is considered complete:
 ```sh
 npm run lint         # 0 errors
 npm run test:run     # All tests pass
-npm run build        # /out directory produced (static export)
+npm run build        # .next/ build produced successfully
 ```
 
 Additional manual checks:
@@ -287,28 +306,22 @@ Additional manual checks:
 
 ## Environment Variables
 
-### Frontend
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `NEXT_PUBLIC_API_URL` | `http://localhost:3001` | Backend API base URL |
-
-### Backend (deferred — for reference)
+### Web App (`web/`) — server-side only (never prefix with NEXT_PUBLIC_)
 | Variable | Description |
 |----------|-------------|
-| `PORT` | Server port |
-| `NODE_ENV` | Runtime environment |
 | `DATABASE_URL` | PostgreSQL connection string |
-| `CORS_ORIGINS` | Allowed CORS origins (comma-separated) |
-| `LOG_LEVEL` | Logging verbosity |
-| `BODY_LIMIT_BYTES` | Max request body size |
-| `ENABLE_GET_DEPLOYMENT` | Feature flag for `GET /deployments/:id` |
+| `AZURE_SUBSCRIPTION_ID` | Azure subscription for deployments |
+| `AZURE_TENANT_ID` | Azure tenant ID |
+| `AZURE_STORAGE_CONNECTION_STRING` | Storage account connection string for queue |
 
 ---
 
-## NPM Dependencies (Frontend)
+## NPM Dependencies (`web/`)
 
 ### Production
 - `next` (v16), `react`, `react-dom` (v19)
+- `@prisma/client` — database ORM
+- `@azure/storage-queue` — enqueue deployment jobs
 - `zustand` — state management
 - `react-hook-form`, `@hookform/resolvers` — forms
 - `zod` — validation
@@ -316,17 +329,16 @@ Additional manual checks:
 - `framer-motion` — animations
 
 ### Development
+- `prisma` — Prisma CLI for schema management
 - `typescript`, `@types/react`, `@types/react-dom`
 - `tailwindcss` (v4)
 - `eslint`, `eslint-config-next`
 - `vitest`, `@testing-library/react`, `@testing-library/jest-dom`
-- `msw` — API mocking during frontend-only development
+- `msw` — API mocking in tests
 
 ---
 
 ## Build Order
-
-**Frontend first. Do not touch `backend/` or `infra/` until all frontend phases pass quality gates.**
 
 | Phase | What |
 |-------|------|
@@ -337,5 +349,4 @@ Additional manual checks:
 | 3c | Custom builder — catalog, drawer, selected panel |
 | 3d | Review + Submit — guard, payload, API client, confirmation modal, proof report |
 | 4 | Quality — tests, lint, build verification, smoke test |
-| — | Backend (deferred) |
 | — | Infrastructure/Bicep (deferred) |
