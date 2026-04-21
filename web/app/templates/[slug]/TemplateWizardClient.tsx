@@ -23,7 +23,6 @@ export function TemplateWizardClient({ template }: Props) {
     setFormValues,
   } = useDeploymentStore();
 
-  // Initialize template on mount
   useEffect(() => {
     if (selectedTemplate?.slug !== template.slug) {
       selectTemplate(template);

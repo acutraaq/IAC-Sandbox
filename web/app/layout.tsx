@@ -3,7 +3,6 @@ import { GeistSans } from "geist/font/sans";
 import { GeistMono } from "geist/font/mono";
 import { PageShell } from "@/components/layout/PageShell";
 import { ToastContainer } from "@/components/ui/Toast";
-import { MockProvider } from "@/components/MockProvider";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -25,10 +24,8 @@ export default function RootLayout({
       className={`${GeistSans.variable} ${GeistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col bg-bg text-text font-sans">
-        <MockProvider>
-          <PageShell>{children}</PageShell>
-          <ToastContainer />
-        </MockProvider>
+        <PageShell>{children}</PageShell>
+        <ToastContainer />
       </body>
     </html>
   );

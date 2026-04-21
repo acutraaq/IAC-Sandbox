@@ -1,15 +1,5 @@
 import type { DeploymentState, ResourceGroupTags } from "@/types";
-
-const SLUG_PRIMARY_FIELD: Record<string, string> = {
-  "web-application": "appName",
-  "virtual-machine": "vmName",
-  "database": "dbName",
-  "storage-account": "storageName",
-  "virtual-network": "vnetName",
-  "key-vault": "vaultName",
-  "container-app": "appName",
-  "landing-zone": "projectName",
-};
+import { SLUG_PRIMARY_FIELD, sanitise } from "@/lib/deployments/rg-name";
 
 function deriveRgName(
   state: Pick<
@@ -32,15 +22,7 @@ function deriveRgName(
     base = "sandbox";
   }
 
-  const sanitised =
-    base
-      .toLowerCase()
-      .replace(/\s+/g, "-")
-      .replace(/[^a-z0-9\-_.()]/g, "")
-      .replace(/\.+$/, "")
-      .slice(0, 87) || "sandbox";
-
-  return sanitised + "-rg";
+  return sanitise(base) + "-rg";
 }
 
 export function generateReport(

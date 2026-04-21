@@ -1,6 +1,7 @@
 "use client";
 
 import { DynamicIcon } from "@/components/ui/DynamicIcon";
+import { displayFieldValue } from "@/lib/display";
 import type { DeploymentState } from "@/types";
 
 type ReviewProps = Pick<
@@ -44,22 +45,13 @@ export function ReviewSection({
               <dl className="space-y-2">
                 {stepFields.map((field) => {
                   const value = wizardState.formValues[field.name];
-                  const displayValue =
-                    field.type === "toggle"
-                      ? value
-                        ? "Yes"
-                        : "No"
-                      : field.type === "select"
-                        ? field.options?.find((o) => o.value === value)
-                            ?.label ?? String(value)
-                        : String(value);
 
                   return (
                     <div key={field.name} className="flex gap-3 text-sm">
                       <dt className="min-w-0 flex-1 text-text-muted">
                         {field.label}
                       </dt>
-                      <dd className="font-medium text-text">{displayValue}</dd>
+                      <dd className="font-medium text-text">{displayFieldValue(field, value)}</dd>
                     </div>
                   );
                 })}

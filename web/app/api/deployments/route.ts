@@ -16,7 +16,12 @@ interface DeploymentJobMessage {
   tags: Record<string, string>;
 }
 
+const queueClient = QueueServiceClient.fromConnectionString(
+  serverEnv.AZURE_STORAGE_CONNECTION_STRING
+).getQueueClient("deployment-jobs");
+
 export async function GET() {
+  const requestId = crypto.randomUUID();
   try {
     const deployments = await db.deployment.findMany({
       orderBy: { createdAt: "desc" },
@@ -35,11 +40,11 @@ export async function GET() {
     );
   } catch (err) {
     if (err instanceof AppError) {
-      return NextResponse.json(toErrorResponse(err, crypto.randomUUID()), { status: err.statusCode });
+      return NextResponse.json(toErrorResponse(err, requestId), { status: err.statusCode });
     }
     console.error(err);
     const internal = AppError.internal();
-    return NextResponse.json(toErrorResponse(internal, crypto.randomUUID()), { status: 500 });
+    return NextResponse.json(toErrorResponse(internal, requestId), { status: 500 });
   }
 }
 
@@ -90,10 +95,6 @@ export async function POST(request: Request) {
       payload,
       tags: payload.tags,
     };
-
-    const queueClient = QueueServiceClient.fromConnectionString(
-      serverEnv.AZURE_STORAGE_CONNECTION_STRING
-    ).getQueueClient("deployment-jobs");
 
     await queueClient.sendMessage(
       Buffer.from(JSON.stringify(message)).toString("base64")

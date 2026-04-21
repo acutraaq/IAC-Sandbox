@@ -1,6 +1,7 @@
 "use client";
 
 import { Check } from "lucide-react";
+import { displayFieldValue } from "@/lib/display";
 import type { TemplateStep } from "@/types";
 
 interface SummaryPanelProps {
@@ -47,21 +48,11 @@ export function SummaryPanel({
                     if (value === undefined || value === null || value === "")
                       return null;
 
-                    const displayValue =
-                      field.type === "toggle"
-                        ? value
-                          ? "Yes"
-                          : "No"
-                        : field.type === "select"
-                          ? (field.options?.find((o) => o.value === value)
-                              ?.label ?? String(value))
-                          : String(value);
-
                     return (
                       <div key={field.name} className="text-xs text-text-muted">
                         <span className="text-text-muted">{field.label}:</span>{" "}
                         <span className="font-medium text-text">
-                          {displayValue}
+                          {displayFieldValue(field, value)}
                         </span>
                       </div>
                     );

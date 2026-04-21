@@ -1,6 +1,6 @@
 import type { DeploymentPayload } from "./schema";
 
-const SLUG_PRIMARY_FIELD: Record<string, string> = {
+export const SLUG_PRIMARY_FIELD: Record<string, string> = {
   "web-application": "appName",
   "virtual-machine": "vmName",
   "database": "dbName",
@@ -37,7 +37,7 @@ export function deriveLocation(payload: DeploymentPayload): string {
   return typeof region === "string" ? region : "southeastasia";
 }
 
-function sanitise(name: string): string {
+export function sanitise(name: string): string {
   const result = name
     .toLowerCase()
     .replace(/\s+/g, "-")

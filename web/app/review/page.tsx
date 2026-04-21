@@ -10,6 +10,7 @@ import { ConfirmModal } from "@/components/review/ConfirmModal";
 import { Button } from "@/components/ui/Button";
 import { toast } from "@/components/ui/Toast";
 import { Send, Loader2, ArrowLeft, Tag } from "lucide-react";
+import { tagsSchema } from "@/lib/deployments/schema";
 import type { ResourceGroupTags } from "@/types";
 import Link from "next/link";
 
@@ -31,27 +32,26 @@ export default function ReviewPage() {
   const [tagErrors, setTagErrors] = useState<Partial<Record<keyof ResourceGroupTags, string>>>({});
 
   function validateTags(): boolean {
+    const result = tagsSchema.safeParse(tags);
+    if (result.success) {
+      setTagErrors({});
+      return true;
+    }
     const errors: Partial<Record<keyof ResourceGroupTags, string>> = {};
-    if (!tags["Cost Center"]) errors["Cost Center"] = "Required";
-    if (!tags["Project ID"]) errors["Project ID"] = "Required";
-    if (!tags["Project Owner"]) errors["Project Owner"] = "Required";
-    if (!tags["Expiry Date"]) {
-      errors["Expiry Date"] = "Required";
-    } else if (!/^\d{4}-\d{2}-\d{2}$/.test(tags["Expiry Date"])) {
-      errors["Expiry Date"] = "Must be YYYY-MM-DD";
+    for (const issue of result.error.issues) {
+      const key = issue.path[0] as keyof ResourceGroupTags;
+      errors[key] = issue.message;
     }
     setTagErrors(errors);
-    return Object.keys(errors).length === 0;
+    return false;
   }
 
-  // Guard: redirect if no mode selected
   useEffect(() => {
     if (!mode) {
       router.replace("/");
     }
   }, [mode, router]);
 
-  // Poll deployment status after submission until terminal state
   useEffect(() => {
     const submissionId = store.submissionId;
     if (!submissionId || !modalOpen) return;
@@ -59,7 +59,10 @@ export default function ReviewPage() {
     pollRef.current = setInterval(async () => {
       try {
         const result = await getDeployment(submissionId);
-        setDeploymentStatus(result.status, result.errorMessage);
+        const current = useDeploymentStore.getState();
+        if (result.status !== current.deploymentStatus || result.errorMessage !== current.deploymentError) {
+          setDeploymentStatus(result.status, result.errorMessage);
+        }
         if (result.status === "succeeded" || result.status === "failed") {
           clearInterval(pollRef.current!);
           pollRef.current = null;
@@ -176,7 +179,7 @@ export default function ReviewPage() {
           {(["Cost Center", "Project ID", "Project Owner"] as const).map((field) => (
             <div key={field}>
               <label className="mb-1 block text-xs font-medium text-text-muted">
-                {field} <span className="text-red-500">*</span>
+                {field} <span className="text-error">*</span>
               </label>
               <input
                 type="text"
@@ -189,13 +192,13 @@ export default function ReviewPage() {
                 placeholder={field}
               />
               {tagErrors[field] && (
-                <p className="mt-1 text-xs text-red-500">{tagErrors[field]}</p>
+                <p className="mt-1 text-xs text-error">{tagErrors[field]}</p>
               )}
             </div>
           ))}
           <div>
             <label className="mb-1 block text-xs font-medium text-text-muted">
-              Expiry Date <span className="text-red-500">*</span>
+              Expiry Date <span className="text-error">*</span>
             </label>
             <input
               type="date"
@@ -207,7 +210,7 @@ export default function ReviewPage() {
               className="w-full rounded-lg border border-border bg-bg px-3 py-2 text-sm text-text focus:outline-none focus:ring-2 focus:ring-accent"
             />
             {tagErrors["Expiry Date"] && (
-              <p className="mt-1 text-xs text-red-500">{tagErrors["Expiry Date"]}</p>
+              <p className="mt-1 text-xs text-error">{tagErrors["Expiry Date"]}</p>
             )}
           </div>
         </div>

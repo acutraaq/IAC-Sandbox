@@ -35,15 +35,15 @@ export const useDeploymentStore = create<DeploymentState>((set, get) => ({
       wizardState: { ...state.wizardState, currentStep: step },
     })),
 
-  completeStep: (step) =>
+  completeStep: (step) => {
+    if (get().wizardState.completedSteps.includes(step)) return;
     set((state) => ({
       wizardState: {
         ...state.wizardState,
-        completedSteps: state.wizardState.completedSteps.includes(step)
-          ? state.wizardState.completedSteps
-          : [...state.wizardState.completedSteps, step],
+        completedSteps: [...state.wizardState.completedSteps, step],
       },
-    })),
+    }));
+  },
 
   setFormValues: (values) =>
     set((state) => ({

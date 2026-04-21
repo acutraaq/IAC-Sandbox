@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 // Required by subscription policy COE-Enforce-Tag-RG.
-const tagsSchema = z.object({
+export const tagsSchema = z.object({
   "Cost Center": z.string().min(1, "Cost Center tag is required"),
   "Project ID": z.string().min(1, "Project ID tag is required"),
   "Project Owner": z.string().min(1, "Project Owner tag is required"),
