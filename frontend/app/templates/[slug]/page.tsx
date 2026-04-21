@@ -8,6 +8,8 @@ interface Props {
   params: Promise<{ slug: string }>;
 }
 
+export const dynamicParams = false;
+
 export function generateStaticParams() {
   return (templates as Template[]).map((t) => ({ slug: t.slug }));
 }

@@ -59,15 +59,19 @@ export function SelectedPanel({ resources, onRemove }: SelectedPanelProps) {
       )}
 
       <div className="mt-4">
-        <Button
-          asChild
-          className={`w-full ${resources.length === 0 ? "pointer-events-none opacity-40" : ""}`}
-        >
-          <Link href="/review">
+        {resources.length === 0 ? (
+          <Button disabled className="w-full">
             Continue to Review
             <ArrowRight className="h-4 w-4" />
-          </Link>
-        </Button>
+          </Button>
+        ) : (
+          <Button asChild className="w-full">
+            <Link href="/review">
+              Continue to Review
+              <ArrowRight className="h-4 w-4" />
+            </Link>
+          </Button>
+        )}
       </div>
     </aside>
   );

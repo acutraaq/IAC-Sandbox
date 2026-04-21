@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import type { DeploymentState, Template, SelectedResource } from "@/types";
+import type { DeploymentState, DeploymentStatus, Template, SelectedResource } from "@/types";
 
 const initialWizardState = {
   currentStep: 0,
@@ -7,13 +7,15 @@ const initialWizardState = {
   formValues: {} as Record<string, unknown>,
 };
 
-export const useDeploymentStore = create<DeploymentState>((set) => ({
+export const useDeploymentStore = create<DeploymentState>((set, get) => ({
   mode: null,
   selectedTemplate: null,
   wizardState: initialWizardState,
   selectedResources: [],
   submissionId: null,
   deploymentSummary: null,
+  deploymentStatus: null,
+  deploymentError: null,
 
   setMode: (mode) => set({ mode }),
 
@@ -52,16 +54,12 @@ export const useDeploymentStore = create<DeploymentState>((set) => ({
     })),
 
   addResource: (resource: SelectedResource) => {
-    let added = false;
-    set((state) => {
-      const isDuplicate = state.selectedResources.some(
-        (r) => r.type === resource.type,
-      );
-      if (isDuplicate) return state;
-      added = true;
-      return { selectedResources: [...state.selectedResources, resource] };
-    });
-    return added;
+    const isDuplicate = get().selectedResources.some(
+      (r) => r.type === resource.type,
+    );
+    if (isDuplicate) return false;
+    set((state) => ({ selectedResources: [...state.selectedResources, resource] }));
+    return true;
   },
 
   removeResource: (type: string) =>
@@ -72,6 +70,9 @@ export const useDeploymentStore = create<DeploymentState>((set) => ({
   setSubmissionResult: (id: string, summary: string) =>
     set({ submissionId: id, deploymentSummary: summary }),
 
+  setDeploymentStatus: (status: DeploymentStatus, error?: string | null) =>
+    set({ deploymentStatus: status, deploymentError: error ?? null }),
+
   reset: () =>
     set({
       mode: null,
@@ -80,5 +81,7 @@ export const useDeploymentStore = create<DeploymentState>((set) => ({
       selectedResources: [],
       submissionId: null,
       deploymentSummary: null,
+      deploymentStatus: null,
+      deploymentError: null,
     }),
 }));

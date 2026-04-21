@@ -47,9 +47,11 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       const child = children as React.ReactElement<{
         className?: string;
         ref?: React.Ref<HTMLElement>;
+        [key: string]: unknown;
       }>;
       return (
         <child.type
+          {...props}
           {...child.props}
           ref={ref}
           className={`${classes} ${child.props.className ?? ""}`}

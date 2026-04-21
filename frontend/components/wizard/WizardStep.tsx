@@ -133,7 +133,7 @@ export function WizardStep({
                     type="checkbox"
                     {...register(field.name)}
                     className="peer sr-only"
-                    onChange={(e) => setValue(field.name, e.target.checked)}
+                    onChange={(e) => setValue(field.name, e.target.checked, { shouldDirty: true, shouldTouch: true })}
                     checked={watch(field.name) as boolean | undefined ?? false}
                   />
                   <div className="h-6 w-11 rounded-full border border-border bg-surface transition-colors peer-checked:border-accent peer-checked:bg-accent peer-focus-visible:ring-2 peer-focus-visible:ring-accent peer-focus-visible:ring-offset-1 peer-focus-visible:ring-offset-surface-elevated" />

@@ -47,6 +47,19 @@ describe("Modal", () => {
     expect(onClose).toHaveBeenCalledTimes(1);
   });
 
+  it("calls onClose when backdrop overlay is clicked", async () => {
+    const onClose = vi.fn();
+    const { container } = render(
+      <Modal open={true} onClose={onClose} title="Test">
+        <p>Content</p>
+      </Modal>,
+    );
+    const backdrop = container.querySelector(".absolute.inset-0");
+    expect(backdrop).not.toBeNull();
+    await userEvent.click(backdrop!);
+    expect(onClose).toHaveBeenCalledTimes(1);
+  });
+
   it("has aria-modal attribute", () => {
     render(
       <Modal open={true} onClose={() => {}} title="Accessible Modal">

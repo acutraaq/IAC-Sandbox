@@ -1,9 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useDeploymentStore } from "@/store/deploymentStore";
-import { submitDeployment, ApiError } from "@/lib/api";
+import { submitDeployment, getDeployment, ApiError } from "@/lib/api";
 import { generateReport } from "@/lib/report";
 import { ReviewSection } from "@/components/review/ReviewSection";
 import { ConfirmModal } from "@/components/review/ConfirmModal";
@@ -12,16 +12,16 @@ import { toast } from "@/components/ui/Toast";
 import { Send, Loader2, ArrowLeft, Tag } from "lucide-react";
 import type { ResourceGroupTags } from "@/types";
 import Link from "next/link";
-import { useEffect } from "react";
 
 export default function ReviewPage() {
   const router = useRouter();
   const store = useDeploymentStore();
-  const { mode, selectedTemplate, wizardState, selectedResources, setSubmissionResult, reset } = store;
+  const { mode, selectedTemplate, wizardState, selectedResources, deploymentStatus, deploymentError, setSubmissionResult, setDeploymentStatus, reset } = store;
 
   const [submitting, setSubmitting] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
   const [proofText, setProofText] = useState("");
+  const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const [tags, setTags] = useState<ResourceGroupTags>({
     "Cost Center": "",
     "Project ID": "",
@@ -50,6 +50,32 @@ export default function ReviewPage() {
       router.replace("/");
     }
   }, [mode, router]);
+
+  // Poll deployment status after submission until terminal state
+  useEffect(() => {
+    const submissionId = store.submissionId;
+    if (!submissionId || !modalOpen) return;
+
+    pollRef.current = setInterval(async () => {
+      try {
+        const result = await getDeployment(submissionId);
+        setDeploymentStatus(result.status, result.errorMessage);
+        if (result.status === "succeeded" || result.status === "failed") {
+          clearInterval(pollRef.current!);
+          pollRef.current = null;
+        }
+      } catch {
+        // Silently ignore transient errors — keep polling
+      }
+    }, 3000);
+
+    return () => {
+      if (pollRef.current) {
+        clearInterval(pollRef.current);
+        pollRef.current = null;
+      }
+    };
+  }, [store.submissionId, modalOpen, setDeploymentStatus]);
 
   if (!mode) return null;
 
@@ -91,6 +117,7 @@ export default function ReviewPage() {
       }, tags);
 
       setSubmissionResult(result.submissionId, report);
+      setDeploymentStatus("accepted", null);
       setProofText(report);
       toast("success", "Deployment submitted successfully!");
       setModalOpen(true);
@@ -108,7 +135,6 @@ export default function ReviewPage() {
   function handleReset() {
     reset();
     setModalOpen(false);
-    router.push("/");
   }
 
   const backHref = mode === "template" && selectedTemplate
@@ -215,6 +241,8 @@ export default function ReviewPage() {
       <ConfirmModal
         open={modalOpen}
         proofText={proofText}
+        deploymentStatus={deploymentStatus}
+        deploymentError={deploymentError}
         onClose={() => setModalOpen(false)}
         onReset={handleReset}
       />

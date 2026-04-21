@@ -87,6 +87,14 @@ export interface SubmitResponse {
   submissionId: string;
 }
 
+export type DeploymentStatus = "accepted" | "running" | "succeeded" | "failed";
+
+export interface DeploymentStatusResponse {
+  submissionId: string;
+  status: DeploymentStatus;
+  errorMessage: string | null;
+}
+
 export interface ErrorResponse {
   error: {
     code: string;
@@ -113,6 +121,8 @@ export interface DeploymentState {
   selectedResources: SelectedResource[];
   submissionId: string | null;
   deploymentSummary: string | null;
+  deploymentStatus: DeploymentStatus | null;
+  deploymentError: string | null;
 
   // Actions
   setMode: (mode: "template" | "custom") => void;
@@ -123,5 +133,6 @@ export interface DeploymentState {
   addResource: (resource: SelectedResource) => boolean;
   removeResource: (type: string) => void;
   setSubmissionResult: (id: string, summary: string) => void;
+  setDeploymentStatus: (status: DeploymentStatus, error?: string | null) => void;
   reset: () => void;
 }

@@ -43,6 +43,7 @@ const deploymentsRoutes: FastifyPluginAsync = async (fastify) => {
         mode: deployment.mode,
         status: deployment.status,
         payload: deployment.payload,
+        errorMessage: deployment.errorMessage ?? null,
         createdAt: deployment.createdAt,
         updatedAt: deployment.updatedAt,
       });

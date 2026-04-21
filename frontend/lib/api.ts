@@ -1,4 +1,4 @@
-import type { DeploymentPayload, SubmitResponse, ErrorResponse } from "@/types";
+import type { DeploymentPayload, DeploymentStatusResponse, SubmitResponse, ErrorResponse } from "@/types";
 
 const API_URL =
   process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001";
@@ -13,6 +13,21 @@ export class ApiError extends Error {
     super(message);
     this.name = "ApiError";
   }
+}
+
+async function parseErrorBody(response: Response): Promise<never> {
+  let errorBody: ErrorResponse;
+  try {
+    errorBody = (await response.json()) as ErrorResponse;
+  } catch {
+    throw new ApiError("UNKNOWN_ERROR", `Request failed with status ${response.status}`);
+  }
+  throw new ApiError(
+    errorBody.error.code,
+    errorBody.error.message,
+    errorBody.error.details,
+    errorBody.requestId,
+  );
 }
 
 export async function submitDeployment(
@@ -30,11 +45,17 @@ export async function submitDeployment(
     return response.json() as Promise<SubmitResponse>;
   }
 
-  const errorBody = (await response.json()) as ErrorResponse;
-  throw new ApiError(
-    errorBody.error.code,
-    errorBody.error.message,
-    errorBody.error.details,
-    errorBody.requestId,
-  );
+  return parseErrorBody(response);
+}
+
+export async function getDeployment(
+  submissionId: string,
+): Promise<DeploymentStatusResponse> {
+  const response = await fetch(`${API_URL}/deployments/${submissionId}`);
+
+  if (response.status === 200) {
+    return response.json() as Promise<DeploymentStatusResponse>;
+  }
+
+  return parseErrorBody(response);
 }

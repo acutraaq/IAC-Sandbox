@@ -60,7 +60,9 @@ export function Modal({ open, onClose, title, children }: ModalProps) {
     return () => {
       document.removeEventListener("keydown", handleKeyDown);
       document.body.style.overflow = "";
-      previousFocusRef.current?.focus();
+      if (open) {
+        previousFocusRef.current?.focus();
+      }
     };
   }, [open, handleKeyDown]);
 
