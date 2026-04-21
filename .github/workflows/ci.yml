@@ -40,6 +40,11 @@ jobs:
 
       - name: Build
         run: npm run build
+        env:
+          DATABASE_URL: postgresql://build:build@localhost/build
+          AZURE_SUBSCRIPTION_ID: 00000000-0000-0000-0000-000000000000
+          AZURE_TENANT_ID: 00000000-0000-0000-0000-000000000000
+          AZURE_STORAGE_CONNECTION_STRING: DefaultEndpointsProtocol=https;AccountName=build;AccountKey=AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==;EndpointSuffix=core.windows.net
 
       - name: Prune dev dependencies
         if: github.ref == 'refs/heads/main' && github.event_name == 'push'
