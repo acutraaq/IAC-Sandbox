@@ -1,4 +1,4 @@
-import type { DeploymentPayload, DeploymentStatusResponse, SubmitResponse, ErrorResponse } from "@/types";
+import type { DeploymentPayload, DeploymentStatusResponse, DeploymentListItem, SubmitResponse, ErrorResponse } from "@/types";
 
 const API_URL =
   process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001";
@@ -43,6 +43,16 @@ export async function submitDeployment(
 
   if (response.status === 201) {
     return response.json() as Promise<SubmitResponse>;
+  }
+
+  return parseErrorBody(response);
+}
+
+export async function listDeployments(): Promise<DeploymentListItem[]> {
+  const response = await fetch(`${API_URL}/deployments`);
+
+  if (response.status === 200) {
+    return response.json() as Promise<DeploymentListItem[]>;
   }
 
   return parseErrorBody(response);

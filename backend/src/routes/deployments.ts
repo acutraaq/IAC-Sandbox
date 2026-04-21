@@ -5,9 +5,22 @@ import { deploymentPayloadSchema } from "../modules/deployments/deployment.schem
 import {
   submitDeployment,
   getDeployment,
+  listDeployments,
 } from "../modules/deployments/deployment.service.js";
 
 const deploymentsRoutes: FastifyPluginAsync = async (fastify) => {
+  fastify.get("/", async (_req, reply) => {
+    const deployments = await listDeployments();
+    return reply.status(200).send(deployments.map((d) => ({
+      submissionId: d.id,
+      mode: d.mode,
+      status: d.status,
+      resourceGroup: d.resourceGroup,
+      errorMessage: d.errorMessage ?? null,
+      createdAt: d.createdAt,
+    })));
+  });
+
   fastify.post("/", async (req, reply) => {
     const parseResult = deploymentPayloadSchema.safeParse(req.body);
 

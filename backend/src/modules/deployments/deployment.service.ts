@@ -7,6 +7,7 @@ import type { DeploymentPayload } from "./deployment.schema.js";
 import {
   createDeployment,
   findDeployment,
+  listDeployments as listDeploymentsRepo,
 } from "./deployment.repo.js";
 import { deriveResourceGroupName, deriveLocation } from "./rg-name.js";
 import type { DeploymentJobMessage } from "./deployment.job.js";
@@ -47,6 +48,10 @@ export async function submitDeployment(
   logger.info({ submissionId, resourceGroupName }, "Deployment enqueued");
 
   return { submissionId };
+}
+
+export async function listDeployments(): Promise<Deployment[]> {
+  return listDeploymentsRepo();
 }
 
 export async function getDeployment(submissionId: string): Promise<Deployment> {

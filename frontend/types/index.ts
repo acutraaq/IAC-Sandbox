@@ -95,6 +95,15 @@ export interface DeploymentStatusResponse {
   errorMessage: string | null;
 }
 
+export interface DeploymentListItem {
+  submissionId: string;
+  mode: "template" | "custom";
+  status: DeploymentStatus;
+  resourceGroup: string;
+  errorMessage: string | null;
+  createdAt: string;
+}
+
 export interface ErrorResponse {
   error: {
     code: string;

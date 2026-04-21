@@ -1,82 +1,107 @@
 "use client";
 
-import Link from "next/link";
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { ChevronRight } from "lucide-react";
+import { listDeployments } from "@/lib/api";
+import type { DeploymentListItem, DeploymentStatus } from "@/types";
 
-const DEPLOYED = [
-  {
-    id: "dep-1",
-    name: "marketing-infrastructure",
-    type: "App Service + SQL Database",
-    team: "Marketing Team",
-    region: "East US",
-    status: "success",
-  },
-  {
-    id: "dep-2",
-    name: "internal-reporting-storage",
-    type: "Storage Account",
-    team: "Finance Team",
-    region: "West Europe",
-    status: "success",
-  },
-];
+function statusDot(status: DeploymentStatus) {
+  switch (status) {
+    case "succeeded": return "bg-success";
+    case "failed":    return "bg-error";
+    case "running":   return "bg-accent animate-pulse";
+    default:          return "bg-warning animate-pulse";
+  }
+}
+
+function statusLabel(status: DeploymentStatus) {
+  switch (status) {
+    case "succeeded": return "Succeeded";
+    case "failed":    return "Failed";
+    case "running":   return "Deploying";
+    default:          return "Queued";
+  }
+}
+
+function statusBadgeClass(status: DeploymentStatus) {
+  switch (status) {
+    case "succeeded": return "border-success/20 bg-success/10 text-success";
+    case "failed":    return "border-error/20 bg-error/10 text-error";
+    default:          return "border-warning/20 bg-warning/10 text-warning";
+  }
+}
+
+function formatDate(iso: string) {
+  return new Date(iso).toLocaleDateString(undefined, {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  });
+}
 
 export function DeployedList() {
+  const [items, setItems] = useState<DeploymentListItem[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    listDeployments()
+      .then(setItems)
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  }, []);
+
   return (
     <div>
       <div className="mb-4 flex items-center justify-between">
         <h2 className="font-mono text-xs font-bold uppercase tracking-widest text-text-muted">
           Recent Deployments
         </h2>
-        <Link
-          href="/templates"
-          className="flex items-center gap-1 text-xs font-medium text-text hover:text-accent"
-        >
-          See all
-          <ChevronRight size={14} />
-        </Link>
       </div>
 
-      <motion.div 
+      <motion.div
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.2 }}
         className="flex flex-col overflow-hidden rounded-xl border border-border bg-surface shadow-sm"
       >
-        {DEPLOYED.map((item, index) => (
+        {loading && (
+          <div className="px-6 py-8 text-center text-sm text-text-muted">
+            Loading deployments…
+          </div>
+        )}
+
+        {!loading && items.length === 0 && (
+          <div className="px-6 py-8 text-center text-sm text-text-muted">
+            No deployments yet. Start by creating one above.
+          </div>
+        )}
+
+        {!loading && items.map((item, index) => (
           <div
-            key={item.id}
+            key={item.submissionId}
             className={`flex items-center justify-between px-6 py-4 transition-colors hover:bg-surface-elevated ${
-              index !== DEPLOYED.length - 1 ? "border-b border-border" : ""
+              index !== items.length - 1 ? "border-b border-border" : ""
             }`}
           >
             <div className="flex items-center gap-4">
               <div
                 aria-hidden="true"
-                className={`h-2.5 w-2.5 shrink-0 rounded-full ${
-                  item.status === "success" ? "bg-success" : "bg-warning"
-                }`}
+                className={`h-2.5 w-2.5 shrink-0 rounded-full ${statusDot(item.status)}`}
               />
-              <span className="sr-only">{item.status}</span>
+              <span className="sr-only">{statusLabel(item.status)}</span>
               <div className="flex flex-col">
                 <span className="font-display pr-4 text-sm font-bold text-text">
-                  {item.name}
+                  {item.resourceGroup}
                 </span>
                 <span className="mt-0.5 text-xs text-text-muted">
-                  {item.type} · {item.team} · {item.region}
+                  {item.mode === "template" ? "Template" : "Custom"} · {formatDate(item.createdAt)}
                 </span>
               </div>
             </div>
-            <span 
-              className={`hidden items-center justify-center rounded-full border px-3 py-1 text-[10px] font-bold uppercase tracking-widest sm:flex ${
-                item.status === "success" 
-                  ? "border-success/20 bg-success/10 text-success" 
-                  : "border-warning/20 bg-warning/10 text-warning"
-              }`}
+            <span
+              className={`hidden items-center justify-center rounded-full border px-3 py-1 text-[10px] font-bold uppercase tracking-widest sm:flex ${statusBadgeClass(item.status)}`}
             >
-              {item.status}
+              {statusLabel(item.status)}
             </span>
           </div>
         ))}

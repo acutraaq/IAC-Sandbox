@@ -51,3 +51,10 @@ export async function updateDeploymentStatus(
 export async function findDeployment(id: string): Promise<Deployment | null> {
   return db.deployment.findUnique({ where: { id } });
 }
+
+export async function listDeployments(limit = 20): Promise<Deployment[]> {
+  return db.deployment.findMany({
+    orderBy: { createdAt: "desc" },
+    take: limit,
+  });
+}
