@@ -1,5 +1,9 @@
 import Fastify from "fastify";
 import cors from "@fastify/cors";
+import fastifyStatic from "@fastify/static";
+import { join, dirname } from "path";
+import { fileURLToPath } from "url";
+import { existsSync } from "fs";
 import env from "./lib/env.js";
 import { AppError, errorResponse } from "./lib/errors.js";
 import healthRoutes from "./routes/health.js";
@@ -85,6 +89,22 @@ export async function createApp() {
   // Routes
   await fastify.register(healthRoutes);
   await fastify.register(deploymentsRoutes, { prefix: "/deployments" });
+
+  // Serve frontend static files if the public directory exists
+  const __dirname = dirname(fileURLToPath(import.meta.url));
+  const publicDir = join(__dirname, "..", "public");
+  if (existsSync(publicDir)) {
+    await fastify.register(fastifyStatic, {
+      root: publicDir,
+      prefix: "/",
+      index: ["index.html"],
+      wildcard: false,
+    });
+    // Catch-all: serve index.html for unknown routes (client-side routing)
+    fastify.setNotFoundHandler((_req, reply) => {
+      reply.sendFile("index.html");
+    });
+  }
 
   return fastify;
 }
