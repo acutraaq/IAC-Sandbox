@@ -2,8 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { listDeployments } from "@/lib/api";
-import type { DeploymentListItem, DeploymentStatus } from "@/types";
+import { listMyDeployments } from "@/lib/api";
+import type { MyDeploymentItem, DeploymentStatus } from "@/types";
 
 function statusDot(status: DeploymentStatus) {
   switch (status) {
@@ -40,11 +40,11 @@ function formatDate(iso: string) {
 }
 
 export function DeployedList() {
-  const [items, setItems] = useState<DeploymentListItem[]>([]);
+  const [items, setItems] = useState<MyDeploymentItem[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    listDeployments()
+    listMyDeployments()
       .then(setItems)
       .catch(() => {})
       .finally(() => setLoading(false));
@@ -78,7 +78,7 @@ export function DeployedList() {
 
         {!loading && items.map((item, index) => (
           <div
-            key={item.submissionId}
+            key={item.submissionId ?? item.resourceGroup}
             className={`flex items-center justify-between px-6 py-4 transition-colors hover:bg-surface-elevated ${
               index !== items.length - 1 ? "border-b border-border" : ""
             }`}
@@ -94,7 +94,7 @@ export function DeployedList() {
                   {item.resourceGroup}
                 </span>
                 <span className="mt-0.5 text-xs text-text-muted">
-                  {item.mode === "template" ? "Template" : "Custom"} · {formatDate(item.createdAt)}
+                  {item.deployedAt ? formatDate(item.deployedAt) : "—"}
                 </span>
               </div>
             </div>
