@@ -52,25 +52,30 @@ jobs:
           AZURE_TENANT_ID: 00000000-0000-0000-0000-000000000000
           AZURE_STORAGE_CONNECTION_STRING: DefaultEndpointsProtocol=https;AccountName=build;AccountKey=AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==;EndpointSuffix=core.windows.net
 
+      - name: Prune dev dependencies
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        run: npm prune --omit=dev
+
       - name: Create deployment package
         if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-        # Package the Next.js standalone output.
-        # standalone/ has a minimal node_modules and compiled .next/server/, but
-        # .next/static/ and public/ are not bundled and must be added separately.
-        # We then overwrite the generated server.js with our own (web/server.js)
-        # which includes the Azure HOSTNAME fix and uses the programmatic API —
-        # compatible with standalone because `next` and `.next/` are both present.
+        # Copy web/ to a staging dir and strip the 'build' script from package.json
+        # before zipping.  Oryx (Azure's container build runner) detects package.json
+        # and would re-run `npm run build` inside the container — which fails because
+        # the required env vars aren't present there.  Without a build script Oryx
+        # only runs `npm install` (a no-op since node_modules/ is already included),
+        # then Azure detects server.js and runs `node server.js`.
         run: |
-          rm -rf "$GITHUB_WORKSPACE/deploy"
-          mkdir -p "$GITHUB_WORKSPACE/deploy"
-          cp -R "$GITHUB_WORKSPACE/web/.next/standalone/." "$GITHUB_WORKSPACE/deploy"
-          mkdir -p "$GITHUB_WORKSPACE/deploy/.next"
-          cp -R "$GITHUB_WORKSPACE/web/.next/static" "$GITHUB_WORKSPACE/deploy/.next/static"
-          if [ -d "$GITHUB_WORKSPACE/web/public" ]; then
-            cp -R "$GITHUB_WORKSPACE/web/public" "$GITHUB_WORKSPACE/deploy/public"
-          fi
-          cp "$GITHUB_WORKSPACE/web/server.js" "$GITHUB_WORKSPACE/deploy/server.js"
-          cd "$GITHUB_WORKSPACE/deploy"
+          STAGE="$GITHUB_WORKSPACE/deploy-stage"
+          rm -rf "$STAGE"
+          cp -R "$GITHUB_WORKSPACE/web/." "$STAGE"
+          node -e "
+            const fs = require('fs');
+            const p = '$STAGE/package.json';
+            const pkg = JSON.parse(fs.readFileSync(p, 'utf8'));
+            delete pkg.scripts.build;
+            fs.writeFileSync(p, JSON.stringify(pkg, null, 2));
+          "
+          cd "$STAGE"
           zip -r "$GITHUB_WORKSPACE/deploy.zip" .
 
       - name: Deploy to Azure App Service
