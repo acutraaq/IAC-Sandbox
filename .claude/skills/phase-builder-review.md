@@ -5,7 +5,8 @@ description: Custom builder + review/submit flow (Phases 3c–3d): ResourceCatal
 
 # Phase: Builder + Review/Submit (Phases 3c–3d)
 
-Implement the custom resource builder and the shared review/submit page with confirmation modal and copyable proof artifact.
+## Overview
+Implements the custom resource builder and the shared review/submit flow: select resources → configure → `/review` → submit → proof modal. Requires Phase Core to be complete. Covers ResourceCatalog, ResourceDrawer, SelectedPanel, ReviewSection, SubmitButton, and ConfirmModal.
 
 ## Scope — Files to Create or Modify
 

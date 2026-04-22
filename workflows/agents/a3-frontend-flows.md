@@ -13,20 +13,20 @@ Implement the two deployment flows and the shared review/submit page:
 - Review & Submit: payload assembly, API call, confirmation modal, proof report
 
 ## File Ownership (only touch these)
-- `frontend/app/templates/` — template catalog page and slug pages
-- `frontend/app/builder/` — custom builder page
-- `frontend/app/review/` — review and submit page
-- `frontend/components/templates/` — TemplateGrid, FilterPills, TemplateCard
-- `frontend/components/wizard/` — Stepper, WizardStep, SummaryPanel
-- `frontend/components/builder/` — ResourceCatalog, ResourceDrawer, SelectedPanel
-- `frontend/components/review/` — ReviewSection, SubmitButton, ConfirmModal
+- `web/app/templates/` — template catalog page and slug pages
+- `web/app/builder/` — custom builder page
+- `web/app/review/` — review and submit page
+- `web/components/templates/` — TemplateGrid, FilterPills, TemplateCard
+- `web/components/wizard/` — Stepper, WizardStep, SummaryPanel
+- `web/components/builder/` — ResourceCatalog, ResourceDrawer, SelectedPanel
+- `web/components/review/` — ReviewSection, SubmitButton, ConfirmModal
 
 ## Do NOT touch
-- `frontend/components/layout/` — owned by foundation work
-- `frontend/components/ui/` — owned by foundation work
-- `frontend/store/deploymentStore.ts` — read only; do not restructure
-- `frontend/lib/` — read only; use existing utilities
-- `frontend/types/index.ts` — read only; use existing types
+- `web/components/layout/` — owned by foundation work
+- `web/components/ui/` — owned by foundation work
+- `web/store/deploymentStore.ts` — read only; do not restructure
+- `web/lib/` — read only; use existing utilities
+- `web/types/index.ts` — read only; use existing types
 
 ## Rules
 1. TypeScript strict mode — no `any`, no type assertions without justification
@@ -34,9 +34,9 @@ Implement the two deployment flows and the shared review/submit page:
 3. Every interactive component needs: ARIA labels, `role` attributes, `aria-invalid` on error fields, keyboard support (Escape closes modals, Enter/Space activates cards), Framer Motion animations must be `reduced-motion` safe
 4. Validate all form input with Zod using `buildSchema` from `lib/schema.ts`
 5. Use `getIcon` from `lib/icons.ts` for all icons — never import Lucide directly
-6. MSW mock handler in `frontend/mocks/handlers.ts` must return the standard error shape from CLAUDE.md when simulating errors
+6. MSW mock handler in `web/mocks/handlers.ts` must return the standard error shape from CLAUDE.md when simulating errors
 
-## Commands (run from frontend/)
+## Commands (run from web/)
 - Dev server: `npm run dev`
 - Tests: `npm run test:run`
 - Lint: `npm run lint`

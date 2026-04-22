@@ -5,7 +5,8 @@ description: Foundation + Domain phases (1-2): CSS tokens, layout shell, UI prim
 
 # Phase: Core Foundation + Domain (Phases 1–2)
 
-You are implementing the foundation and domain layer of IAC Sandbox. Every other phase depends on this being correct.
+## Overview
+Implements the complete foundation layer that all other phases depend on: design tokens, layout shell, UI primitives, TypeScript types, Zustand store, and utility functions. Do not start any other phase until this passes all three quality gates (`lint`, `test:run`, `build`).
 
 ## Scope — Files to Create or Modify
 

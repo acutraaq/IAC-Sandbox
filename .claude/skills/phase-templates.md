@@ -5,7 +5,8 @@ description: Template catalog + wizard flow (Phase 3b): TemplateGrid, FilterPill
 
 # Phase: Template Flow (Phase 3b)
 
-Implement the template selection and wizard flow. Users browse templates, pick one, fill in a multi-step wizard, and land at `/review`.
+## Overview
+Implements the template selection and wizard flow: catalog → pick template → multi-step wizard → `/review`. Requires Phase Core to be complete. Covers TemplateGrid, FilterPills, TemplateCard, Stepper, WizardStep, and SummaryPanel.
 
 ## Scope — Files to Create or Modify
 

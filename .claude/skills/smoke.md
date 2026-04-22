@@ -5,6 +5,15 @@ description: Manual smoke test checklist for IAC Sandbox — run after build to 
 
 # Smoke Test Checklist
 
+## Overview
+Manual browser verification of both user flows end-to-end. Every checkbox must be ticked before a phase is considered done. Run after a successful build with the dev server live.
+
+## Quick Reference
+| Task | Command |
+|---|---|
+| Start dev server | `cd web && npm run dev` |
+| Open app | http://localhost:3000 |
+
 Start the dev server first:
 ```bash
 cd web && npm run dev

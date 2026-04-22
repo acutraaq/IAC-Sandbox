@@ -9,7 +9,7 @@ tools: Bash, Read, Write, Edit, Glob, Grep
 This agent has not been activated. Its phase has not started.
 
 ## Activate When
-Backend JWT validation (T1.2) is complete and Microsoft Entra ID app registration is configured.
+Microsoft Entra ID App Registration Client ID + Tenant ID are received from admin. Currently blocked on admin provisioning — `deployedBy` is hardcoded to `"demo@sandbox.local"` in the interim.
 
 ## Relevant Spec Sections
 - SPEC.md §11 — Authentication and Identity
@@ -17,10 +17,10 @@ Backend JWT validation (T1.2) is complete and Microsoft Entra ID app registratio
 - SPEC.md §18 — Branch: `feat/a2-frontend-sso-guards`
 
 ## Scope (when activated)
-- `frontend/app/login/` — login page and SSO redirect
+- `web/app/login/` — login page and SSO redirect
 - Route guards: redirect unauthenticated users to `/login`
-- Microsoft Entra ID MSAL integration
-- Session/token storage on frontend
+- Microsoft Entra ID MSAL.js integration
+- Replace hardcoded `"demo@sandbox.local"` with authenticated user identity
 
 ## Do not activate until
-T0.1 (contract freeze) and T1.2 (backend JWT validation) are complete per SPEC.md §17.
+Admin provides Entra ID App Registration credentials. No backend JWT validation step required — the app uses Next.js API routes with managed identity, not a separate backend auth service.

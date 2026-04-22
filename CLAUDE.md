@@ -22,7 +22,7 @@ Both flows converge at a shared Review & Submit page, calling `POST /api/deploym
 **URL:** `https://epf-experimental-sandbox-playground-cvhdbjgdcqabdjau.southeastasia-01.azurewebsites.net`
 
 **Infrastructure:**
-- Azure App Service (Linux, Node 22, B1 SKU) — runs `next start`
+- Azure App Service (Linux, Node 22, B1 SKU) — runs `node server.js` (Next.js standalone output)
 - Azure Storage Queue: `deployment-jobs` in storage account `coeiacsandbox8bfc`
 - Azure Function App: `epf-sandbox-functions` (queue-triggered ARM deployments)
 
@@ -136,13 +136,12 @@ Prisma and PostgreSQL have been removed. ARM is the source of truth for all depl
 ├── implementation/              # Frozen specs (READ-ONLY)
 │   ├── SPEC.md
 │   └── API_SPEC_OPENAPI.yaml
-├── workflows/                   # Claude Code agents + skills
+├── workflows/                   # Claude Code agents + skills (source of truth)
 │   ├── agents/
 │   ├── skills/
-│   ├── README.md
-│   └── install-workflows.sh
+│   └── README.md
 └── scripts/
-    └── install-workflows.sh
+    └── install-workflows.sh     # copies workflows/ into .claude/
 ```
 
 ---

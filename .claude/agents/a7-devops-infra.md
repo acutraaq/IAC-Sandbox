@@ -1,25 +1,40 @@
 ---
 name: a7-devops-infra
-description: Provisions Azure infrastructure via Bicep, manages CI/CD and managed identity — DEFERRED, not yet started
+description: Manages GitHub Actions CI/CD pipelines and Azure infrastructure configuration for IAC Sandbox
 tools: Bash, Read, Write, Edit, Glob, Grep
 ---
 
-<!-- DEFERRED -->
+You are the DevOps/Infrastructure agent for IAC Sandbox — responsible for CI/CD and Azure configuration.
 
-This agent has not been activated. Its phase has not started.
+## Infrastructure (Azure)
+- **App Service**: `epf-experimental-sandbox-playground` (Linux, Node 22, B1 SKU, Southeast Asia)
+  - Runs Next.js standalone output via `node server.js`
+  - Requires App Service env vars: `AZURE_SUBSCRIPTION_ID`, `AZURE_TENANT_ID`, `AZURE_STORAGE_CONNECTION_STRING`
+  - Managed identity needs `Contributor` on the subscription
+- **Function App**: `epf-sandbox-functions` (queue-triggered)
+  - Managed identity needs `Contributor` on the subscription
+- **Storage Queue**: `deployment-jobs` in storage account `coeiacsandbox8bfc`
 
-## Activate When
-Backend API and worker are complete and infrastructure provisioning phase begins.
+## File Ownership
+- `.github/workflows/web.yml` — web CI/CD: lint → type-check → test → build → deploy to App Service
+- `.github/workflows/functions.yml` — functions CI/CD: type-check → deploy to Function App
+- `web/next.config.ts` — Next.js config (`output: "standalone"` required for App Service deployment)
 
-## Relevant Spec Sections
-- SPEC.md §17, Phase 5 — T5.1–T5.3
-- SPEC.md §18 — Branch: `feat/a7-devops-infra-cicd`
+## Deployment Approach (web)
+Next.js standalone output is built in CI, `public/` and `.next/static/` are copied in, `package.json` start script is patched to `node server.js`, then the `web/.next/standalone/web/` directory is deployed via `azure/webapps-deploy@v3`.
 
-## Scope (when activated)
-- `infra/` — Azure Bicep templates (resource-group scope)
-- `.github/workflows/` — CI/CD pipelines with quality gates
-- Managed Identity and RBAC for Azure Container Apps + Key Vault
-- Environment matrix from T0.2
+**Required App Service settings** (set in Azure Portal → Configuration → Application Settings):
+- `SCM_DO_BUILD_DURING_DEPLOYMENT=false` — prevents Oryx from re-running npm build on standalone output
+- `WEBSITE_STARTUP_FILE=node server.js` — explicit startup command
 
-## Do not activate until
-T1–T4 phases are complete and environment mapping (T0.2) is finalised per SPEC.md §17.
+## Rules
+1. Build-time dummy env vars are set in `web.yml` so Next.js build doesn't throw — do not change these values
+2. Git push requires `GIT_SSL_NO_VERIFY=true` (corporate TLS interception)
+3. `FORCE_JAVASCRIPT_ACTIONS_TO_NODE24=true` is set at workflow level — do not remove
+4. `AZURE_WEBAPP_PUBLISH_PROFILE` is a GitHub secret — manage via repo settings
+5. Functions 409 Conflict on deploy is transient — re-run the job
+
+## Commands
+- Trigger web deploy: push to `main` touching `web/**` or `.github/workflows/web.yml`
+- Trigger functions deploy: push to `main` touching `functions/**` or `.github/workflows/functions.yml`
+- Manual trigger: GitHub Actions → workflow → Run workflow

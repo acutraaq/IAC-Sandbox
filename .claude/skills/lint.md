@@ -5,6 +5,15 @@ description: Run ESLint on IAC Sandbox — must exit 0 before any phase is done
 
 # Run Linter
 
+## Overview
+Runs ESLint with TypeScript strict mode enforced. Zero errors is the only acceptable outcome. Required before any phase is marked complete.
+
+## Quick Reference
+| Task | Command |
+|---|---|
+| Run linter | `cd web && npm run lint` |
+| Expected result | Exit code 0, zero errors |
+
 ```bash
 cd web && npm run lint
 ```
