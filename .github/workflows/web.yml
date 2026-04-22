@@ -58,6 +58,13 @@ jobs:
           cp -r public .next/standalone/web/public
           cp -r .next/static .next/standalone/web/.next/static
           node -e "const p=require('./.next/standalone/web/package.json');p.scripts.start='node server.js';require('fs').writeFileSync('./.next/standalone/web/package.json',JSON.stringify(p,null,2))"
+          node -e "
+            const fs = require('fs');
+            const p = './.next/standalone/web/server.js';
+            const original = fs.readFileSync(p, 'utf8');
+            const prefix = 'process.env.NODE_PATH = \"/node_modules\";\nrequire(\"module\")._initPaths();\n';
+            fs.writeFileSync(p, prefix + original);
+          "
 
       - name: Deploy to Azure App Service
         uses: azure/webapps-deploy@v3
