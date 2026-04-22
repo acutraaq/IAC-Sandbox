@@ -1,35 +1,57 @@
 import { NextResponse } from "next/server";
-import db from "@/lib/db";
 import { AppError, toErrorResponse } from "@/lib/errors";
+import { getArmClient } from "@/lib/arm";
+import { mapArmProvisioningState } from "@/lib/deployments/arm-status";
 
 export async function GET(
-  _request: Request,
+  request: Request,
   { params }: { params: Promise<{ submissionId: string }> }
 ) {
   const requestId = crypto.randomUUID();
   const { submissionId } = await params;
+  const { searchParams } = new URL(request.url);
+  const rg = searchParams.get("rg");
+
+  if (!rg) {
+    const err = AppError.validation("rg query parameter is required");
+    return NextResponse.json(toErrorResponse(err, requestId), { status: 400 });
+  }
 
   try {
-    const deployment = await db.deployment.findUnique({ where: { id: submissionId } });
+    const client = getArmClient();
+    let status: ReturnType<typeof mapArmProvisioningState>;
+    let errorMessage: string | null = null;
 
-    if (!deployment) {
-      const err = AppError.notFound(`Deployment '${submissionId}' not found`);
-      return NextResponse.json(toErrorResponse(err, requestId), { status: 404 });
+    try {
+      const dep = await client.deployments.get(rg, submissionId);
+      status = mapArmProvisioningState(dep.properties?.provisioningState);
+      if (status === "failed") {
+        const armErr = dep.properties?.error as
+          | { code?: string; message?: string }
+          | undefined;
+        errorMessage = armErr
+          ? `[${armErr.code ?? "Error"}] ${armErr.message ?? ""}`
+          : "Deployment failed";
+      }
+    } catch (armErr: unknown) {
+      if (
+        typeof armErr === "object" &&
+        armErr !== null &&
+        "statusCode" in armErr &&
+        (armErr as { statusCode: number }).statusCode === 404
+      ) {
+        status = "accepted";
+      } else {
+        throw armErr;
+      }
     }
 
-    return NextResponse.json({
-      submissionId: deployment.id,
-      mode: deployment.mode,
-      status: deployment.status,
-      errorMessage: deployment.errorMessage ?? null,
-      createdAt: deployment.createdAt,
-      updatedAt: deployment.updatedAt,
-    });
+    return NextResponse.json({ submissionId, status, errorMessage });
   } catch (err) {
     if (err instanceof AppError) {
       return NextResponse.json(toErrorResponse(err, requestId), { status: err.statusCode });
     }
-    console.error(err);
+    console.error("GET /api/deployments/[submissionId] error:", err instanceof Error ? err.message : String(err));
     const internal = AppError.internal();
     return NextResponse.json(toErrorResponse(internal, requestId), { status: 500 });
   }
