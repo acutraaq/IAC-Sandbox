@@ -1,5 +1,9 @@
 import type { DeploymentPayload } from "./schema";
 
+type DeploymentPayloadWithoutTags =
+  | Omit<Extract<DeploymentPayload, { mode: "template" }>, "tags">
+  | Omit<Extract<DeploymentPayload, { mode: "custom" }>, "tags">;
+
 export const SLUG_PRIMARY_FIELD: Record<string, string> = {
   "web-application": "appName",
   "virtual-machine": "vmName",
@@ -11,7 +15,9 @@ export const SLUG_PRIMARY_FIELD: Record<string, string> = {
   "landing-zone": "projectName",
 };
 
-export function deriveResourceGroupName(payload: DeploymentPayload): string {
+export function deriveResourceGroupName(
+  payload: DeploymentPayloadWithoutTags
+): string {
   let base: string;
 
   if (payload.mode === "template") {

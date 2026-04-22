@@ -1,30 +1,6 @@
 import type { DeploymentState, ResourceGroupTags } from "@/types";
-import { SLUG_PRIMARY_FIELD, sanitise } from "@/lib/deployments/rg-name";
+import { deriveResourceGroupName } from "@/lib/deployments/rg-name";
 import { displayFieldValue } from "@/lib/display";
-
-function deriveRgName(
-  state: Pick<
-    DeploymentState,
-    "mode" | "selectedTemplate" | "wizardState" | "selectedResources"
-  >
-): string {
-  let base: string;
-
-  if (state.mode === "template" && state.selectedTemplate) {
-    const field = SLUG_PRIMARY_FIELD[state.selectedTemplate.slug] ?? "sandbox";
-    const value = state.wizardState.formValues[field];
-    base =
-      typeof value === "string" && value.length > 0
-        ? value
-        : state.selectedTemplate.slug;
-  } else if (state.mode === "custom" && state.selectedResources.length > 0) {
-    base = state.selectedResources[0].name;
-  } else {
-    base = "sandbox";
-  }
-
-  return sanitise(base) + "-rg";
-}
 
 export function generateReport(
   submissionId: string,
@@ -48,7 +24,12 @@ export function generateReport(
     `Date/Time     : ${now}`,
     `Mode          : ${state.mode === "template" ? "Template" : "Custom"}`,
     `Target Sub    : sub-epf-sandbox-internal`,
-    `Target RG     : ${deriveRgName(state)}`,
+    `Target RG     : ${deriveResourceGroupName(
+      // Adapt UI state to DeploymentPayload shape; tags are unused by deriveResourceGroupName.
+      state.mode === "template" && state.selectedTemplate
+        ? { mode: "template", template: { slug: state.selectedTemplate.slug, formValues: state.wizardState.formValues } }
+        : { mode: "custom", resources: state.selectedResources }
+    )}`,
     `Status        : accepted`,
     "",
     "Tags:",
