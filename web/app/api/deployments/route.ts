@@ -14,9 +14,11 @@ interface DeploymentJobMessage {
   tags: Record<string, string>;
 }
 
+const QUEUE_NAME = "deployment-jobs";
+
 const queueClient = QueueServiceClient.fromConnectionString(
   serverEnv.AZURE_STORAGE_CONNECTION_STRING
-).getQueueClient("deployment-jobs");
+).getQueueClient(QUEUE_NAME);
 
 export async function POST(request: Request) {
   const requestId = crypto.randomUUID();
@@ -64,7 +66,7 @@ export async function POST(request: Request) {
     if (err instanceof AppError) {
       return NextResponse.json(toErrorResponse(err, requestId), { status: err.statusCode });
     }
-    console.error(err);
+    console.error("POST /api/deployments error:", err instanceof Error ? err.message : String(err));
     const internal = AppError.internal();
     return NextResponse.json(toErrorResponse(internal, requestId), { status: 500 });
   }
