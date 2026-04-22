@@ -23,10 +23,13 @@ npm-debug.log*
 Thumbs.db
 
 # Editor
-.vscode/
+
 .idea/
 *.swp
 *.swo
 
 # Playwright MCP snapshots
 .playwright-mcp/
+
+# Git worktrees
+.worktrees/
