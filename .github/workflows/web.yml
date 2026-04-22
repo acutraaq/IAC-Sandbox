@@ -56,10 +56,15 @@ jobs:
         if: github.ref == 'refs/heads/main' && github.event_name == 'push'
         run: npm prune --omit=dev
 
+      - name: Create deployment package
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        # zip everything including .next/ (dot-dirs) and node_modules/ explicitly
+        run: zip -r ../deploy.zip .
+
       - name: Deploy to Azure App Service
         uses: azure/webapps-deploy@v3
         if: github.ref == 'refs/heads/main' && github.event_name == 'push'
         with:
           app-name: epf-experimental-sandbox-playground
           publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
-          package: web
+          package: deploy.zip

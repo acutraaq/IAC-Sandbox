@@ -1,6 +1,4 @@
 'use strict';
-const { spawn } = require('child_process');
-const path = require('path');
 
 // Azure App Service sets HOSTNAME to the internal worker hostname which resolves
 // to the container private IP. Next.js uses it as the bind address, so it would
@@ -8,20 +6,25 @@ const path = require('path');
 // Next.js falls back to binding on 0.0.0.0.
 delete process.env.HOSTNAME;
 
-const port = process.env.PORT || '3000';
-const nextCli = path.join(__dirname, 'node_modules', '.bin', 'next');
+const next = require('next');
+const http = require('http');
 
-const proc = spawn(nextCli, ['start', '--port', port, '--hostname', '0.0.0.0'], {
-  stdio: 'inherit',
-  env: process.env,
-  cwd: __dirname,
-});
+const port = parseInt(process.env.PORT || '3000', 10);
 
-process.on('SIGTERM', () => proc.kill('SIGTERM'));
-process.on('SIGINT', () => proc.kill('SIGINT'));
+// Use the programmatic API so Node.js module resolution handles the
+// node_modules→/node_modules symlink that Oryx creates at startup.
+const app = next({ dev: false, dir: __dirname });
+const handle = app.getRequestHandler();
 
-proc.on('close', (code) => process.exit(code ?? 0));
-proc.on('error', (err) => {
-  console.error('Failed to start Next.js:', err);
-  process.exit(1);
-});
+app.prepare()
+  .then(() => {
+    http
+      .createServer((req, res) => handle(req, res))
+      .listen(port, '0.0.0.0', () => {
+        console.log(`> Ready on http://0.0.0.0:${port}`);
+      });
+  })
+  .catch((err) => {
+    console.error('Failed to start Next.js:', err);
+    process.exit(1);
+  });
