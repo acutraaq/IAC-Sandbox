@@ -29,9 +29,6 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Generate Prisma client
-        run: npx prisma generate
-
       - name: Lint
         run: npm run lint
 
@@ -44,7 +41,6 @@ jobs:
       - name: Build
         run: npm run build
         env:
-          DATABASE_URL: postgresql://build:build@localhost/build
           AZURE_SUBSCRIPTION_ID: 00000000-0000-0000-0000-000000000000
           AZURE_TENANT_ID: 00000000-0000-0000-0000-000000000000
           AZURE_STORAGE_CONNECTION_STRING: DefaultEndpointsProtocol=https;AccountName=build;AccountKey=AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==;EndpointSuffix=core.windows.net
@@ -79,9 +75,6 @@ jobs:
 
       - name: Install dependencies
         run: npm ci
-
-      - name: Generate Prisma client
-        run: npx prisma generate
 
       - name: Type check
         run: npx tsc --noEmit
