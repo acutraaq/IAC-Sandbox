@@ -18,7 +18,8 @@ export async function GET() {
     });
 
     for await (const rg of rgIterator) {
-      const rgName = rg.name!;
+      const rgName = rg.name;
+      if (!rgName) continue;
       let status: DeploymentStatus = "accepted";
       let submissionId: string | null = null;
       let deployedAt: string | null = null;
