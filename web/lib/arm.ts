@@ -24,7 +24,10 @@ function makeDeploymentsAccessor(
       const tokenResponse = await credential.getToken(
         "https://management.azure.com/.default"
       );
-      const token = tokenResponse?.token;
+      if (!tokenResponse?.token) {
+        throw new Error("Failed to acquire Azure credential token");
+      }
+      const token = tokenResponse.token;
       const url =
         `https://management.azure.com/subscriptions/${subscriptionId}` +
         `/resourcegroups/${resourceGroupName}/providers/Microsoft.Resources` +
