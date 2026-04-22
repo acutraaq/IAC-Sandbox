@@ -1,8 +1,8 @@
 # Sandbox Azure Deployer — Complete Specification
 
-> **Version:** v1.2.0 | **Date:** 2026-04-13 | **Status:** Contract-Frozen, Ready for Development
+> **Version:** v2.0.0 | **Date:** 2026-04-22 | **Status:** Updated to reflect as-built architecture
 >
-> This is the single source of truth for the entire project. It consolidates all previously separate implementation documents. The only other file in this directory is `API_SPEC_OPENAPI.yaml` (machine-readable contract).
+> This is the single source of truth for the entire project. Sections marked **[v2]** were updated to match what was actually built. The original v1.2.0 plan (Fastify + PostgreSQL separate backend) was superseded — see ADR-016 through ADR-019 in Section 14 for the decisions that changed the architecture.
 
 ---
 
@@ -36,7 +36,7 @@
 
 ---
 
-## 1. Executive Summary
+## 1. Executive Summary **[v2]**
 
 Build a secure web application where authenticated users (Microsoft SSO) can deploy Azure resources in two ways:
 
@@ -44,9 +44,10 @@ Build a secure web application where authenticated users (Microsoft SSO) can dep
 2. Build a deployment resource-by-resource.
 
 When users submit:
-- Backend validates and stores submission.
-- Backend triggers Azure deployment through Bicep.
-- Frontend shows a proof popup with copy-to-clipboard text for manual HOD approval.
+- API validates the payload and enqueues a deployment job.
+- Azure Function picks up the job and executes the ARM deployment.
+- ARM is the source of truth for deployment status — no database.
+- Frontend polls ARM (via API route) and shows a proof popup for manual HOD approval.
 
 Approval workflow is manual and out of scope.
 
@@ -181,24 +182,25 @@ Reduce friction for non-expert cloud users to request/deploy Azure infrastructur
 | **Testability** | Vitest/RTL coverage on critical modules; lint/test/build gates |
 | **Availability** | 99.5% target (backend) |
 
-### Architecture Constraints
-- Frontend must be static-exportable (`output: 'export'`). No SSR dependencies.
+### Architecture Constraints **[v2]**
+- Frontend runs server-side (`next start`) — not static export. API routes use managed identity which requires server execution.
 - UI interactions must feel immediate (lightweight client state, local JSON for browsing).
 - Shared utilities for icons and schema generation. All domain types centralized.
 - `@/` alias used consistently.
 
 ---
 
-## 7. Frontend Architecture
+## 7. Frontend Architecture **[v2]**
 
 ### Stack
-- Next.js 16 App Router, static export, React 19
+- Next.js 16 App Router, server-rendered (`next start` — not static export), React 19
 - TypeScript strict mode
 - Zustand for shared state
 - React Hook Form + Zod
 - Tailwind CSS v4 + CSS variable token theme
 - Framer Motion (reduced-motion safe)
 - Vitest + React Testing Library
+- `@azure/arm-resources` + `@azure/identity` (server-side ARM calls from API routes)
 
 ### Route Map
 | Route | Type | Description |
@@ -210,7 +212,7 @@ Reduce friction for non-expert cloud users to request/deploy Azure infrastructur
 | `/builder` | Client component | Search/filter/select resources, configuration drawer |
 | `/review` | Client component | Guard, submit, success/error feedback |
 
-### State Model
+### State Model **[v2]**
 ```ts
 interface DeploymentState {
   mode: 'template' | 'custom' | null
@@ -222,7 +224,10 @@ interface DeploymentState {
   }
   selectedResources: SelectedResource[]
   submissionId: string | null
+  deployedResourceGroup: string | null  // used to poll ARM status
   deploymentSummary: string | null
+  deploymentStatus: DeploymentStatus | null
+  deploymentError: string | null
 }
 ```
 
@@ -230,6 +235,7 @@ Key invariants:
 - `mode` must be set before `/review` can render.
 - Selecting a new template resets wizard state.
 - `selectedResources` must not contain duplicate resource `type` values.
+- `deployedResourceGroup` is set on submission and used by the polling loop to query ARM.
 
 ### Component Architecture
 
@@ -272,58 +278,65 @@ Centralized builder in `lib/schema.ts`:
 
 ---
 
-## 8. Backend Architecture
+## 8. Backend Architecture **[v2]**
+
+> The original v1.2.0 plan specified a separate Fastify service. This was superseded — see ADR-016. The backend is implemented as Next.js 16 App Router API routes co-located in `web/`, with Azure Functions for async ARM execution.
 
 ### Stack
-- Node.js 22 LTS + Fastify + TypeScript
-- Prisma + PostgreSQL 16
-- Zod for request validation
-- In-process async executor for Bicep (no separate worker process needed)
-- `tsx` for local dev — run the app with `npm run dev`, no Docker required for the app itself
-- Vitest + Supertest
-
-> **Local database setup:** PostgreSQL runs via Docker Compose (`docker-compose up -d`) — one command, no configuration. The app itself is never containerised; it just connects to that database.
+- **API routes:** Next.js 16 App Router Route Handlers (`web/app/api/`)
+- **Async execution:** Azure Functions v4 (queue-triggered, `functions/`)
+- **ARM SDK:** `@azure/arm-resources` + `@azure/identity` (`DefaultAzureCredential`)
+- **Queue:** Azure Storage Queue (`deployment-jobs`) — decouples submission from execution
+- **Validation:** Zod (request payloads and env vars)
+- No separate backend process, no database, no Docker
 
 ### Service Layers
-- **API layer:** Routes, middleware, error normalization
-- **Domain layer:** Submission intake + Azure deployment trigger
-- **Persistence layer:** Submissions and events repositories (Prisma)
+- **API layer:** Next.js Route Handlers — validation, queue dispatch, ARM status queries
+- **Execution layer:** Azure Function — RG creation, ARM deployment, tagging
+- **Status layer:** ARM itself — deployment `provisioningState` is the source of truth
 
-### Backend Responsibilities
-- Auth token verification (Entra ID JWT)
+### API Responsibilities
 - Payload validation (Zod)
-- Durable persistence (PostgreSQL via Prisma)
-- Azure deployment execution (Azure CLI, in-process async)
-- Status lifecycle management
-- Structured logging
+- `submissionId` generation (`crypto.randomUUID()`)
+- Queue dispatch (`deployment-jobs`)
+- ARM status polling (`deployments.get(rg, submissionId)`)
+- ARM resource group listing by `deployedBy` tag
 
-### Suggested Project Structure
+### Function App Responsibilities
+- Dequeue job message
+- Create/update resource group with policy tags + `deployedBy` + `iac-submissionId`
+- Execute ARM deployment (ARM SDK, managed identity)
+- ARM deployment name = `submissionId` (enables status lookup)
+
+### Project Structure (as-built)
 ```
-backend/
-  src/
-    app.ts
-    server.ts
-    routes/
-      health.ts
-      deployments.ts
-    modules/deployments/
-      deployment.schema.ts
-      deployment.service.ts
-      deployment.repo.ts
-      bicep-executor.ts
-    lib/
-      logger.ts
-      errors.ts
-      jwt.ts
-      env.ts
-  prisma/
-    schema.prisma
-    migrations/
-  docker-compose.yml    ← starts PostgreSQL only
-  tests/
-    api/
-      deployments.test.ts
-      health.test.ts
+web/app/api/
+  deployments/
+    route.ts           # POST only — generate ID, enqueue
+    [submissionId]/
+      route.ts         # GET ?rg=<rgName> — ARM status
+  my-deployments/
+    route.ts           # GET — list RGs by deployedBy tag
+  healthz/
+    route.ts
+
+web/lib/
+  arm.ts               # getArmClient() factory
+  server-env.ts        # Zod env validation
+  errors.ts
+  deployments/
+    schema.ts          # Zod payload schemas
+    rg-name.ts
+    arm-status.ts      # mapArmProvisioningState → DeploymentStatus
+
+functions/src/
+  functions/processDeployment.ts
+  lib/env.ts
+  modules/deployments/
+    bicep-executor.ts
+    arm-template-builder.ts
+    deployment.schema.ts
+    rg-name.ts
 ```
 
 ### Validation and Error Format
@@ -341,79 +354,75 @@ Standard error response (ADR-007):
 }
 ```
 
-### Idempotency Strategy
-- V1: non-idempotent (new ID per successful request)
-- V1.1 (proposed): `Idempotency-Key` header support
-
-### Backend Environment
-| Variable | Description |
-|----------|-------------|
-| `PORT` | Server port (default `3001`) |
-| `NODE_ENV` | Runtime environment |
-| `DATABASE_URL` | PostgreSQL connection string |
-| `ENTRA_TENANT_ID` | Azure AD tenant ID for JWT validation |
-| `ENTRA_CLIENT_ID` | Backend app registration client ID |
-| `CORS_ORIGINS` | Allowed CORS origins (comma-separated) |
-| `ENABLE_GET_DEPLOYMENT` | Feature flag for `GET /deployments/:id` (default `true`) |
+### Environment Variables
+| Variable | Service | Description |
+|----------|---------|-------------|
+| `AZURE_SUBSCRIPTION_ID` | web + functions | Subscription for ARM operations |
+| `AZURE_TENANT_ID` | web + functions | Azure AD tenant ID |
+| `AZURE_STORAGE_CONNECTION_STRING` | web | Queue connection string |
+| `DEPLOYMENT_QUEUE` | functions | Queue connection (Azure Functions binding) |
 
 ---
 
-## 9. Data Model
+## 9. Data Model **[v2]**
 
-### Table: `deployment_submissions`
-| Column | Type | Notes |
-|--------|------|-------|
-| `submission_id` | text (PK) | `crypto.randomUUID()` |
-| `user_id` | text | From JWT `oid` claim |
-| `user_email` | text | From JWT `preferred_username` |
-| `user_name` | text | From JWT `name` |
-| `tenant_id` | text | From JWT `tid` |
-| `mode` | text | `template` or `custom` |
-| `status` | text | Default `accepted` |
-| `payload_json` | jsonb | Full request payload |
-| `target_subscription` | text | |
-| `target_resource_group` | text | |
-| `created_at` | timestamptz | |
-| `updated_at` | timestamptz | Auto-updated |
-| `correlation_id` | text | Request ID for tracing |
+> No database. ARM is the source of truth. See ADR-018 and ADR-019.
 
-**Indexes:** PK on `submission_id`, index on `created_at DESC`
+### ARM Resource Group Tags (per deployment)
 
-### Table: `deployment_events`
-| Column | Type | Notes |
-|--------|------|-------|
-| `id` | serial (PK) | |
-| `submission_id` | text (FK) | References `deployment_submissions` |
-| `event_type` | text | e.g. `status_changed`, `error` |
-| `event_payload` | jsonb | |
-| `created_at` | timestamptz | |
+Every resource group created by this system carries the following tags:
 
-### Table: `idempotency_records` (v1.1, optional)
-Deferred — see ADR-014.
+| Tag key | Source | Description |
+|---------|--------|-------------|
+| `Cost Center` | User input (required by policy COE-Enforce-Tag-RG) | Cost allocation |
+| `Project ID` | User input | Project identifier |
+| `Project Owner` | User input | Owner name |
+| `Expiry Date` | User input (YYYY-MM-DD) | Expiry for cleanup |
+| `deployedBy` | App-set | User identity (UPN, hardcoded until MSAL) |
+| `iac-submissionId` | App-set | The `submissionId` UUID for status back-lookup |
+
+### Status Tracking
+
+- ARM deployment name = `submissionId`
+- Status queried via `client.deployments.get(resourceGroupName, submissionId)`
+- Mapping: `Succeeded` → `succeeded`, `Failed`/`Canceled` → `failed`, `Running`/`Accepted` → `running`, 404 → `accepted` (not yet started)
+
+### "My Stuff" Listing
+
+- ARM resource groups filtered by tag: `deployedBy eq 'demo@sandbox.local'`
+- Each RG exposes its tags (Cost Center, Project ID, etc.) and the `iac-submissionId` for status lookup
 
 ---
 
-## 10. API Contract
-
-Canonical source: `API_SPEC_OPENAPI.yaml` (in this directory).
+## 10. API Contract **[v2]**
 
 ### Endpoints
 | Method | Path | Description |
 |--------|------|-------------|
-| `GET` | `/healthz` | Liveness probe |
-| `GET` | `/readyz` | Readiness probe (checks DB) |
-| `POST` | `/deployments` | Submit deployment |
-| `GET` | `/deployments/{submissionId}` | Retrieve submission status |
+| `GET` | `/api/healthz` | Liveness probe |
+| `POST` | `/api/deployments` | Submit deployment |
+| `GET` | `/api/deployments/{submissionId}?rg={rgName}` | Get deployment status from ARM |
+| `GET` | `/api/my-deployments` | List user's deployed resource groups |
 
-### Request Schemas
+> Note: No `/readyz` — there is no database to check.
+
+### POST /api/deployments — Request
+
+Both modes require `tags` (policy-required):
 
 **Template mode:**
 ```json
 {
   "mode": "template",
+  "tags": {
+    "Cost Center": "CC-001",
+    "Project ID": "PROJ-001",
+    "Project Owner": "Alice",
+    "Expiry Date": "2027-01-01"
+  },
   "template": {
-    "slug": "aks-cluster",
-    "formValues": { "clusterName": "prod" }
+    "slug": "web-application",
+    "formValues": { "appName": "my-app", "region": "southeastasia" }
   }
 }
 ```
@@ -422,25 +431,38 @@ Canonical source: `API_SPEC_OPENAPI.yaml` (in this directory).
 ```json
 {
   "mode": "custom",
+  "tags": { "Cost Center": "CC-001", "Project ID": "PROJ-001", "Project Owner": "Alice", "Expiry Date": "2027-01-01" },
   "resources": [
-    {
-      "type": "Microsoft.KeyVault/vaults",
-      "name": "Key Vault",
-      "icon": "KeyRound",
-      "config": { "vaultName": "kv-prod" }
-    }
+    { "type": "Microsoft.KeyVault/vaults", "name": "Key Vault", "icon": "KeyRound", "config": { "vaultName": "kv-prod" } }
   ]
 }
 ```
 
-### Response Schemas
-
-**Success (201):**
+### POST /api/deployments — Response (201)
 ```json
-{ "submissionId": "01JQH4NZ4F3RD2RN5C6X7A8B9K" }
+{ "submissionId": "550e8400-e29b-41d4-a716-446655440000", "resourceGroup": "my-app-rg" }
 ```
 
-**Error (400/500):**
+### GET /api/deployments/{submissionId}?rg={rgName} — Response (200)
+```json
+{ "submissionId": "550e8400-e29b-41d4-a716-446655440000", "status": "running", "errorMessage": null }
+```
+
+### GET /api/my-deployments — Response (200)
+```json
+[
+  {
+    "resourceGroup": "my-app-rg",
+    "location": "southeastasia",
+    "tags": { "Cost Center": "CC-001", "Project ID": "PROJ-001", "Project Owner": "Alice", "Expiry Date": "2027-01-01", "deployedBy": "demo@sandbox.local", "iac-submissionId": "550e..." },
+    "status": "succeeded",
+    "submissionId": "550e8400-...",
+    "deployedAt": "2026-04-20T10:00:00.000Z"
+  }
+]
+```
+
+### Error Response (400/500)
 ```json
 {
   "error": {
@@ -453,7 +475,9 @@ Canonical source: `API_SPEC_OPENAPI.yaml` (in this directory).
 ```
 
 ### Status Enum
-`accepted` | `queued` | `running` | `succeeded` | `failed`
+`accepted` | `running` | `succeeded` | `failed`
+
+> `accepted` = queued but ARM deployment not yet created. `running` = ARM deployment in progress.
 
 ---
 
@@ -479,48 +503,46 @@ JWT claims stored on every submission for audit trail:
 
 ---
 
-## 12. Bicep Deployment Execution
+## 12. ARM Deployment Execution **[v2]**
+
+> Original v1.2.0 specified Azure CLI (`az deployment group create`). This was superseded by ARM SDK + Azure Functions — see ADR-017.
 
 ### Execution Path
-1. API persists submission with status `accepted` → responds `201`.
-2. In-process async function fires immediately (fire-and-forget — API does not wait for it).
-3. Status updated to `running`, event appended to `deployment_events`.
-4. Payload is mapped to Bicep parameters and `az deployment group create` is executed.
-5. On success: status updated to `succeeded`, event appended.
-6. On failure: status updated to `failed`, error reason captured and logged.
+1. `POST /api/deployments` validates payload, generates `submissionId` (UUID), derives resource group name, enqueues JSON message to `deployment-jobs` queue. Returns `{ submissionId, resourceGroup }`.
+2. Azure Function picks up queue message (triggered by `deployment-jobs`).
+3. Function builds ARM template from payload using `arm-template-builder.ts`.
+4. Function validates template against subscription policy (`COE-Allowed-Resources`).
+5. Function creates/updates resource group with policy tags + `deployedBy` + `iac-submissionId` (idempotent).
+6. Function calls `client.deployments.beginCreateOrUpdateAndWait(rg, submissionId, ...)` — ARM deployment name = `submissionId`.
+7. On success: ARM `provisioningState` = `Succeeded`. On failure: ARM records error details in deployment operations.
 
-### Payload → Bicep Parameter Mapping
+### ARM Template Building
+All resource types are built in-process via `arm-template-builder.ts`:
+- Template mode: slug → builder function (web app, VM, database, storage, VNet, Key Vault, container app, landing zone)
+- Custom mode: resource type → builder function
+- Every resource gets the policy tags applied via COE-Enforce-Tag-Resources
 
-**Template mode:**
-- Look up the template from `frontend/data/templates.json` by `payload.template.slug`
-- Map each field in `payload.template.formValues` → `--parameters key=value`
+### Subscription Policy Constraints
+- `COE-Allowed-Resources`: only specific resource types permitted (validated before RG creation)
+- `COE-Enforce-Tag-RG`: Cost Center, Project ID, Project Owner, Expiry Date required on every RG
+- `COE-Enforce-Tag-Resources`: same 4 tags required on each individual resource
+- App Service SKUs: restricted to F1, B1, B2, B3
 
-**Custom mode:**
-- For each resource in `payload.resources`, look up from `frontend/data/resources.json` by `type`
-- Map each field in `resource.config` → `--parameters key=value`
+### Status Lifecycle
+ARM `provisioningState` → app status:
+- Not found (404) → `accepted`
+- `Running` / `Accepted` → `running`
+- `Succeeded` → `succeeded`
+- `Failed` / `Canceled` → `failed`
 
-### Azure CLI Command
-```sh
-az deployment group create \
-  --subscription <targetSubscription> \
-  --resource-group <targetResourceGroup> \
-  --template-file bicep/<slug-or-type>.bicep \
-  --parameters key=value ...
-```
-
-- Requires Azure CLI installed (`az --version` to verify)
-- Local development: `az login` before running the backend
-- Production: managed identity (no login needed)
-- Exit code `0` → `succeeded`
-- Non-zero exit code → `failed`, stderr captured as the failure reason
-
-### Retry Policy
-- 3 attempts with exponential backoff: 1s → 2s → 4s
-- After all attempts exhausted: status set to `failed`, full error logged with `submissionId` and `correlationId`
+### Authentication
+- Local dev: `Connect-AzAccount` (PowerShell) or `az login` → `DefaultAzureCredential`
+- Production: managed identity on App Service and Function App → `DefaultAzureCredential`
+- Managed identity object IDs: App Service `ec30f747`, Function App `6f19f683`
+- Required RBAC: `Contributor` on `sub-epf-sandbox-internal`
 
 ### Deployment Scope
-- V1: resource-group scope only (ADR-015)
-- `targetSubscription` and `targetResourceGroup` are required fields
+- Resource-group scope only (ADR-015)
 
 ---
 
@@ -630,6 +652,30 @@ Note: Manual HOD approval is required outside this system.
 - **Status:** Accepted
 - **Decision:** Limit v1 to resource-group scope only.
 - **Consequences:** Safer first release, advanced scopes deferred.
+
+### ADR-016: Next.js API Routes instead of separate Fastify backend **[v2]**
+- **Status:** Accepted (supersedes ADR-013)
+- **Decision:** Co-locate API routes inside the Next.js 16 App Router (`web/app/api/`) instead of a separate Fastify service. Managed identity via `DefaultAzureCredential` handles all Azure calls.
+- **Rationale:** Eliminates a separate Node.js service, deployment, and all inter-service networking. App Service managed identity works natively with Next.js server components.
+- **Consequences:** No separate backend port, no Supertest API tests (use Vitest with mocks), all server-side code in `web/`.
+
+### ADR-017: Azure Functions v4 for async ARM execution **[v2]**
+- **Status:** Accepted
+- **Decision:** Use Azure Functions v4 (queue-triggered) instead of in-process async execution. The Function picks up `deployment-jobs` queue messages and runs ARM deployments.
+- **Rationale:** Decouples submission latency from deployment duration (which can be minutes). Functions scale independently. No retry/timeout concerns on the API route.
+- **Consequences:** Deployment is fully async — status only available by polling ARM. Function app must have managed identity with `Contributor` on the target subscription.
+
+### ADR-018: ARM as source of truth for deployment status **[v2]**
+- **Status:** Accepted
+- **Decision:** Deployment status is read directly from ARM (`deployments.get(rg, submissionId)`) rather than maintained in a database. The ARM deployment name equals the `submissionId`, enabling direct lookup. Status before the ARM deployment exists returns `accepted`.
+- **Rationale:** Eliminates a synchronization problem — ARM and the app could disagree. ARM is authoritative for what actually happened. Removes a significant complexity layer.
+- **Consequences:** Status polling requires both `submissionId` and `resourceGroupName`. POST response includes `resourceGroup`. Client must store and pass `resourceGroup` with status queries.
+
+### ADR-019: Drop PostgreSQL and Prisma **[v2]**
+- **Status:** Accepted (supersedes ADR-006, ADR-013)
+- **Decision:** Remove PostgreSQL, Prisma, and `DATABASE_URL` entirely. No local docker-compose needed for development.
+- **Rationale:** The only data stored was submission metadata and status — both now live in ARM. Eliminating the DB removes: migrations, connection string management, Prisma client generation in CI, readiness check dependency, and local Docker setup.
+- **Consequences:** No deployment history if resource group is deleted. "My Stuff" listing is derived entirely from ARM tag queries (`deployedBy` tag). Submission payload is not durably stored (queue message is transient).
 
 ---
 
@@ -801,55 +847,24 @@ Note: Manual HOD approval is required outside this system.
 
 ---
 
-## 18. Branch and PR Strategy
+## 18. Branch and PR Strategy **[v2]**
 
 ### Branch Model
-- **Protected:** `main` (production-ready), `develop` (integration)
-- **Feature branches:** one per agent stream, rebase from `develop` daily
-
-| Branch | Owner |
-|--------|-------|
-| `docs/a1-product-coordination` | A1 |
-| `feat/a2-frontend-sso-guards` | A2 |
-| `feat/a3-frontend-flows-proof-modal` | A3 |
-| `feat/a4-backend-api-auth-validation` | A4 |
-| `feat/a5-worker-bicep-execution` | A5 |
-| `feat/a6-db-audit-persistence` | A6 |
-| `feat/a7-devops-infra-cicd` | A7 |
-| `chore/a8-test-security-release-gates` | A8 |
-
-### PR Merge Order (critical path)
-| PR | Content | Depends On |
-|----|---------|------------|
-| PR-0 | Contract/docs freeze | None |
-| PR-1 | Backend auth + API skeleton | PR-0 |
-| PR-2 | DB schema + persistence | PR-0 |
-| PR-3 | Frontend SSO + route guards | PR-0 |
-| PR-4 | Deployments API complete | PR-1 + PR-2 |
-| PR-5 | Frontend flows + proof modal | PR-3 + PR-4 |
-| PR-6 | Worker Bicep execution | PR-2 + PR-4 |
-| PR-7 | DevOps and infra | PR-1 + PR-2 |
-| PR-8 | QA + hardening gate | PR-5 + PR-6 + PR-7 |
+- **Protected:** `main` — CI deploys to Azure App Service on every push
+- **Feature branches:** `feature/<scope>` — short-lived, merge directly to `main`
+- Use git worktrees (`.worktrees/`) for isolated development
 
 ### Merge Gates
-- Required reviewers approved
-- CI checks green
-- No unresolved security warnings
-- No contract-breaking changes without PR-0 update
+- CI checks green (lint + tsc + vitest + build)
+- No contract-breaking changes to `API_SPEC_OPENAPI.yaml` without new ADR in Section 14
+- Push requires `GIT_SSL_NO_VERIFY=true` (corporate TLS interception)
 
 ### PR Template
 Each PR must include:
-1. Scope and linked task IDs
-2. Contract impact (`yes/no`)
-3. Dependency status
-4. Test evidence
-5. Rollback notes
-
-### Release Branch
-- Create `release/sso-bicep-v1` from `develop` after PR-8
-- Full smoke/UAT from release branch
-- Hotfixes target release branch → cherry-pick to `develop`
-- Merge to `main` only after sign-off
+1. Scope summary
+2. API contract impact (yes/no)
+3. Test evidence (test count before/after)
+4. Rollback notes
 
 ---
 
@@ -936,8 +951,8 @@ Each PR must include:
 - Input validation at API boundary (Zod)
 
 ### Data Protection
-- Parameterized DB queries via Prisma (no raw SQL)
-- Secrets only via environment variables / Azure Key Vault
+- No database — no SQL injection surface
+- Secrets only via environment variables / Azure Key Vault / managed identity
 - Never log `Authorization` headers or credential values
 
 ### Deployment Security
@@ -956,12 +971,12 @@ Each PR must include:
 - Never log `Authorization` headers or credentials
 
 ### Probes
-- **Liveness:** `GET /healthz` — returns 200 if process is alive
-- **Readiness:** `GET /readyz` — returns 200 only if DB connection is healthy
+- **Liveness:** `GET /api/healthz` — returns 200 if process is alive
+- No readiness probe — no database dependency
 
 ### Rollback Plan
-- **Frontend:** Redeploy previous static build artifact
-- **Backend:** Restart previous version; Prisma migrations are forward-only
+- Redeploy previous App Service artifact via Azure Portal or re-run CI on previous commit
+- Functions: redeploy previous function app package
 
 ---
 
