@@ -7,7 +7,7 @@ import { LayoutGrid, Plus, List, Settings, Blocks } from "lucide-react";
 const MAIN_LINKS = [
   { href: "/", label: "Home", icon: LayoutGrid },
   { href: "/builder", label: "Create something", icon: Plus },
-  { href: "/templates", label: "My stuff", icon: List },
+  { href: "/my-stuff", label: "My stuff", icon: List },
 ];
 
 export function Sidebar() {
