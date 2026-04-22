@@ -6,6 +6,7 @@ import { deploymentPayloadSchema } from "@/lib/deployments/schema";
 import { deriveResourceGroupName, deriveLocation } from "@/lib/deployments/rg-name";
 import type { DeploymentPayload } from "@/lib/deployments/schema";
 
+// Must match deploymentJobMessageSchema in functions/src/functions/processDeployment.ts
 interface DeploymentJobMessage {
   submissionId: string;
   resourceGroupName: string;
