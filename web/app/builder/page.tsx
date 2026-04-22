@@ -15,7 +15,6 @@ export default function BuilderPage() {
     null,
   );
 
-  // Set mode to custom when visiting builder
   useEffect(() => {
     setMode("custom");
   }, [setMode]);

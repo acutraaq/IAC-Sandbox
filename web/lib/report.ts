@@ -1,5 +1,6 @@
 import type { DeploymentState, ResourceGroupTags } from "@/types";
 import { SLUG_PRIMARY_FIELD, sanitise } from "@/lib/deployments/rg-name";
+import { displayFieldValue } from "@/lib/display";
 
 function deriveRgName(
   state: Pick<
@@ -70,9 +71,7 @@ export function generateReport(
       for (const field of step.fields) {
         const value = values[field.name];
         if (value !== undefined && value !== null && value !== "") {
-          const displayValue =
-            field.type === "toggle" ? (value ? "Yes" : "No") : String(value);
-          lines.push(`    ${field.label}: ${displayValue}`);
+          lines.push(`    ${field.label}: ${displayFieldValue(field, value)}`);
         }
       }
     }

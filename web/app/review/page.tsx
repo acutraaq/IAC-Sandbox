@@ -16,8 +16,7 @@ import Link from "next/link";
 
 export default function ReviewPage() {
   const router = useRouter();
-  const store = useDeploymentStore();
-  const { mode, selectedTemplate, wizardState, selectedResources, deploymentStatus, deploymentError, setSubmissionResult, setDeploymentStatus, reset } = store;
+  const { mode, selectedTemplate, wizardState, selectedResources, submissionId, deploymentStatus, deploymentError, setSubmissionResult, setDeploymentStatus, reset } = useDeploymentStore();
 
   const [submitting, setSubmitting] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
@@ -53,7 +52,6 @@ export default function ReviewPage() {
   }, [mode, router]);
 
   useEffect(() => {
-    const submissionId = store.submissionId;
     if (!submissionId || !modalOpen) return;
 
     pollRef.current = setInterval(async () => {
@@ -78,7 +76,7 @@ export default function ReviewPage() {
         pollRef.current = null;
       }
     };
-  }, [store.submissionId, modalOpen, setDeploymentStatus]);
+  }, [submissionId, modalOpen, setDeploymentStatus]);
 
   if (!mode) return null;
 
