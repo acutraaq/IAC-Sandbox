@@ -85,6 +85,7 @@ export type DeploymentPayload =
 
 export interface SubmitResponse {
   submissionId: string;
+  resourceGroup: string;
 }
 
 export type DeploymentStatus = "accepted" | "running" | "succeeded" | "failed";
@@ -95,13 +96,13 @@ export interface DeploymentStatusResponse {
   errorMessage: string | null;
 }
 
-export interface DeploymentListItem {
-  submissionId: string;
-  mode: "template" | "custom";
-  status: DeploymentStatus;
+export interface MyDeploymentItem {
   resourceGroup: string;
-  errorMessage: string | null;
-  createdAt: string;
+  location: string;
+  tags: Record<string, string>;
+  status: DeploymentStatus;
+  submissionId: string | null;
+  deployedAt: string | null;
 }
 
 export interface ErrorResponse {
@@ -129,6 +130,7 @@ export interface DeploymentState {
   };
   selectedResources: SelectedResource[];
   submissionId: string | null;
+  deployedResourceGroup: string | null;
   deploymentSummary: string | null;
   deploymentStatus: DeploymentStatus | null;
   deploymentError: string | null;
@@ -141,7 +143,7 @@ export interface DeploymentState {
   setFormValues: (values: Record<string, unknown>) => void;
   addResource: (resource: SelectedResource) => boolean;
   removeResource: (type: string) => void;
-  setSubmissionResult: (id: string, summary: string) => void;
+  setSubmissionResult: (id: string, summary: string, resourceGroup: string) => void;
   setDeploymentStatus: (status: DeploymentStatus, error?: string | null) => void;
   reset: () => void;
 }
