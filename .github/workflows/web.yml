@@ -1,10 +1,16 @@
-name: CI
+name: Web
 
 on:
   push:
     branches: [main]
+    paths:
+      - 'web/**'
+      - '.github/workflows/web.yml'
   pull_request:
     branches: [main]
+    paths:
+      - 'web/**'
+      - '.github/workflows/web.yml'
 
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
@@ -36,7 +42,7 @@ jobs:
         run: npx tsc --noEmit
 
       - name: Test
-        run: npm test
+        run: npm run test:run
 
       - name: Build
         run: npm run build
@@ -56,44 +62,3 @@ jobs:
           app-name: epf-experimental-sandbox-playground
           publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
           package: web/
-
-  functions:
-    name: Functions
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: functions
-
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 24
-          cache: npm
-          cache-dependency-path: functions/package-lock.json
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Type check
-        run: npx tsc --noEmit
-
-      - name: Build
-        run: npm run build
-
-      - name: Prune dev dependencies
-        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-        run: npm prune --omit=dev
-
-      - name: Create deployment package
-        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-        run: zip -r ../functions-deploy.zip dist host.json package.json node_modules
-
-      - name: Deploy to Azure Functions
-        uses: azure/functions-action@v2
-        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-        with:
-          app-name: epf-sandbox-functions
-          publish-profile: ${{ secrets.AZURE_FUNCTIONAPP_PUBLISH_PROFILE }}
-          package: functions-deploy.zip
