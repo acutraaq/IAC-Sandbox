@@ -16,7 +16,7 @@ import Link from "next/link";
 
 export default function ReviewPage() {
   const router = useRouter();
-  const { mode, selectedTemplate, wizardState, selectedResources, submissionId, deploymentStatus, deploymentError, setSubmissionResult, setDeploymentStatus, reset } = useDeploymentStore();
+  const { mode, selectedTemplate, wizardState, selectedResources, submissionId, deployedResourceGroup, deploymentStatus, deploymentError, setSubmissionResult, setDeploymentStatus, reset } = useDeploymentStore();
 
   const [submitting, setSubmitting] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
@@ -56,7 +56,7 @@ export default function ReviewPage() {
 
     pollRef.current = setInterval(async () => {
       try {
-        const result = await getDeployment(submissionId);
+        const result = await getDeployment(submissionId, deployedResourceGroup!);
         const current = useDeploymentStore.getState();
         if (result.status !== current.deploymentStatus || result.errorMessage !== current.deploymentError) {
           setDeploymentStatus(result.status, result.errorMessage);
@@ -117,7 +117,7 @@ export default function ReviewPage() {
         selectedResources,
       }, tags);
 
-      setSubmissionResult(result.submissionId, report);
+      setSubmissionResult(result.submissionId, report, result.resourceGroup);
       setDeploymentStatus("accepted", null);
       setProofText(report);
       toast("success", "Deployment submitted successfully!");

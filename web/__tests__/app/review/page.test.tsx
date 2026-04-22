@@ -101,7 +101,7 @@ describe("ReviewPage — deployment status polling", () => {
     );
 
     setupStore();
-    mockSubmit.mockResolvedValue({ submissionId: "SUB-TEST-123" });
+    mockSubmit.mockResolvedValue({ submissionId: "SUB-TEST-123", resourceGroup: "sandbox-rg" });
     mockGetDeployment.mockResolvedValue({
       submissionId: "SUB-TEST-123",
       status: "running",
@@ -138,7 +138,7 @@ describe("ReviewPage — deployment status polling", () => {
 
     await getPollingCallback()!();
 
-    expect(mockGetDeployment).toHaveBeenCalledWith("SUB-TEST-123");
+    expect(mockGetDeployment).toHaveBeenCalledWith("SUB-TEST-123", "sandbox-rg");
   });
 
   it("shows running status banner after the first poll", async () => {
