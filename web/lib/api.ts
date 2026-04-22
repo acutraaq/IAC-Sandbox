@@ -1,4 +1,10 @@
-import type { DeploymentPayload, DeploymentStatusResponse, DeploymentListItem, SubmitResponse, ErrorResponse } from "@/types";
+import type {
+  DeploymentPayload,
+  DeploymentStatusResponse,
+  MyDeploymentItem,
+  SubmitResponse,
+  ErrorResponse,
+} from "@/types";
 
 export class ApiError extends Error {
   constructor(
@@ -32,9 +38,7 @@ export async function submitDeployment(
 ): Promise<SubmitResponse> {
   const response = await fetch("/api/deployments", {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload),
   });
 
@@ -45,23 +49,26 @@ export async function submitDeployment(
   return parseErrorBody(response);
 }
 
-export async function listDeployments(): Promise<DeploymentListItem[]> {
-  const response = await fetch("/api/deployments");
+export async function getDeployment(
+  submissionId: string,
+  resourceGroup: string,
+): Promise<DeploymentStatusResponse> {
+  const response = await fetch(
+    `/api/deployments/${submissionId}?rg=${encodeURIComponent(resourceGroup)}`,
+  );
 
   if (response.status === 200) {
-    return response.json() as Promise<DeploymentListItem[]>;
+    return response.json() as Promise<DeploymentStatusResponse>;
   }
 
   return parseErrorBody(response);
 }
 
-export async function getDeployment(
-  submissionId: string,
-): Promise<DeploymentStatusResponse> {
-  const response = await fetch(`/api/deployments/${submissionId}`);
+export async function listMyDeployments(): Promise<MyDeploymentItem[]> {
+  const response = await fetch("/api/my-deployments");
 
   if (response.status === 200) {
-    return response.json() as Promise<DeploymentStatusResponse>;
+    return response.json() as Promise<MyDeploymentItem[]>;
   }
 
   return parseErrorBody(response);
