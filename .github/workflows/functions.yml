@@ -50,7 +50,7 @@ jobs:
         run: zip -r ../functions-deploy.zip dist host.json package.json node_modules
 
       - name: Deploy to Azure Functions
-        uses: azure/functions-action@v2
+        uses: azure/functions-action@v1
         if: github.ref == 'refs/heads/main' && github.event_name == 'push'
         with:
           app-name: epf-sandbox-functions
