@@ -55,8 +55,11 @@ jobs:
       - name: Create deployment package
         if: github.ref == 'refs/heads/main' && github.event_name == 'push'
         # Package the Next.js standalone output.
-        # standalone/ contains server.js + minimal node_modules, but static assets
-        # and public/ must be copied in separately — Next.js does not bundle them.
+        # standalone/ has a minimal node_modules and compiled .next/server/, but
+        # .next/static/ and public/ are not bundled and must be added separately.
+        # We then overwrite the generated server.js with our own (web/server.js)
+        # which includes the Azure HOSTNAME fix and uses the programmatic API —
+        # compatible with standalone because `next` and `.next/` are both present.
         run: |
           rm -rf "$GITHUB_WORKSPACE/deploy"
           mkdir -p "$GITHUB_WORKSPACE/deploy"
@@ -66,15 +69,7 @@ jobs:
           if [ -d "$GITHUB_WORKSPACE/web/public" ]; then
             cp -R "$GITHUB_WORKSPACE/web/public" "$GITHUB_WORKSPACE/deploy/public"
           fi
-          # Azure App Service sets HOSTNAME to the internal container hostname.
-          # Next.js uses it as the bind address and ends up on the wrong interface,
-          # failing the nginx health check.  Prepend the fix to the standalone server.js
-          # (which Next.js generates — our web/server.js is not deployed in standalone mode).
-          node -e "
-            const fs = require('fs');
-            const p = '$GITHUB_WORKSPACE/deploy/server.js';
-            fs.writeFileSync(p, 'delete process.env.HOSTNAME;\n' + fs.readFileSync(p, 'utf8'));
-          "
+          cp "$GITHUB_WORKSPACE/web/server.js" "$GITHUB_WORKSPACE/deploy/server.js"
           cd "$GITHUB_WORKSPACE/deploy"
           zip -r "$GITHUB_WORKSPACE/deploy.zip" .
 
