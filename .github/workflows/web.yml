@@ -80,7 +80,3 @@ jobs:
           app-name: epf-experimental-sandbox-playground
           publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
           package: ${{ github.workspace }}/deploy.zip
-          # Explicit startup command — equivalent to WEBSITE_STARTUP_FILE in
-          # the portal.  This ensures Azure runs `node server.js` regardless
-          # of what the npm start script says.
-          startup-command: node server.js
