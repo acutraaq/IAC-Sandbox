@@ -52,18 +52,13 @@ jobs:
           AZURE_TENANT_ID: 00000000-0000-0000-0000-000000000000
           AZURE_STORAGE_CONNECTION_STRING: DefaultEndpointsProtocol=https;AccountName=build;AccountKey=AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==;EndpointSuffix=core.windows.net
 
-      - name: Prune dev dependencies
-        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-        run: npm prune --omit=dev
-
       - name: Create deployment package
         if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-        # Copy web/ to a staging dir and strip the 'build' script from package.json
-        # before zipping.  Oryx (Azure's container build runner) detects package.json
-        # and would re-run `npm run build` inside the container — which fails because
-        # the required env vars aren't present there.  Without a build script Oryx
-        # only runs `npm install` (a no-op since node_modules/ is already included),
-        # then Azure detects server.js and runs `node server.js`.
+        # Exclude node_modules/ from the zip — Oryx installs them in the container.
+        # We strip the 'build' script so Oryx only runs `npm install`, not a rebuild
+        # (rebuild would fail: required env vars aren't present in the container).
+        # Excluding node_modules keeps the zip small and avoids silent deploy failures
+        # caused by uploading hundreds of MB.
         run: |
           STAGE="$GITHUB_WORKSPACE/deploy-stage"
           rm -rf "$STAGE"
@@ -76,7 +71,7 @@ jobs:
             fs.writeFileSync(p, JSON.stringify(pkg, null, 2));
           "
           cd "$STAGE"
-          zip -r "$GITHUB_WORKSPACE/deploy.zip" .
+          zip -r "$GITHUB_WORKSPACE/deploy.zip" . --exclude "*/node_modules/*" --exclude ".git/*"
 
       - name: Deploy to Azure App Service
         uses: azure/webapps-deploy@v3
