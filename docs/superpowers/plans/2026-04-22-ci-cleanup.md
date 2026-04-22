@@ -1,5 +1,7 @@
 # CI Cleanup & Optimization Implementation Plan
 
+> **STATUS: COMPLETED** — Implemented in commit `c734815` (2026-04-22). All tasks done: gitignore fixed, zod upgraded to v4 in functions, CI split into `web.yml` and `functions.yml`. Note: `web.yml` has since been significantly modified for the standalone deployment approach (see deployment fix commits through `05d262e`).
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Fix stale gitignore paths, upgrade zod in functions to v4, and split the monolithic CI workflow into two path-filtered files so each job only runs when its code changes.
