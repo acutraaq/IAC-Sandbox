@@ -17,6 +17,7 @@ export const POLICY_ALLOWED_RESOURCE_TYPES = new Set([
   "Microsoft.Web/staticSites",
   "Microsoft.Network/virtualNetworks",
   "Microsoft.Network/virtualNetworks/subnets",
+  "Microsoft.Network/networkInterfaces",
   "Microsoft.Network/privateEndpoints",
   "Microsoft.Network/publicIPAddresses",
   "Microsoft.Network/applicationGateways",
@@ -148,8 +149,16 @@ function buildKeyVault(
   config: Record<string, unknown>,
   tenantId: string
 ): ArmResource {
-  // Key Vault names: 3-24 chars, alphanumeric and hyphens
-  const safeName = name.slice(0, 24);
+  // Key Vault names: 3-24 chars, must start with a letter, alphanumeric and hyphens only
+  const safeName = (
+    name
+      .toLowerCase()
+      .replace(/[^a-z0-9-]/g, "-")
+      .replace(/-+/g, "-")
+      .replace(/^[^a-z]+/, "")
+      .replace(/-+$/, "")
+      .slice(0, 24) || "sandbox-kv"
+  );
 
   return {
     type: "Microsoft.KeyVault/vaults",
@@ -212,9 +221,18 @@ function buildWebApplication(
   location: string,
   config: Record<string, unknown>
 ): ArmResource[] {
+  // App Service names: globally unique, 2-60 chars, alphanumeric and hyphens
+  const safeName = (
+    name
+      .toLowerCase()
+      .replace(/[^a-z0-9-]/g, "-")
+      .replace(/-+/g, "-")
+      .replace(/^-+|-+$/g, "")
+      .slice(0, 60) || "sandbox-app"
+  );
   const rawPlanSize = typeof config.planSize === "string" ? config.planSize : "B1";
   const planSize = ALLOWED_APP_SERVICE_SKUS.has(rawPlanSize) ? rawPlanSize : "B1";
-  const planName = `${name}-plan`;
+  const planName = `${safeName}-plan`;
 
   return [
     {
@@ -229,7 +247,7 @@ function buildWebApplication(
     {
       type: "Microsoft.Web/sites",
       apiVersion: "2023-01-01",
-      name,
+      name: safeName,
       location,
       dependsOn: [`[resourceId('Microsoft.Web/serverfarms', '${planName}')]`],
       properties: {
@@ -245,7 +263,16 @@ function buildContainerApp(
   location: string,
   config: Record<string, unknown>
 ): ArmResource[] {
-  const envName = `${name}-env`;
+  // Container App names: 2-32 chars, lowercase alphanumeric and hyphens
+  const safeName = (
+    name
+      .toLowerCase()
+      .replace(/[^a-z0-9-]/g, "-")
+      .replace(/-+/g, "-")
+      .replace(/^-+|-+$/g, "")
+      .slice(0, 32) || "sandbox-app"
+  );
+  const envName = `${safeName}-env`;
 
   return [
     {
@@ -258,7 +285,7 @@ function buildContainerApp(
     {
       type: "Microsoft.App/containerApps",
       apiVersion: "2024-03-01",
-      name,
+      name: safeName,
       location,
       dependsOn: [
         `[resourceId('Microsoft.App/managedEnvironments', '${envName}')]`,
@@ -273,7 +300,7 @@ function buildContainerApp(
         template: {
           containers: [
             {
-              name,
+              name: safeName,
               image:
                 typeof config.containerImage === "string"
                   ? config.containerImage
