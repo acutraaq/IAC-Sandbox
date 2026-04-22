@@ -6,67 +6,68 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-**Sandbox Playground** is an Azure Infrastructure-as-Code deployment platform. It lets non-expert users configure and submit Azure infrastructure deployments through two guided flows:
+**Sandbox IAC** is an Azure Infrastructure-as-Code deployment platform for EPF (Employees Provident Fund, Malaysia). It lets non-expert users configure and submit Azure infrastructure deployments through two guided flows:
 
-- **Template Flow** — Multi-step wizard using predefined templates
+- **Template Flow** — Multi-step wizard using predefined templates (8 templates)
 - **Custom Builder Flow** — Resource-by-resource configuration builder
 
-Both flows converge at a shared Review & Submit page, calling `POST /deployments` on the backend. After submission, a copyable plain-text proof artifact is generated for manual HOD approval.
+Both flows converge at a shared Review & Submit page, calling `POST /api/deployments`. After submission, a copyable plain-text proof artifact is generated for manual HOD approval. Deployment status is tracked via Azure ARM — ARM is the source of truth (no database).
 
-**Microsoft SSO (Entra ID)** is mandatory for all deployment actions (ADR-002). Authentication is deferred alongside backend implementation but is a core requirement — not optional.
-
-> All design decisions, requirements, and architecture are in `implementation/SPEC.md`. The API contract is in `implementation/API_SPEC_OPENAPI.yaml`. Read these before making changes.
+**Microsoft SSO (Entra ID / MSAL.js)** is a planned requirement but is currently blocked on admin providing App Registration credentials. Until then, `deployedBy` is hardcoded to `"demo@sandbox.local"`.
 
 ---
 
-## Key Documentation
+## Live Deployment
 
-| File | Purpose |
-|------|---------|
-| `implementation/SPEC.md` | Complete specification — requirements, architecture, ADRs, backlogs, agent model, delivery plan |
-| `implementation/API_SPEC_OPENAPI.yaml` | Frozen OpenAPI 3.1.0 contract — do not modify without an ADR (see SPEC.md Section 14) |
+**URL:** `https://epf-experimental-sandbox-playground-cvhdbjgdcqabdjau.southeastasia-01.azurewebsites.net`
+
+**Infrastructure:**
+- Azure App Service (Linux, Node 22, B1 SKU) — runs `next start`
+- Azure Storage Queue: `deployment-jobs` in storage account `coeiacsandbox8bfc`
+- Azure Function App: `epf-sandbox-functions` (queue-triggered ARM deployments)
+
+**App Service env vars (required):**
+| Variable | Purpose |
+|----------|---------|
+| `AZURE_SUBSCRIPTION_ID` | Azure subscription (`1fed33d2-00fd-40a8-a5c1-c120aec1b902`) |
+| `AZURE_TENANT_ID` | Azure tenant ID (`3335e1a2-2058-4baf-b03b-031abf0fc821`) |
+| `AZURE_STORAGE_CONNECTION_STRING` | Storage account connection string for queue |
 
 ---
 
-## Agents & Skills
+## Architecture — How Deployments Work
 
-All Claude Code sub-agents and project skills are defined in `workflows/` and installed via:
+1. User submits → `POST /api/deployments` generates a `submissionId` (UUID), derives resource group name, enqueues a message. Returns `{ submissionId, resourceGroup }`.
+2. Azure Function App picks up the queue message, creates the resource group (tagged with `deployedBy` and `iac-submissionId`), runs the ARM deployment using `submissionId` as the ARM deployment name.
+3. Review page polls `GET /api/deployments/:id?rg=<rgName>` every 3 s — queries ARM directly for deployment status. Returns `"accepted"` if the ARM deployment does not exist yet (still queued).
+4. "My Stuff" page calls `GET /api/my-deployments` — queries ARM for resource groups tagged `deployedBy: demo@sandbox.local`.
 
-```bash
-./scripts/install-workflows.sh
-```
-
-| Where | Contents |
-|-------|----------|
-| `workflows/agents/` | 8 sub-agent definitions (A1–A8) matching SPEC.md §17 |
-| `workflows/skills/phase/` | Phase reference cards: `phase-core`, `phase-templates`, `phase-builder-review`, `phase-qa` |
-| `workflows/skills/commands/` | Dev commands: `dev`, `test`, `lint`, `build`, `smoke` |
-| `workflows/README.md` | Full agent + skill index with invocation instructions |
-
-Run the install script after cloning or after editing any file in `workflows/`.
+**ARM tags on every resource group:**
+- Policy-required: `Cost Center`, `Project ID`, `Project Owner`, `Expiry Date`
+- App-added by Function: `deployedBy` (user identity stub), `iac-submissionId` (for status back-lookup)
 
 ---
 
 ## Tech Stack
 
 ### Web App (`web/`)
-- **Framework:** Next.js 16 — App Router with Route Handlers (server-rendered, not static export)
-- **Language:** TypeScript (strict mode — no `any`)
+- **Framework:** Next.js 16 — App Router with Route Handlers
+- **Language:** TypeScript strict mode (no `any`)
 - **Styling:** Tailwind CSS v4 with CSS variable design tokens
 - **State:** Zustand — single `deploymentStore` for all cross-route state
-- **Forms:** React Hook Form + Zod (`buildSchema` utility in `lib/schema.ts`)
-- **Icons:** Lucide React (`getIcon` utility in `lib/icons.ts`)
+- **Forms:** React Hook Form + Zod (`buildSchema` in `lib/schema.ts`)
+- **Icons:** Lucide React (`getIcon` in `lib/icons.ts`)
 - **Animations:** Framer Motion (reduced-motion safe)
 - **Testing:** Vitest + React Testing Library
-- **Database:** Prisma + PostgreSQL 16 (via `lib/db.ts` singleton)
-- **Queue:** Azure Storage Queue (`@azure/storage-queue`) for async ARM dispatch
+- **Queue:** `@azure/storage-queue` for async ARM dispatch
+- **ARM:** `@azure/arm-resources` + `@azure/identity` (`DefaultAzureCredential`) for status polling and RG listing
 
 ### Azure Functions (`functions/`)
 - Node.js 22 LTS, TypeScript, Azure Functions v4 SDK
-- Queue-triggered `processDeployment` — picks up jobs from `deployment-jobs` queue and runs ARM deployments via Azure SDK + managed identity
+- Queue-triggered `processDeployment` — creates tagged resource group, deploys ARM template via managed identity
 
-### Infrastructure (`infra/`) — deferred
-- Azure Bicep (resource-group scope), Azure Container Apps, Azure Key Vault, Managed Identity
+### No database
+Prisma and PostgreSQL have been removed. ARM is the source of truth for all deployment state.
 
 ---
 
@@ -74,59 +75,74 @@ Run the install script after cloning or after editing any file in `workflows/`.
 
 ```
 /
-├── web/                    # Next.js 16 app — UI + API routes + DB access
-│   ├── app/                # App Router pages, layouts, and route handlers
-│   │   ├── globals.css     # CSS variable design tokens (dark + light)
-│   │   ├── layout.tsx      # RootLayout
-│   │   ├── page.tsx        # Home (/)
-│   │   ├── login/          # /login (SSO entry — deferred)
-│   │   ├── templates/      # /templates and /templates/[slug]
-│   │   ├── builder/        # /builder
-│   │   ├── review/         # /review
+├── web/
+│   ├── app/
+│   │   ├── globals.css
+│   │   ├── layout.tsx
+│   │   ├── page.tsx             # Home (/)
+│   │   ├── login/               # /login — deferred (pending MSAL credentials)
+│   │   ├── templates/           # /templates and /templates/[slug]
+│   │   ├── builder/             # /builder
+│   │   ├── review/              # /review
+│   │   ├── my-stuff/            # /my-stuff — user's deployed resource groups
 │   │   └── api/
-│   │       ├── deployments/         # GET list, POST create
-│   │       │   └── [submissionId]/  # GET by ID
-│   │       └── healthz/             # GET health check
+│   │       ├── deployments/         # POST create
+│   │       │   └── [submissionId]/  # GET status (ARM, requires ?rg= param)
+│   │       ├── my-deployments/      # GET list RGs by deployedBy tag
+│   │       └── healthz/
 │   ├── components/
-│   │   ├── layout/         # PageShell, Nav, ThemeToggle
-│   │   ├── ui/             # Button, Card, Badge, Modal, Toast
-│   │   ├── templates/      # TemplateGrid, FilterPills, TemplateCard
-│   │   ├── wizard/         # Stepper, WizardStep, SummaryPanel
-│   │   ├── builder/        # ResourceCatalog, ResourceDrawer, SelectedPanel
-│   │   └── review/         # ReviewSection, SubmitButton, ConfirmModal
+│   │   ├── layout/   # PageShell, Sidebar, Topbar, ThemeToggle
+│   │   ├── ui/       # Button, Card, Badge, Modal, Toast
+│   │   ├── templates/
+│   │   ├── wizard/
+│   │   ├── builder/
+│   │   └── review/
 │   ├── store/
-│   │   └── deploymentStore.ts
+│   │   └── deploymentStore.ts   # includes deployedResourceGroup field
 │   ├── lib/
-│   │   ├── api.ts          # Client-side fetch helpers (relative /api/* paths)
-│   │   ├── db.ts           # Prisma singleton
-│   │   ├── errors.ts       # AppError class + toErrorResponse()
-│   │   ├── server-env.ts   # Server-side env validation (Zod)
-│   │   ├── schema.ts       # buildSchema(fields: FieldSchema[]) → ZodObject
-│   │   ├── icons.ts        # getIcon(name: string) → LucideIcon
-│   │   ├── report.ts       # generateReport(submissionId, store) → string
+│   │   ├── api.ts               # Client-side fetch helpers
+│   │   ├── arm.ts               # getArmClient() factory
+│   │   ├── errors.ts
+│   │   ├── server-env.ts        # Zod env (no DATABASE_URL)
+│   │   ├── schema.ts
+│   │   ├── icons.ts
+│   │   ├── report.ts
 │   │   └── deployments/
-│   │       ├── schema.ts   # Zod deployment payload schemas
-│   │       └── rg-name.ts  # deriveResourceGroupName / deriveLocation
-│   ├── prisma/
-│   │   └── schema.prisma   # Deployment model (mirrors functions/prisma)
-│   ├── types/
-│   │   └── index.ts        # All shared TypeScript types
+│   │       ├── schema.ts        # Zod payload schemas + tagsSchema
+│   │       ├── rg-name.ts       # deriveResourceGroupName / deriveLocation
+│   │       └── arm-status.ts    # mapArmProvisioningState → DeploymentStatus
+│   ├── types/index.ts
 │   ├── data/
-│   │   ├── templates.json  # 8 Azure deployment templates
-│   │   └── resources.json  # 8 Azure resource types
-│   ├── mocks/              # MSW handlers (used in tests)
-│   │   └── handlers.ts
-│   └── __tests__/          # Co-located preferred, fallback here
+│   │   ├── templates.json
+│   │   └── resources.json
+│   └── __tests__/
 │       ├── store/
-│       ├── lib/
-│       └── components/
+│       ├── lib/deployments/     # arm-status.test.ts
+│       └── app/
+│           ├── review/
+│           └── my-stuff/
 │
-├── functions/              # Azure Functions v4 — queue-triggered ARM deployment
-├── docker-compose.yml      # Local PostgreSQL for development
-├── infra/                  # Azure Bicep — deferred
-└── implementation/         # Frozen specs (READ-ONLY)
-    ├── SPEC.md
-    └── API_SPEC_OPENAPI.yaml
+├── functions/
+│   └── src/
+│       ├── functions/processDeployment.ts
+│       ├── lib/env.ts
+│       └── modules/deployments/
+│           ├── arm-template-builder.ts
+│           ├── bicep-executor.ts   # tags RG with deployedBy + iac-submissionId
+│           ├── deployment.schema.ts
+│           └── rg-name.ts
+│
+├── docs/superpowers/plans/      # Implementation plans
+├── implementation/              # Frozen specs (READ-ONLY)
+│   ├── SPEC.md
+│   └── API_SPEC_OPENAPI.yaml
+├── workflows/                   # Claude Code agents + skills
+│   ├── agents/
+│   ├── skills/
+│   ├── README.md
+│   └── install-workflows.sh
+└── scripts/
+    └── install-workflows.sh
 ```
 
 ---
@@ -134,72 +150,71 @@ Run the install script after cloning or after editing any file in `workflows/`.
 ## Development Commands
 
 ```sh
-# Run from web/
-npm run dev          # Start dev server (localhost:3000)
-npm run build        # Next.js server build to .next/
-npm start            # Start production server
-npm run lint         # ESLint — must pass with 0 errors
-npm run test:run     # Vitest — must all pass
+# Run from web/ — prefix with NODE_OPTIONS for corporate SSL
+$env:NODE_OPTIONS="--use-system-ca"; npm run dev   # Start dev server (localhost:3000)
+npm run build
+npm start
+npm run lint         # must pass with 0 errors
+npm run test:run     # must all pass
+npx tsc --noEmit     # must pass with 0 errors
 
 # Run a single test file
 npx vitest run path/to/Component.test.tsx
-# Run tests matching a name pattern
-npx vitest run -t "should prevent duplicate resources"
-
-# Local database (requires Docker)
-docker-compose up -d   # Start PostgreSQL on port 5432
 ```
+
+No docker-compose or local database needed.
+
+---
+
+## Canonical Patterns (enforce these)
+
+| Pattern | Location |
+|---------|----------|
+| Tag validation | `tagsSchema.safeParse()` from `web/lib/deployments/schema.ts` |
+| Field display | `displayFieldValue(field, value)` from `web/lib/display.ts` |
+| RG name | `deriveResourceGroupName` / `sanitise` from `web/lib/deployments/rg-name.ts` |
+| ARM status | `mapArmProvisioningState` from `web/lib/deployments/arm-status.ts` |
+| ARM client | `getArmClient()` from `web/lib/arm.ts` (one per request) |
+| Server env | `serverEnv` from `web/lib/server-env.ts` (never raw `process.env`) |
+| Client API | helpers in `web/lib/api.ts` (never raw `fetch('/api/...')`) |
+| Errors | `AppError` + `toErrorResponse()` from `web/lib/errors.ts` |
 
 ---
 
 ## Design System
-
-Design inspired by premium web aesthetics from godly.website (dark-first, editorial):
 
 ### Color Tokens (Dark Theme — default)
 | Token | Value | Usage |
 |-------|-------|-------|
 | `--color-bg` | `#0a0a0a` | Page background |
 | `--color-surface` | `#111111` | Card backgrounds |
-| `--color-surface-elevated` | `#1a1a1a` | Modals, drawers, elevated cards |
-| `--color-border` | `rgba(255,255,255,0.08)` | Subtle card/section borders |
+| `--color-surface-elevated` | `#1a1a1a` | Modals, drawers |
+| `--color-border` | `rgba(255,255,255,0.08)` | Borders |
 | `--color-text` | `#f0f0f0` | Primary text |
-| `--color-text-muted` | `rgba(255,255,255,0.5)` | Secondary/helper text |
-| `--color-accent` | `#0078d4` | Azure blue — icons, highlights, primary CTAs |
-| `--color-accent-hover` | `#1a8fe8` | Hover state for accent CTAs |
-| `--color-error` | `#ef4444` | Validation errors, error toasts |
-| `--color-success` | `#22c55e` | Success toasts, completion states |
-| `--color-warning` | `#f59e0b` | Warning badges, caution states |
+| `--color-text-muted` | `rgba(255,255,255,0.5)` | Secondary text |
+| `--color-accent` | `#0078d4` | Azure blue |
+| `--color-accent-hover` | `#1a8fe8` | Accent hover |
+| `--color-error` | `#ef4444` | Errors |
+| `--color-success` | `#22c55e` | Success |
+| `--color-warning` | `#f59e0b` | Warnings |
 
 ### Color Tokens (Light Theme — `html[data-theme='light']`)
 | Token | Value | Usage |
 |-------|-------|-------|
 | `--color-bg` | `#fafafa` | Page background |
-| `--color-surface` | `#ffffff` | Card backgrounds |
-| `--color-surface-elevated` | `#ffffff` | Modals, drawers |
+| `--color-surface` | `#ffffff` | Cards |
 | `--color-border` | `rgba(0,0,0,0.08)` | Borders |
 | `--color-text` | `#171717` | Primary text |
 | `--color-text-muted` | `rgba(0,0,0,0.5)` | Secondary text |
-| `--color-accent` | `#0078d4` | Same Azure blue |
-| `--color-accent-hover` | `#005a9e` | Darker on hover |
-| `--color-error` | `#dc2626` | Validation errors |
-| `--color-success` | `#16a34a` | Success states |
-| `--color-warning` | `#d97706` | Warning states |
-
-### Visual Direction
-- Dark-first; light theme toggled via `html[data-theme='light']`
-- Theme persisted to `localStorage` under key `sandbox-theme`
-- Font: Geist Sans (headings + body), large bold headings (4xl–6xl), generous whitespace
-- Cards: `rounded-xl`, soft border, hover lift shadow
-- CTAs: high-contrast pill buttons, white on dark, accent on hover
-- Navigation: minimal floating nav, logo left, theme toggle right
-- Animations: subtle entrance transitions, drawer slide-in, all reduced-motion safe
+| `--color-accent` | `#0078d4` | Azure blue |
+| `--color-accent-hover` | `#005a9e` | Accent hover |
+| `--color-error` | `#dc2626` | Errors |
+| `--color-success` | `#16a34a` | Success |
+| `--color-warning` | `#d97706` | Warnings |
 
 ---
 
 ## Proof Artifact Format
-
-The confirmation modal generates a copyable plain-text report. This format is compliance-critical (ADR-008):
 
 ```
 SANDBOX DEPLOYMENT PROOF
@@ -228,125 +243,75 @@ Note: Manual HOD approval is required outside this system.
 
 ## Error Response Contract
 
-The backend returns errors in this standard format (ADR-007). Frontend `lib/api.ts` must parse this:
-
 ```json
 {
   "error": {
     "code": "VALIDATION_ERROR",
     "message": "Request validation failed",
-    "details": [
-      { "path": "template.slug", "message": "Required" }
-    ]
+    "details": [{ "path": "template.slug", "message": "Required" }]
   },
   "requestId": "req_abc123"
 }
 ```
 
-During frontend-only development, MSW handlers should return this same shape for error scenarios.
-
 ---
 
 ## Coding Conventions
 
-- **TypeScript strict mode** — no `any`, no type assertions without justification
-- **API contract is frozen** — do not edit `implementation/API_SPEC_OPENAPI.yaml` without creating an ADR in `implementation/SPEC.md` Section 14
-- **Validate all input with Zod** — use `buildSchema` for dynamic field validation
-- **State via Zustand only** — no component-local state for data that crosses routes
-- **No raw SQL** — Prisma only (when backend is built)
-- **Structured JSON logs** — include `requestId`, `submissionId` fields (backend)
-- **No secrets in code or logs** — use env vars / Azure Key Vault
-- **Accessibility built-in** — every component must include ARIA labels, `role=dialog` for overlays, `aria-invalid` for errors, keyboard support (Escape closes modals, Enter/Space activates cards). Do not bolt on a11y as an afterthought.
-- **Tests co-located when practical** — prefer `Component.test.tsx` next to `Component.tsx`. Use `__tests__/` for store/lib tests.
+- TypeScript strict mode — no `any`, no unguarded type assertions
+- Validate all input with Zod at API boundaries
+- State via Zustand only — no component-local state for cross-route data
+- No database — ARM is source of truth; no Prisma, no SQL
+- Structured logs — include `requestId`, `submissionId` (backend routes)
+- No secrets in code or logs — env vars / managed identity only
+- Accessibility built-in — ARIA labels, `role=dialog`, `aria-invalid`, keyboard support
+- Tests co-located where practical — `Component.test.tsx` next to component; `__tests__/` for lib/store
 
 ---
 
 ## Git and Branch Strategy
 
-### Branch Model
-- `main` — production-ready only
-- `develop` — integration branch
-- Feature branches per agent/workstream: `feat/<scope>`, `chore/<scope>`, `docs/<scope>`
-- One active branch per workstream, rebase from `develop` daily
+- `main` — production-ready; CI deploys to Azure App Service on every push
+- Feature branches: `feature/<scope>`
+- Use git worktrees (`.worktrees/`) for isolated feature work
+- Push requires `GIT_SSL_NO_VERIFY=true` (corporate TLS interception)
 
-### Commit Messages
-Use conventional commits:
 ```
-feat: add template catalog with category filtering
+feat: add my-stuff page listing ARM resource groups
 fix: prevent duplicate resource types in builder
-chore: configure ESLint and Vitest
-docs: update SPEC.md with ADR-016
+chore: remove Prisma and DATABASE_URL
 ```
-
-### Merge Rules
-- Required reviewers approved
-- CI checks green (lint/test/build)
-- No contract-breaking changes without updating SPEC.md
-- See SPEC.md Section 18 for full PR order and dependencies
 
 ---
 
 ## Quality Gates
 
-All of these must pass before any phase is considered complete:
-
 ```sh
+# web/
 npm run lint         # 0 errors
-npm run test:run     # All tests pass
-npm run build        # .next/ build produced successfully
+npx tsc --noEmit     # 0 errors
+npm run test:run     # all pass
+npm run build        # .next/ produced
+
+# functions/
+npx tsc --noEmit     # 0 errors
 ```
 
-Additional manual checks:
-- Both flows (template + custom) work end-to-end
-- Theme toggle persists across page loads
-- Keyboard navigation works in modals and drawers
-- No console errors in happy paths
-
 ---
 
-## Environment Variables
+## NPM Dependencies
 
-### Web App (`web/`) — server-side only (never prefix with NEXT_PUBLIC_)
-| Variable | Description |
-|----------|-------------|
-| `DATABASE_URL` | PostgreSQL connection string |
-| `AZURE_SUBSCRIPTION_ID` | Azure subscription for deployments |
-| `AZURE_TENANT_ID` | Azure tenant ID |
-| `AZURE_STORAGE_CONNECTION_STRING` | Storage account connection string for queue |
-
----
-
-## NPM Dependencies (`web/`)
-
-### Production
+### `web/` — Production
 - `next` (v16), `react`, `react-dom` (v19)
-- `@prisma/client` — database ORM
-- `@azure/storage-queue` — enqueue deployment jobs
-- `zustand` — state management
-- `react-hook-form`, `@hookform/resolvers` — forms
-- `zod` — validation
-- `lucide-react` — icons
-- `framer-motion` — animations
+- `@azure/storage-queue`, `@azure/arm-resources`, `@azure/identity`
+- `zustand`, `react-hook-form`, `@hookform/resolvers`, `zod`
+- `lucide-react`, `framer-motion`, `geist`
 
-### Development
-- `prisma` — Prisma CLI for schema management
-- `typescript`, `@types/react`, `@types/react-dom`
-- `tailwindcss` (v4)
-- `eslint`, `eslint-config-next`
-- `vitest`, `@testing-library/react`, `@testing-library/jest-dom`
-- `msw` — API mocking in tests
+### `web/` — Development
+- `typescript`, `@types/react`, `@types/react-dom`, `@types/node`
+- `tailwindcss` (v4), `eslint`, `eslint-config-next`
+- `vitest`, `@testing-library/react`, `@testing-library/jest-dom`, `@testing-library/user-event`
+- `msw`, `jsdom`
 
----
-
-## Build Order
-
-| Phase | What |
-|-------|------|
-| 1 | Foundation — scaffold, tooling, CSS tokens, layout, UI primitives (with a11y built in) |
-| 2 | Domain layer — types, data JSON, store, utilities |
-| 3a | Home page — hero, CTAs, ambient visuals |
-| 3b | Template flow — catalog, wizard, stepper, summary panel |
-| 3c | Custom builder — catalog, drawer, selected panel |
-| 3d | Review + Submit — guard, payload, API client, confirmation modal, proof report |
-| 4 | Quality — tests, lint, build verification, smoke test |
-| — | Infrastructure/Bicep (deferred) |
+### `functions/` — Production
+- `@azure/functions` (v4), `@azure/arm-resources`, `@azure/identity`, `zod`
