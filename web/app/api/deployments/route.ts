@@ -16,9 +16,15 @@ interface DeploymentJobMessage {
 
 const QUEUE_NAME = "deployment-jobs";
 
-const queueClient = QueueServiceClient.fromConnectionString(
-  serverEnv.AZURE_STORAGE_CONNECTION_STRING
-).getQueueClient(QUEUE_NAME);
+let _queueClient: ReturnType<InstanceType<typeof QueueServiceClient>["getQueueClient"]> | null = null;
+function getQueueClient() {
+  if (!_queueClient) {
+    _queueClient = QueueServiceClient.fromConnectionString(
+      serverEnv.AZURE_STORAGE_CONNECTION_STRING
+    ).getQueueClient(QUEUE_NAME);
+  }
+  return _queueClient;
+}
 
 export async function POST(request: Request) {
   const requestId = crypto.randomUUID();
@@ -57,7 +63,7 @@ export async function POST(request: Request) {
       tags: payload.tags,
     };
 
-    await queueClient.sendMessage(
+    await getQueueClient().sendMessage(
       Buffer.from(JSON.stringify(message)).toString("base64")
     );
 

@@ -1,4 +1,9 @@
+import { randomBytes } from "crypto";
 import type { DeploymentPayload } from "./deployment.schema.js";
+
+function generatePassword(): string {
+  return randomBytes(16).toString("base64url");
+}
 
 // ---------------------------------------------------------------------------
 // Subscription policy: COE-Allowed-Resources
@@ -204,9 +209,8 @@ function buildPostgresServer(
         backupRetentionDays: config.enableBackup !== false ? 7 : 1,
         geoRedundantBackup: "Disabled",
       },
-      // Default credentials for sandbox deployments — change after provisioning
       administratorLogin: "sandboxadmin",
-      administratorLoginPassword: "Sandbox@Azure#1234!",
+      administratorLoginPassword: generatePassword(),
       highAvailability: { mode: "Disabled" },
     },
   };
@@ -414,11 +418,10 @@ function buildVirtualMachine(
         osProfile: {
           computerName,
           adminUsername,
-          // Default password for sandbox deployments — change after provisioning
-          adminPassword: "Sandbox@Azure#1234!",
+          ...(isWindows ? { adminPassword: generatePassword() } : {}),
           ...(isWindows
             ? { windowsConfiguration: { enableAutomaticUpdates: true } }
-            : { linuxConfiguration: { disablePasswordAuthentication: false } }),
+            : { linuxConfiguration: { disablePasswordAuthentication: true } }),
         },
         networkProfile: {
           networkInterfaces: [
