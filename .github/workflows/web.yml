@@ -52,19 +52,9 @@ jobs:
           AZURE_TENANT_ID: 00000000-0000-0000-0000-000000000000
           AZURE_STORAGE_CONNECTION_STRING: DefaultEndpointsProtocol=https;AccountName=build;AccountKey=AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==;EndpointSuffix=core.windows.net
 
-      - name: Package standalone output
+      - name: Prune dev dependencies
         if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-        run: |
-          cp -r public .next/standalone/web/public
-          cp -r .next/static .next/standalone/web/.next/static
-          node -e "const p=require('./.next/standalone/web/package.json');p.scripts.start='node server.js';require('fs').writeFileSync('./.next/standalone/web/package.json',JSON.stringify(p,null,2))"
-          node -e "
-            const fs = require('fs');
-            const p = './.next/standalone/web/server.js';
-            const original = fs.readFileSync(p, 'utf8');
-            const prefix = 'process.env.NODE_PATH = \"/node_modules\";\nrequire(\"module\")._initPaths();\ndelete process.env.HOSTNAME;\n';
-            fs.writeFileSync(p, prefix + original);
-          "
+        run: npm prune --omit=dev
 
       - name: Deploy to Azure App Service
         uses: azure/webapps-deploy@v3
@@ -72,4 +62,4 @@ jobs:
         with:
           app-name: epf-experimental-sandbox-playground
           publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
-          package: web/.next/standalone/web
+          package: web

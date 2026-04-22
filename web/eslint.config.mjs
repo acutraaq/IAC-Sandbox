@@ -14,6 +14,8 @@ const eslintConfig = defineConfig([
     "next-env.d.ts",
     // MSW service worker (generated file)
     "public/mockServiceWorker.js",
+    // CJS startup wrapper — not part of the Next.js app
+    "server.js",
   ]),
   {
     // React Hook Form's watch() triggers the React Compiler incompatible-library
