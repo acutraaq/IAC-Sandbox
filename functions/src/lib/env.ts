@@ -4,7 +4,6 @@ const envSchema = z.object({
   NODE_ENV: z
     .enum(["development", "production", "test"])
     .default("development"),
-  DATABASE_URL: z.string().min(1, "DATABASE_URL is required"),
   AZURE_SUBSCRIPTION_ID: z.string().min(1, "AZURE_SUBSCRIPTION_ID is required"),
   AZURE_TENANT_ID: z.string().min(1, "AZURE_TENANT_ID is required"),
   LOG_LEVEL: z

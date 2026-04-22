@@ -34,7 +34,11 @@ export async function executeBicepDeployment(
   // Step 2: create the resource group with required policy tags (idempotent)
   await client.resourceGroups.createOrUpdate(opts.resourceGroupName, {
     location: opts.location,
-    tags: opts.tags,
+    tags: {
+      ...opts.tags,
+      deployedBy: "demo@sandbox.local",
+      "iac-submissionId": opts.deploymentName,
+    },
   });
 
   // Step 3: deploy ARM template into the resource group
