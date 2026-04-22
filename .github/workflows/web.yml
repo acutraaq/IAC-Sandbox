@@ -52,26 +52,9 @@ jobs:
           AZURE_TENANT_ID: 00000000-0000-0000-0000-000000000000
           AZURE_STORAGE_CONNECTION_STRING: DefaultEndpointsProtocol=https;AccountName=build;AccountKey=AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==;EndpointSuffix=core.windows.net
 
-      - name: Create deployment package
+      - name: Prune dev dependencies
         if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-        # Exclude node_modules/ from the zip — Oryx installs them in the container.
-        # We strip the 'build' script so Oryx only runs `npm install`, not a rebuild
-        # (rebuild would fail: required env vars aren't present in the container).
-        # Excluding node_modules keeps the zip small and avoids silent deploy failures
-        # caused by uploading hundreds of MB.
-        run: |
-          STAGE="$GITHUB_WORKSPACE/deploy-stage"
-          rm -rf "$STAGE"
-          cp -R "$GITHUB_WORKSPACE/web/." "$STAGE"
-          node -e "
-            const fs = require('fs');
-            const p = '$STAGE/package.json';
-            const pkg = JSON.parse(fs.readFileSync(p, 'utf8'));
-            delete pkg.scripts.build;
-            fs.writeFileSync(p, JSON.stringify(pkg, null, 2));
-          "
-          cd "$STAGE"
-          zip -r "$GITHUB_WORKSPACE/deploy.zip" . --exclude "*/node_modules/*" --exclude ".git/*"
+        run: npm prune --omit=dev
 
       - name: Deploy to Azure App Service
         uses: azure/webapps-deploy@v3
@@ -79,4 +62,4 @@ jobs:
         with:
           app-name: epf-experimental-sandbox-playground
           publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
-          package: ${{ github.workspace }}/deploy.zip
+          package: web/
