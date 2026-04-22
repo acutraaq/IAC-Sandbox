@@ -56,10 +56,76 @@ jobs:
         if: github.ref == 'refs/heads/main' && github.event_name == 'push'
         run: npm prune --omit=dev
 
+      - name: Disable Oryx build via Kudu settings API
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        # The publish profile contains the Kudu credentials.  We parse them out
+        # with Python (available on all GitHub-hosted runners) and POST to the
+        # Kudu /api/settings endpoint to set SCM_DO_BUILD_DURING_DEPLOYMENT=false
+        # before the zip deploy arrives.  Without this, Oryx detects package.json
+        # and reruns `npm run build` in the App Service container — overwriting
+        # the pre-built .next/ artifact we ship in the zip.
+        working-directory: ${{ github.workspace }}
+        env:
+          PUBLISH_PROFILE: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
+        run: |
+          python3 - <<'PYEOF'
+          import os, re, subprocess, sys, urllib.request, urllib.error, json, base64
+
+          profile = os.environ["PUBLISH_PROFILE"]
+
+          # Extract publishUrl (Kudu host) and credentials from the XML.
+          # A publish profile has entries like:
+          #   publishUrl="<appname>.scm.azurewebsites.net:443"
+          #   userName="$<appname>"
+          #   userPWD="<password>"
+          url_match = re.search(r'publishUrl="([^"]+scm[^"]+)"', profile)
+          user_match = re.search(r'userName="([^"]+)"', profile)
+          pwd_match  = re.search(r'userPWD="([^"]+)"', profile)
+
+          if not (url_match and user_match and pwd_match):
+              print("Could not parse publish profile — skipping Kudu settings call", flush=True)
+              sys.exit(0)
+
+          kudu_host = url_match.group(1).split(":")[0]  # strip port
+          username  = user_match.group(1)
+          password  = pwd_match.group(1)
+
+          settings_url = f"https://{kudu_host}/api/settings"
+          creds = base64.b64encode(f"{username}:{password}".encode()).decode()
+
+          payload = json.dumps({
+              "SCM_DO_BUILD_DURING_DEPLOYMENT": "false",
+              "WEBSITE_STARTUP_FILE": "node server.js"
+          }).encode()
+
+          req = urllib.request.Request(
+              settings_url,
+              data=payload,
+              headers={
+                  "Authorization": f"Basic {creds}",
+                  "Content-Type": "application/json",
+              },
+              method="POST",
+          )
+
+          try:
+              with urllib.request.urlopen(req) as resp:
+                  print(f"Kudu settings updated: HTTP {resp.status}", flush=True)
+          except urllib.error.HTTPError as e:
+              print(f"Kudu settings call failed: HTTP {e.code} {e.reason}", flush=True)
+              # Non-fatal: the portal setting should already be correct; proceed.
+          PYEOF
+
       - name: Create deployment package
         if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-        # zip everything including .next/ (dot-dirs) and node_modules/ explicitly
-        run: zip -r ../deploy.zip .
+        # cd into web/ so zip entries start at the app root (server.js, .next/,
+        # node_modules/, etc.) rather than web/...  Azure extracts the zip into
+        # /home/site/wwwroot so every entry must be relative to the app root.
+        # The zip is written to the workspace root so the path reference below
+        # is unambiguous.  Linux zip includes dot-directories (.next/) by default.
+        run: |
+          cd "$GITHUB_WORKSPACE/web"
+          zip -r "$GITHUB_WORKSPACE/deploy.zip" .
 
       - name: Deploy to Azure App Service
         uses: azure/webapps-deploy@v3
@@ -67,4 +133,8 @@ jobs:
         with:
           app-name: epf-experimental-sandbox-playground
           publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
-          package: deploy.zip
+          package: ${{ github.workspace }}/deploy.zip
+          # Explicit startup command — equivalent to WEBSITE_STARTUP_FILE in
+          # the portal.  This ensures Azure runs `node server.js` regardless
+          # of what the npm start script says.
+          startup-command: node server.js
