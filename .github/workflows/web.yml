@@ -52,9 +52,11 @@ jobs:
           AZURE_TENANT_ID: 00000000-0000-0000-0000-000000000000
           AZURE_STORAGE_CONNECTION_STRING: DefaultEndpointsProtocol=https;AccountName=build;AccountKey=AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==;EndpointSuffix=core.windows.net
 
-      - name: Prune dev dependencies
+      - name: Package standalone output
         if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-        run: npm prune --omit=dev
+        run: |
+          cp -r public .next/standalone/web/public
+          cp -r .next/static .next/standalone/web/.next/static
 
       - name: Deploy to Azure App Service
         uses: azure/webapps-deploy@v3
@@ -62,4 +64,5 @@ jobs:
         with:
           app-name: epf-experimental-sandbox-playground
           publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
-          package: web/
+          package: web/.next/standalone/web
+          startup-command: node server.js
