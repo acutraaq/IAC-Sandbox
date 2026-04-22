@@ -62,7 +62,7 @@ jobs:
             const fs = require('fs');
             const p = './.next/standalone/web/server.js';
             const original = fs.readFileSync(p, 'utf8');
-            const prefix = 'process.env.NODE_PATH = \"/node_modules\";\nrequire(\"module\")._initPaths();\n';
+            const prefix = 'process.env.NODE_PATH = \"/node_modules\";\nrequire(\"module\")._initPaths();\ndelete process.env.HOSTNAME;\n';
             fs.writeFileSync(p, prefix + original);
           "
 
