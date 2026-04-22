@@ -9,6 +9,7 @@ const envSchema = z.object({
   LOG_LEVEL: z
     .enum(["fatal", "error", "warn", "info", "debug", "trace"])
     .default("info"),
+  DEPLOYMENT_QUEUE: z.string().min(1, "DEPLOYMENT_QUEUE is required"),
 });
 
 const parsed = envSchema.safeParse(process.env);

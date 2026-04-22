@@ -1,26 +1,31 @@
 import { app, InvocationContext } from "@azure/functions";
+import { z } from "zod";
 import { executeBicepDeployment } from "../modules/deployments/bicep-executor.js";
-import type { DeploymentPayload } from "../modules/deployments/deployment.schema.js";
+import { deploymentPayloadSchema } from "../modules/deployments/deployment.schema.js";
 import env from "../lib/env.js";
 
-export interface DeploymentJobMessage {
-  submissionId: string;
-  resourceGroupName: string;
-  location: string;
-  payload: DeploymentPayload;
-  tags: Record<string, string>;
-}
+const deploymentJobMessageSchema = z.object({
+  submissionId: z.string().uuid(),
+  resourceGroupName: z.string().min(1),
+  location: z.string().min(1),
+  payload: deploymentPayloadSchema,
+  tags: z.record(z.string(), z.string()),
+});
 
 async function processDeployment(
   queueItem: unknown,
   context: InvocationContext
 ): Promise<void> {
-  const message: DeploymentJobMessage =
-    typeof queueItem === "string"
-      ? (JSON.parse(queueItem) as DeploymentJobMessage)
-      : (queueItem as DeploymentJobMessage);
-
-  const { submissionId, resourceGroupName, location, payload, tags } = message;
+  const rawMessage = typeof queueItem === "string" ? JSON.parse(queueItem) : queueItem;
+  const parsed = deploymentJobMessageSchema.safeParse(rawMessage);
+  if (!parsed.success) {
+    const detail = parsed.error.issues
+      .map((i) => `${i.path.join(".")}: ${i.message}`)
+      .join("; ");
+    context.error(`Invalid queue message: ${detail}`);
+    return;
+  }
+  const { submissionId, resourceGroupName, location, payload, tags } = parsed.data;
 
   context.log(`Processing deployment ${submissionId} for RG ${resourceGroupName}`);
 
