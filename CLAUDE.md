@@ -22,7 +22,7 @@ Both flows converge at a shared Review & Submit page, calling `POST /api/deploym
 **URL:** `https://epf-experimental-sandbox-playground-cvhdbjgdcqabdjau.southeastasia-01.azurewebsites.net`
 
 **Infrastructure:**
-- Azure App Service (Linux, Node 22, B1 SKU) — runs `node server.js` (Next.js standalone output)
+- Azure App Service (Linux, Node 22, B1 SKU) — runs `node server.js` (Next.js standard build output)
 - Azure Storage Queue: `deployment-jobs` in storage account `coeiacsandbox8bfc`
 - Azure Function App: `epf-sandbox-functions` (queue-triggered ARM deployments)
 
@@ -32,6 +32,16 @@ Both flows converge at a shared Review & Submit page, calling `POST /api/deploym
 | `AZURE_SUBSCRIPTION_ID` | Azure subscription (`1fed33d2-00fd-40a8-a5c1-c120aec1b902`) |
 | `AZURE_TENANT_ID` | Azure tenant ID (`3335e1a2-2058-4baf-b03b-031abf0fc821`) |
 | `AZURE_STORAGE_CONNECTION_STRING` | Storage account connection string for queue |
+
+**CI/CD deploy approach (`web.yml`):**
+1. `npm ci` → lint → type-check → test → `npm run build`
+2. `npm prune --omit=dev` — removes dev dependencies from `node_modules/`
+3. Deploy `web/` folder directly via `azure/webapps-deploy@v3` — includes `.next/` and prod `node_modules/`
+4. App Service auto-detects `package.json` start script (`node server.js`) and runs it
+5. `web/server.js` deletes the `HOSTNAME` env var (Azure sets it to the container hostname which breaks Next.js binding) then starts Next.js via the programmatic API
+
+> Do NOT use `output: 'standalone'` in `next.config.js` — it is incompatible with the programmatic API in `server.js`.
+> Do NOT exclude `node_modules/` from the deploy package — Oryx re-runs the build in the container and fails because runtime env vars are not available at build time.
 
 ---
 
