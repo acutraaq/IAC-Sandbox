@@ -76,7 +76,7 @@ export default function ReviewPage() {
         pollRef.current = null;
       }
     };
-  }, [submissionId, modalOpen, setDeploymentStatus]);
+  }, [submissionId, deployedResourceGroup, modalOpen, setDeploymentStatus]);
 
   if (!mode) return null;
 
