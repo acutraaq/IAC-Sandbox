@@ -69,26 +69,25 @@ jobs:
           PUBLISH_PROFILE: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
         run: |
           python3 - <<'PYEOF'
-          import os, re, subprocess, sys, urllib.request, urllib.error, json, base64
+          import os, re, sys, urllib.request, urllib.error, json, base64
 
           profile = os.environ["PUBLISH_PROFILE"]
 
-          # Extract publishUrl (Kudu host) and credentials from the XML.
-          # A publish profile has entries like:
-          #   publishUrl="<appname>.scm.azurewebsites.net:443"
-          #   userName="$<appname>"
-          #   userPWD="<password>"
-          url_match = re.search(r'publishUrl="([^"]+scm[^"]+)"', profile)
-          user_match = re.search(r'userName="([^"]+)"', profile)
+          # The MSDeploy publishUrl is <appname>.azurewebsites.net (no "scm").
+          # Derive the Kudu host by inserting ".scm" — this is always reliable
+          # because the app name is already hardcoded in the deploy step.
+          kudu_host = "epf-experimental-sandbox-playground.scm.azurewebsites.net"
+
+          # Credentials: the MSDeploy entry userName is "$<appname>".
+          user_match = re.search(r'userName="(\$[^"]+)"', profile)
           pwd_match  = re.search(r'userPWD="([^"]+)"', profile)
 
-          if not (url_match and user_match and pwd_match):
-              print("Could not parse publish profile — skipping Kudu settings call", flush=True)
+          if not (user_match and pwd_match):
+              print("Could not parse publish profile credentials — skipping Kudu settings call", flush=True)
               sys.exit(0)
 
-          kudu_host = url_match.group(1).split(":")[0]  # strip port
-          username  = user_match.group(1)
-          password  = pwd_match.group(1)
+          username = user_match.group(1)
+          password = pwd_match.group(1)
 
           settings_url = f"https://{kudu_host}/api/settings"
           creds = base64.b64encode(f"{username}:{password}".encode()).decode()
