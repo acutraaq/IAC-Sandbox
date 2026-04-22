@@ -19,18 +19,18 @@ export class ApiError extends Error {
 }
 
 async function parseErrorBody(response: Response): Promise<never> {
-  let errorBody: ErrorResponse;
   try {
-    errorBody = (await response.json()) as ErrorResponse;
-  } catch {
+    const body = (await response.json()) as Partial<ErrorResponse>;
+    throw new ApiError(
+      body?.error?.code ?? "UNKNOWN_ERROR",
+      body?.error?.message ?? `Request failed with status ${response.status}`,
+      body?.error?.details,
+      body?.requestId,
+    );
+  } catch (err) {
+    if (err instanceof ApiError) throw err;
     throw new ApiError("UNKNOWN_ERROR", `Request failed with status ${response.status}`);
   }
-  throw new ApiError(
-    errorBody.error.code,
-    errorBody.error.message,
-    errorBody.error.details,
-    errorBody.requestId,
-  );
 }
 
 export async function submitDeployment(

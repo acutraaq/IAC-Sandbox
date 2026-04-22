@@ -113,4 +113,24 @@ describe("deploymentStore", () => {
     useDeploymentStore.getState().completeStep(0);
     expect(useDeploymentStore.getState().wizardState.completedSteps).toHaveLength(1);
   });
+
+  it("updateWizardStep changes currentStep", () => {
+    useDeploymentStore.getState().updateWizardStep(2);
+    expect(useDeploymentStore.getState().wizardState.currentStep).toBe(2);
+  });
+
+  it("setDeploymentStatus updates status and error", () => {
+    useDeploymentStore.getState().setDeploymentStatus("failed", "ARM error occurred");
+    const state = useDeploymentStore.getState();
+    expect(state.deploymentStatus).toBe("failed");
+    expect(state.deploymentError).toBe("ARM error occurred");
+  });
+
+  it("reset clears deploymentStatus and deploymentError", () => {
+    useDeploymentStore.getState().setDeploymentStatus("running");
+    useDeploymentStore.getState().reset();
+    const state = useDeploymentStore.getState();
+    expect(state.deploymentStatus).toBeNull();
+    expect(state.deploymentError).toBeNull();
+  });
 });
