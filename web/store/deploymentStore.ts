@@ -13,6 +13,7 @@ export const useDeploymentStore = create<DeploymentState>((set, get) => ({
   wizardState: initialWizardState,
   selectedResources: [],
   submissionId: null,
+  deployedResourceGroup: null,
   deploymentSummary: null,
   deploymentStatus: null,
   deploymentError: null,
@@ -67,8 +68,8 @@ export const useDeploymentStore = create<DeploymentState>((set, get) => ({
       selectedResources: state.selectedResources.filter((r) => r.type !== type),
     })),
 
-  setSubmissionResult: (id: string, summary: string) =>
-    set({ submissionId: id, deploymentSummary: summary }),
+  setSubmissionResult: (id: string, summary: string, resourceGroup: string) =>
+    set({ submissionId: id, deploymentSummary: summary, deployedResourceGroup: resourceGroup }),
 
   setDeploymentStatus: (status: DeploymentStatus, error?: string | null) =>
     set({ deploymentStatus: status, deploymentError: error ?? null }),
@@ -80,6 +81,7 @@ export const useDeploymentStore = create<DeploymentState>((set, get) => ({
       wizardState: { ...initialWizardState },
       selectedResources: [],
       submissionId: null,
+      deployedResourceGroup: null,
       deploymentSummary: null,
       deploymentStatus: null,
       deploymentError: null,

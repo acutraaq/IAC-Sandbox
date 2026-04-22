@@ -76,10 +76,19 @@ describe("deploymentStore", () => {
     expect(useDeploymentStore.getState().selectedResources).toHaveLength(0);
   });
 
-  it("reset clears all state", () => {
+  it("setSubmissionResult stores id, summary, and resourceGroup", () => {
+    useDeploymentStore.getState().setSubmissionResult("sub-123", "proof text", "my-app-rg");
+
+    const state = useDeploymentStore.getState();
+    expect(state.submissionId).toBe("sub-123");
+    expect(state.deploymentSummary).toBe("proof text");
+    expect(state.deployedResourceGroup).toBe("my-app-rg");
+  });
+
+  it("reset clears all state including deployedResourceGroup", () => {
     useDeploymentStore.getState().setMode("custom");
     useDeploymentStore.getState().addResource(mockResource);
-    useDeploymentStore.getState().setSubmissionResult("sub-123", "proof text");
+    useDeploymentStore.getState().setSubmissionResult("sub-123", "proof text", "my-app-rg");
 
     useDeploymentStore.getState().reset();
 
@@ -87,6 +96,7 @@ describe("deploymentStore", () => {
     expect(state.mode).toBeNull();
     expect(state.selectedResources).toHaveLength(0);
     expect(state.submissionId).toBeNull();
+    expect(state.deployedResourceGroup).toBeNull();
     expect(state.deploymentSummary).toBeNull();
   });
 
