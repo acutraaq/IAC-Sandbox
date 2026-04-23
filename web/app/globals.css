@@ -1,38 +1,39 @@
 @import "tailwindcss";
 
-/* ── Dark theme (default) ── */
+/* ── Light theme (default) ── */
 :root {
-  --color-bg: #0c1221;
-  --color-surface: #121d33;
-  --color-surface-elevated: #192840;
-  --color-border: rgba(0, 120, 212, 0.15);
-  --color-border-strong: rgba(0, 120, 212, 0.32);
-  --color-text: #dde7f5;
-  /* Raised opacity from 0.75 → 0.82 to meet WCAG AA 4.5:1 contrast on both dark bg and surface */
-  --color-text-muted: rgba(180, 200, 235, 0.82);
-  --color-accent: #0078d4;
-  --color-accent-hover: #1a8fe8;
+  --color-bg: #edf1f7;
+  --color-surface: #f8fafd;
+  --color-surface-elevated: #ffffff;
+  --color-border: #d4dce8;
+  --color-border-strong: #b0c0d8;
+  --color-text: #1e3148;
+  --color-text-muted: #5a7290;
+  --color-primary: #1e3a5f;
+  --color-primary-hover: #163050;
+  --color-accent: #2b7fd4;
+  --color-accent-hover: #3a8ee3;
+  --color-error: #c0392b;
+  --color-success: #2e7d52;
+  --color-warning: #9a6110;
+}
+
+/* ── Dark theme ── */
+html[data-theme="dark"] {
+  --color-bg: #1a2535;
+  --color-surface: #243044;
+  --color-surface-elevated: #2e3d58;
+  --color-border: rgba(44, 127, 212, 0.18);
+  --color-border-strong: rgba(44, 127, 212, 0.35);
+  --color-text: #d8e4f0;
+  --color-text-muted: rgba(160, 190, 225, 0.75);
+  --color-primary: #2b7fd4;
+  --color-primary-hover: #3a8ee3;
+  --color-accent: #4a9be0;
+  --color-accent-hover: #5aaef0;
   --color-error: #ef4444;
   --color-success: #22c55e;
   --color-warning: #f59e0b;
-}
-
-/* ── Light theme ── */
-html[data-theme="light"] {
-  --color-bg: #edf2fb;
-  --color-surface: #ffffff;
-  --color-surface-elevated: #f3f7ff;
-  --color-border: rgba(0, 80, 160, 0.1);
-  --color-border-strong: rgba(0, 80, 160, 0.22);
-  --color-text: #0d1421;
-  /* Raised opacity from 0.65 → 0.88 to meet WCAG AA 4.5:1 contrast on white surface */
-  --color-text-muted: rgba(13, 20, 33, 0.88);
-  --color-accent: #0065b3;
-  --color-accent-hover: #004f8c;
-  /* Darkened status colours to meet WCAG AA 4.5:1 contrast on light backgrounds */
-  --color-error: #b91c1c;
-  --color-success: #166534;
-  --color-warning: #92400e;
 }
 
 /* ── Tailwind v4 theme tokens ── */
@@ -44,14 +45,15 @@ html[data-theme="light"] {
   --color-border-strong: var(--color-border-strong);
   --color-text: var(--color-text);
   --color-text-muted: var(--color-text-muted);
+  --color-primary: var(--color-primary);
+  --color-primary-hover: var(--color-primary-hover);
   --color-accent: var(--color-accent);
   --color-accent-hover: var(--color-accent-hover);
   --color-error: var(--color-error);
   --color-success: var(--color-success);
   --color-warning: var(--color-warning);
-  --font-sans: var(--font-geist-sans), system-ui, sans-serif;
-  --font-mono: var(--font-geist-mono), monospace;
-  --font-display: var(--font-geist-sans), system-ui, sans-serif;
+  --font-sans: var(--font-sans), system-ui, sans-serif;
+  --font-mono: var(--font-mono), monospace;
 }
 
 /* ── Base styles ── */
@@ -59,29 +61,17 @@ body {
   background-color: var(--color-bg);
   color: var(--color-text);
   font-family: var(--font-sans);
-  /* Blueprint grid — slightly more visible on lighter bg */
   background-image:
-    linear-gradient(rgba(0, 120, 212, 0.04) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(0, 120, 212, 0.04) 1px, transparent 1px);
+    linear-gradient(rgba(44, 127, 212, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(44, 127, 212, 0.03) 1px, transparent 1px);
   background-size: 48px 48px;
   background-attachment: fixed;
 }
 
-html[data-theme="light"] body {
-  background-image:
-    linear-gradient(rgba(0, 80, 160, 0.05) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(0, 80, 160, 0.05) 1px, transparent 1px);
-}
-
-/* ── Display font utility ── */
-@utility font-display {
-  font-family: var(--font-display);
-}
-
 /* ── Animation keyframes ── */
-@keyframes ring-breathe {
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.055); }
+@keyframes fade-in {
+  from { opacity: 0; transform: translateY(4px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 
 @keyframes cursor-blink {
@@ -89,15 +79,9 @@ html[data-theme="light"] body {
   50%, 100% { opacity: 0; }
 }
 
-@keyframes fade-up {
-  from { opacity: 0; transform: translateY(6px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
-
 /* ── Animation utilities ── */
-@utility animate-ring-breathe {
-  animation: ring-breathe 6s ease-in-out infinite;
-  /* animationDuration/animationDelay overridden per-element via inline style */
+@utility animate-fade-in {
+  animation: fade-in 150ms ease-out both;
 }
 
 @utility animate-cursor-blink {
