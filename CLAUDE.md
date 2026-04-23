@@ -4,6 +4,21 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ---
 
+## Session Context — Read This First
+
+Before starting any work, read the active specs in `docs/superpowers/specs/` to understand what has been designed but not yet implemented.
+
+| Spec | Status | Summary |
+|------|--------|---------|
+| `docs/superpowers/specs/2026-04-23-refactor-cleanup-design.md` | **Designed — not yet implemented** | 4-phase refactor: deps, cleanup, tests, observability |
+| `docs/superpowers/specs/2026-04-23-ui-redesign-design.md` | **Designed — not yet implemented** | Full UI/UX redesign: IBM Plex fonts, soft blue-gray palette, top nav, 4 new templates, nice-to-haves |
+
+**What is live and working:** See Live Deployment section below.
+**What is designed but not built:** The two specs above.
+**What is blocked:** Microsoft SSO / MSAL (pending admin App Registration credentials).
+
+---
+
 ## Project Overview
 
 **Sandbox IAC** is an Azure Infrastructure-as-Code deployment platform for EPF (Employees Provident Fund, Malaysia). It lets non-expert users configure and submit Azure infrastructure deployments through two guided flows:
@@ -90,7 +105,7 @@ Prisma and PostgreSQL have been removed. ARM is the source of truth for all depl
 │   │   ├── globals.css
 │   │   ├── layout.tsx
 │   │   ├── page.tsx             # Home (/)
-│   │   ├── login/               # /login — deferred (pending MSAL credentials)
+│   │   ├── login/               # /login — removed (MSAL blocked; page deleted in UI redesign)
 │   │   ├── templates/           # /templates and /templates/[slug]
 │   │   ├── builder/             # /builder
 │   │   ├── review/              # /review
@@ -142,10 +157,14 @@ Prisma and PostgreSQL have been removed. ARM is the source of truth for all depl
 │           ├── deployment.schema.ts
 │           └── rg-name.ts
 │
-├── docs/superpowers/plans/      # Implementation plans
-├── implementation/              # Frozen specs (READ-ONLY)
-│   ├── SPEC.md
-│   └── API_SPEC_OPENAPI.yaml
+├── docs/
+│   ├── project/                 # Permanent project reference (READ-ONLY)
+│   │   ├── SPEC.md
+│   │   └── API_SPEC_OPENAPI.yaml
+│   └── superpowers/
+│       ├── specs/               # Active design specs
+│       ├── plans/               # Active implementation plans
+│       └── archive/             # Completed plans + superseded specs
 ├── workflows/                   # Claude Code agents + skills (source of truth)
 │   ├── agents/
 │   ├── skills/
@@ -192,34 +211,40 @@ No docker-compose or local database needed.
 
 ## Design System
 
-### Color Tokens (Dark Theme — default)
+> **Active spec:** `docs/superpowers/specs/2026-04-23-ui-redesign-design.md`
+> Font: IBM Plex Sans + IBM Plex Mono. Light mode is default. Dark mode via toggle.
+
+### Color Tokens (Light Theme — default)
 | Token | Value | Usage |
 |-------|-------|-------|
-| `--color-bg` | `#0a0a0a` | Page background |
-| `--color-surface` | `#111111` | Card backgrounds |
-| `--color-surface-elevated` | `#1a1a1a` | Modals, drawers |
-| `--color-border` | `rgba(255,255,255,0.08)` | Borders |
-| `--color-text` | `#f0f0f0` | Primary text |
-| `--color-text-muted` | `rgba(255,255,255,0.5)` | Secondary text |
-| `--color-accent` | `#0078d4` | Azure blue |
-| `--color-accent-hover` | `#1a8fe8` | Accent hover |
+| `--color-bg` | `#edf1f7` | Page background (soft blue-gray) |
+| `--color-surface` | `#f8fafd` | Card backgrounds |
+| `--color-surface-elevated` | `#ffffff` | Modals, popovers |
+| `--color-border` | `#d4dce8` | Borders |
+| `--color-border-strong` | `#b0c0d8` | Strong borders |
+| `--color-text` | `#1e3148` | Primary text (deep navy) |
+| `--color-text-muted` | `#5a7290` | Secondary text |
+| `--color-primary` | `#1e3a5f` | Buttons, active states |
+| `--color-primary-hover` | `#163050` | Primary hover |
+| `--color-accent` | `#2b7fd4` | Links, highlights (Azure blue) |
+| `--color-error` | `#c0392b` | Errors |
+| `--color-success` | `#2e7d52` | Success |
+| `--color-warning` | `#9a6110` | Warnings |
+
+### Color Tokens (Dark Theme — `html[data-theme='dark']`)
+| Token | Value | Usage |
+|-------|-------|-------|
+| `--color-bg` | `#1a2535` | Page background |
+| `--color-surface` | `#243044` | Card backgrounds |
+| `--color-surface-elevated` | `#2e3d58` | Modals, popovers |
+| `--color-border` | `rgba(44,127,212,0.18)` | Borders |
+| `--color-text` | `#d8e4f0` | Primary text |
+| `--color-text-muted` | `rgba(160,190,225,0.75)` | Secondary text |
+| `--color-primary` | `#2b7fd4` | Buttons, active states |
+| `--color-accent` | `#4a9be0` | Links, highlights |
 | `--color-error` | `#ef4444` | Errors |
 | `--color-success` | `#22c55e` | Success |
 | `--color-warning` | `#f59e0b` | Warnings |
-
-### Color Tokens (Light Theme — `html[data-theme='light']`)
-| Token | Value | Usage |
-|-------|-------|-------|
-| `--color-bg` | `#fafafa` | Page background |
-| `--color-surface` | `#ffffff` | Cards |
-| `--color-border` | `rgba(0,0,0,0.08)` | Borders |
-| `--color-text` | `#171717` | Primary text |
-| `--color-text-muted` | `rgba(0,0,0,0.5)` | Secondary text |
-| `--color-accent` | `#0078d4` | Azure blue |
-| `--color-accent-hover` | `#005a9e` | Accent hover |
-| `--color-error` | `#dc2626` | Errors |
-| `--color-success` | `#16a34a` | Success |
-| `--color-warning` | `#d97706` | Warnings |
 
 ---
 
@@ -314,7 +339,7 @@ npx tsc --noEmit     # 0 errors
 - `next` (v16), `react`, `react-dom` (v19)
 - `@azure/storage-queue`, `@azure/arm-resources`, `@azure/identity`
 - `zustand`, `react-hook-form`, `@hookform/resolvers`, `zod`
-- `lucide-react`, `framer-motion`, `geist`
+- `lucide-react`, `framer-motion` (fonts: IBM Plex Sans + IBM Plex Mono via `next/font/google`)
 
 ### `web/` — Development
 - `typescript`, `@types/react`, `@types/react-dom`, `@types/node`
