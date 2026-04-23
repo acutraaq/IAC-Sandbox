@@ -152,9 +152,10 @@ describe("ReviewPage — deployment status polling", () => {
 
     await getPollingCallback()!();
 
-    await waitFor(() =>
-      expect(screen.getByText(/Deploying to Azure/i)).toBeInTheDocument(),
-    );
+    await waitFor(() => {
+      const deployingLi = screen.getByText("Deploying").closest("li");
+      expect(deployingLi).toHaveAttribute("data-active");
+    });
   });
 
   it("stops polling and shows success banner on succeeded status", async () => {
@@ -176,9 +177,10 @@ describe("ReviewPage — deployment status polling", () => {
 
     await getPollingCallback()!();
 
-    await waitFor(() =>
-      expect(screen.getByText(/Deployed successfully/i)).toBeInTheDocument(),
-    );
+    await waitFor(() => {
+      const completeLi = screen.getByText("Complete").closest("li");
+      expect(completeLi).toHaveAttribute("data-active");
+    });
     expect(clearSpy).toHaveBeenCalled();
   });
 
@@ -202,10 +204,9 @@ describe("ReviewPage — deployment status polling", () => {
     await getPollingCallback()!();
 
     await waitFor(() => {
-      expect(screen.getByText(/Deployment failed/i)).toBeInTheDocument();
-      expect(
-        screen.getByText(/ResourceGroupNotFound/i),
-      ).toBeInTheDocument();
+      const completeLi = screen.getByText("Complete").closest("li");
+      expect(completeLi).toHaveAttribute("data-failed");
+      expect(screen.getByText(/ResourceGroupNotFound/i)).toBeInTheDocument();
     });
     expect(clearSpy).toHaveBeenCalled();
   });
