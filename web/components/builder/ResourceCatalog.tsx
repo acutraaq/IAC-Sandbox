@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Search, Lock } from "lucide-react";
+import { Search } from "lucide-react";
 import { DynamicIcon } from "@/components/ui/DynamicIcon";
 import { Badge } from "@/components/ui/Badge";
 import { FilterPills } from "@/components/templates/FilterPills";
@@ -22,6 +22,7 @@ export function ResourceCatalog({
   const [category, setCategory] = useState("all");
 
   const filtered = resources.filter((r) => {
+    if (r.policyBlocked) return false;
     const matchesSearch =
       search === "" ||
       r.name.toLowerCase().includes(search.toLowerCase()) ||
@@ -56,43 +57,6 @@ export function ResourceCatalog({
       ) : (
         <div className="grid gap-3 sm:grid-cols-2">
           {filtered.map((resource) => {
-            if (resource.policyBlocked) {
-              return (
-                <div
-                  key={resource.type}
-                  title="Not permitted by COE-Allowed-Resources policy"
-                  className="group relative flex cursor-not-allowed items-start gap-3 rounded-xl border border-border bg-surface p-4 opacity-50"
-                >
-                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-border">
-                    <DynamicIcon
-                      name={resource.icon}
-                      className="h-5 w-5 text-text-muted"
-                    />
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-center justify-between gap-2">
-                      <p className="text-sm font-semibold text-text">
-                        {resource.name}
-                      </p>
-                      <Lock
-                        className="h-3.5 w-3.5 shrink-0 text-text-muted"
-                        aria-hidden="true"
-                      />
-                    </div>
-                    <p className="mt-0.5 line-clamp-2 text-xs text-text-muted">
-                      {resource.description}
-                    </p>
-                  </div>
-                  <span
-                    role="tooltip"
-                    className="pointer-events-none absolute -top-9 left-1/2 z-10 -translate-x-1/2 whitespace-nowrap rounded-md border border-border bg-surface-elevated px-2 py-1 text-xs text-text opacity-0 shadow-sm transition-opacity group-hover:opacity-100"
-                  >
-                    Not permitted by COE-Allowed-Resources policy
-                  </span>
-                </div>
-              );
-            }
-
             const isAdded = selectedTypes.includes(resource.type);
             return (
               <button
