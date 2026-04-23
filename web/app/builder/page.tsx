@@ -4,6 +4,8 @@ import { useState, useEffect } from "react";
 import { ResourceCatalog } from "@/components/builder/ResourceCatalog";
 import { ResourceDrawer } from "@/components/builder/ResourceDrawer";
 import { SelectedPanel } from "@/components/builder/SelectedPanel";
+import { Breadcrumb } from "@/components/layout/Breadcrumb";
+import { PageTransition } from "@/components/layout/PageTransition";
 import { useDeploymentStore } from "@/store/deploymentStore";
 import resources from "@/data/resources.json";
 import type { AzureResource } from "@/types";
@@ -38,40 +40,45 @@ export default function BuilderPage() {
   }
 
   return (
-    <div className="mx-auto max-w-6xl px-6 py-12">
-      <div className="mb-8 flex flex-col items-start justify-between gap-4 border-b border-border pb-6 sm:flex-row sm:items-end">
-        <div className="flex flex-col">
-          <span className="mb-2 font-mono text-[10px] font-semibold uppercase tracking-widest text-text-muted">
-            Custom builder
-          </span>
-          <h1 className="font-display text-3xl font-extrabold tracking-tight text-text">
-            Build Your Own Setup
-          </h1>
-          <p className="mt-2 text-sm text-text-muted">
-            Choose Azure resources one at a time and configure each one. Review
-            your complete setup before submitting.
-          </p>
+    <PageTransition>
+      <div className="mx-auto max-w-6xl px-6 py-12">
+        <div className="mb-8 flex flex-col items-start justify-between gap-4 border-b border-border pb-6 sm:flex-row sm:items-end">
+          <div className="flex flex-col">
+            <span className="mb-2 font-mono text-[10px] font-semibold uppercase tracking-widest text-text-muted">
+              Custom builder
+            </span>
+            <h1 className="font-display text-3xl font-extrabold tracking-tight text-text">
+              Build Your Own Setup
+            </h1>
+            <p className="mt-2 text-sm text-text-muted">
+              Choose Azure resources one at a time and configure each one. Review
+              your complete setup before submitting.
+            </p>
+          </div>
         </div>
-      </div>
 
-      <div className="grid gap-8 lg:grid-cols-[1fr_300px]">
-        <ResourceCatalog
-          resources={resources as AzureResource[]}
-          selectedTypes={selectedTypes}
-          onSelect={handleSelect}
+        <div className="grid gap-8 lg:grid-cols-[1fr_300px]">
+          <div>
+            <Breadcrumb items={[{ label: "Home", href: "/" }, { label: "Builder" }]} />
+            <ResourceCatalog
+              resources={resources as AzureResource[]}
+              selectedTypes={selectedTypes}
+              onSelect={handleSelect}
+            />
+          </div>
+
+          <div className="lg:sticky lg:top-24 lg:h-fit">
+            <SelectedPanel resources={selectedResources} onRemove={removeResource} />
+          </div>
+        </div>
+
+        <ResourceDrawer
+          resource={activeResource}
+          isDuplicate={isDuplicate}
+          onClose={handleClose}
+          onAdd={handleAdd}
         />
-
-        <div className="lg:sticky lg:top-24 lg:h-fit">
-          <SelectedPanel resources={selectedResources} onRemove={removeResource} />
-        </div>
       </div>
-
-      <ResourceDrawer
-        resource={activeResource}
-        isDuplicate={isDuplicate}
-        onClose={handleClose}
-        onAdd={handleAdd}
-      />
-    </div>
+    </PageTransition>
   );
 }
