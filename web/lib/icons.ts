@@ -13,6 +13,9 @@ import {
   Lock,
   Cpu,
   Folder,
+  Layers,
+  GitMerge,
+  ShieldCheck,
   type LucideIcon,
 } from "lucide-react";
 
@@ -31,6 +34,9 @@ const iconMap: Record<string, LucideIcon> = {
   Lock,
   Cpu,
   Folder,
+  Layers,
+  GitMerge,
+  ShieldCheck,
 };
 
 export function getIcon(name: string): LucideIcon {

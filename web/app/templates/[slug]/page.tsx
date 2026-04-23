@@ -3,6 +3,7 @@ import { TemplateWizardClient } from "./TemplateWizardClient";
 import type { Template } from "@/types";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
+import { Breadcrumb } from "@/components/layout/Breadcrumb";
 
 interface Props {
   params: Promise<{ slug: string }>;
@@ -38,6 +39,13 @@ export default async function TemplatePage({ params }: Props) {
 
   return (
     <div className="mx-auto max-w-5xl px-6 py-10">
+      <Breadcrumb
+        items={[
+          { label: "Home", href: "/" },
+          { label: "Templates", href: "/templates" },
+          { label: template.name },
+        ]}
+      />
       <div className="mb-8">
         <Link
           href="/templates"

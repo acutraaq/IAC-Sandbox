@@ -651,5 +651,363 @@
         ]
       }
     ]
-  }
+  },
+{
+  "slug": "full-stack-web-app",
+  "name": "Full-Stack Web App",
+  "description": "App Service + Azure SQL + Storage + Key Vault — a complete production-ready web stack.",
+  "category": "compute",
+  "icon": "Layers",
+  "resourceCount": 6,
+  "estimatedTime": "~8 minutes",
+  "policyBlocked": false,
+  "steps": [
+    {
+      "title": "App Details",
+      "description": "Name your application and choose its compute tier.",
+      "fields": [
+        {
+          "name": "appName",
+          "label": "Application name",
+          "type": "text",
+          "required": true,
+          "placeholder": "my-fullstack-app",
+          "helpText": "Used as the base name for all resources in this stack."
+        },
+        {
+          "name": "planSize",
+          "label": "App Service tier",
+          "type": "select",
+          "required": true,
+          "helpText": "Choose the compute size for your web application.",
+          "options": [
+            { "label": "Small (B1) — Testing and demos", "value": "B1" },
+            { "label": "Medium (B2) — Most teams", "value": "B2" },
+            { "label": "Standard (S1) — Production workloads", "value": "S1" }
+          ]
+        },
+        {
+          "name": "region",
+          "label": "Region",
+          "type": "select",
+          "required": true,
+          "options": [
+            { "label": "Southeast Asia (Singapore)", "value": "southeastasia" },
+            { "label": "East Asia (Hong Kong)", "value": "eastasia" },
+            { "label": "Australia East (Sydney)", "value": "australiaeast" }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Database Settings",
+      "description": "Configure your Azure SQL database.",
+      "fields": [
+        {
+          "name": "sqlAdminUser",
+          "label": "SQL admin username",
+          "type": "text",
+          "required": true,
+          "placeholder": "sqladmin"
+        },
+        {
+          "name": "sqlAdminPassword",
+          "label": "SQL admin password",
+          "type": "text",
+          "required": true,
+          "placeholder": "Enter a strong password"
+        },
+        {
+          "name": "dbSku",
+          "label": "Database tier",
+          "type": "select",
+          "required": true,
+          "options": [
+            { "label": "Basic (2 GB) — Development", "value": "Basic" },
+            { "label": "Standard S2 — Most workloads", "value": "S2" }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Storage",
+      "description": "Configure blob storage for files and assets.",
+      "fields": [
+        {
+          "name": "storageTier",
+          "label": "Storage redundancy",
+          "type": "select",
+          "required": true,
+          "options": [
+            { "label": "Locally Redundant (LRS) — Cheapest", "value": "Standard_LRS" },
+            { "label": "Zone Redundant (ZRS) — Recommended", "value": "Standard_ZRS" }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Security",
+      "description": "Configure Key Vault for secrets management.",
+      "fields": [
+        {
+          "name": "kvSku",
+          "label": "Key Vault tier",
+          "type": "select",
+          "required": true,
+          "options": [
+            { "label": "Standard", "value": "standard" },
+            { "label": "Premium (HSM-backed)", "value": "premium" }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Review",
+      "description": "Review your full-stack web app configuration before deploying.",
+      "fields": []
+    }
+  ]
+},
+{
+  "slug": "microservices-platform",
+  "name": "Microservices Platform",
+  "description": "Container Apps + Service Bus + Managed Identity — event-driven microservices infrastructure.",
+  "category": "compute",
+  "icon": "Network",
+  "resourceCount": 4,
+  "estimatedTime": "~6 minutes",
+  "policyBlocked": false,
+  "steps": [
+    {
+      "title": "App Details",
+      "description": "Name your platform and configure the container.",
+      "fields": [
+        {
+          "name": "appName",
+          "label": "Platform name",
+          "type": "text",
+          "required": true,
+          "placeholder": "my-microservices",
+          "helpText": "Used as the base name for all resources."
+        },
+        {
+          "name": "containerImage",
+          "label": "Container image",
+          "type": "text",
+          "required": true,
+          "placeholder": "mcr.microsoft.com/azuredocs/containerapps-helloworld:latest",
+          "helpText": "Docker image to deploy into the Container App."
+        },
+        {
+          "name": "region",
+          "label": "Region",
+          "type": "select",
+          "required": true,
+          "options": [
+            { "label": "Southeast Asia (Singapore)", "value": "southeastasia" },
+            { "label": "East Asia (Hong Kong)", "value": "eastasia" },
+            { "label": "Australia East (Sydney)", "value": "australiaeast" }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Messaging",
+      "description": "Configure the Service Bus namespace for event-driven messaging.",
+      "fields": [
+        {
+          "name": "sbSku",
+          "label": "Service Bus tier",
+          "type": "select",
+          "required": true,
+          "options": [
+            { "label": "Basic — Simple queues", "value": "Basic" },
+            { "label": "Standard — Topics and subscriptions", "value": "Standard" }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Identity",
+      "description": "Configure a Managed Identity for secure service-to-service communication.",
+      "fields": [
+        {
+          "name": "enableManagedIdentity",
+          "label": "Enable user-assigned managed identity?",
+          "type": "toggle",
+          "required": false,
+          "helpText": "Recommended. Allows your Container App to access Azure services securely."
+        }
+      ]
+    },
+    {
+      "title": "Review",
+      "description": "Review your microservices platform configuration before deploying.",
+      "fields": []
+    }
+  ]
+},
+{
+  "slug": "data-pipeline",
+  "name": "Data Pipeline",
+  "description": "Storage Account + Azure Functions + Azure SQL — serverless data ingestion and processing.",
+  "category": "data",
+  "icon": "GitMerge",
+  "resourceCount": 4,
+  "estimatedTime": "~6 minutes",
+  "policyBlocked": false,
+  "steps": [
+    {
+      "title": "Pipeline Name",
+      "description": "Name your data pipeline.",
+      "fields": [
+        {
+          "name": "pipelineName",
+          "label": "Pipeline name",
+          "type": "text",
+          "required": true,
+          "placeholder": "my-data-pipeline",
+          "helpText": "Used as the base name for all resources."
+        },
+        {
+          "name": "region",
+          "label": "Region",
+          "type": "select",
+          "required": true,
+          "options": [
+            { "label": "Southeast Asia (Singapore)", "value": "southeastasia" },
+            { "label": "East Asia (Hong Kong)", "value": "eastasia" },
+            { "label": "Australia East (Sydney)", "value": "australiaeast" }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Storage",
+      "description": "Configure blob storage for raw pipeline data.",
+      "fields": [
+        {
+          "name": "storageTier",
+          "label": "Storage redundancy",
+          "type": "select",
+          "required": true,
+          "options": [
+            { "label": "Locally Redundant (LRS)", "value": "Standard_LRS" },
+            { "label": "Zone Redundant (ZRS)", "value": "Standard_ZRS" }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Database",
+      "description": "Configure the Azure SQL destination database.",
+      "fields": [
+        {
+          "name": "sqlAdminUser",
+          "label": "SQL admin username",
+          "type": "text",
+          "required": true,
+          "placeholder": "sqladmin"
+        },
+        {
+          "name": "sqlAdminPassword",
+          "label": "SQL admin password",
+          "type": "text",
+          "required": true,
+          "placeholder": "Enter a strong password"
+        }
+      ]
+    },
+    {
+      "title": "Review",
+      "description": "Review your data pipeline configuration before deploying.",
+      "fields": []
+    }
+  ]
+},
+{
+  "slug": "secure-api-backend",
+  "name": "Secure API Backend",
+  "description": "App Service + Key Vault + API Management + Log Analytics — a secure, observable API platform.",
+  "category": "compute",
+  "icon": "ShieldCheck",
+  "resourceCount": 5,
+  "estimatedTime": "~10 minutes",
+  "policyBlocked": false,
+  "steps": [
+    {
+      "title": "API Details",
+      "description": "Name your API and choose the management tier.",
+      "fields": [
+        {
+          "name": "apiName",
+          "label": "API name",
+          "type": "text",
+          "required": true,
+          "placeholder": "my-secure-api",
+          "helpText": "Used as the base name for all resources."
+        },
+        {
+          "name": "apimSku",
+          "label": "API Management tier",
+          "type": "select",
+          "required": true,
+          "helpText": "Developer tier is suitable for non-production workloads.",
+          "options": [
+            { "label": "Developer (no SLA) — Testing", "value": "Developer" },
+            { "label": "Standard (SLA) — Production", "value": "Standard" }
+          ]
+        },
+        {
+          "name": "region",
+          "label": "Region",
+          "type": "select",
+          "required": true,
+          "options": [
+            { "label": "Southeast Asia (Singapore)", "value": "southeastasia" },
+            { "label": "East Asia (Hong Kong)", "value": "eastasia" },
+            { "label": "Australia East (Sydney)", "value": "australiaeast" }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Security",
+      "description": "Configure Key Vault for secrets and certificate management.",
+      "fields": [
+        {
+          "name": "kvSku",
+          "label": "Key Vault tier",
+          "type": "select",
+          "required": true,
+          "options": [
+            { "label": "Standard", "value": "standard" },
+            { "label": "Premium (HSM-backed)", "value": "premium" }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Observability",
+      "description": "Configure Log Analytics for monitoring and diagnostics.",
+      "fields": [
+        {
+          "name": "logRetentionDays",
+          "label": "Log retention (days)",
+          "type": "number",
+          "required": true,
+          "placeholder": "30",
+          "min": 7,
+          "max": 90,
+          "helpText": "How long to retain logs in the workspace."
+        }
+      ]
+    },
+    {
+      "title": "Review",
+      "description": "Review your secure API backend configuration before deploying.",
+      "fields": []
+    }
+  ]
+}
 ]

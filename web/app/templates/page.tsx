@@ -1,51 +1,56 @@
-"use client";
+import templatesData from "@/data/templates.json";
+import { TemplateCard } from "@/components/templates/TemplateCard";
+import { TemplateGrid } from "@/components/templates/TemplateGrid";
+import { Breadcrumb } from "@/components/layout/Breadcrumb";
+import { PageTransition } from "@/components/layout/PageTransition";
+import type { Template } from "@/types";
 
-import Link from "next/link";
-import { DeployedTable } from "@/components/stuff/DeployedTable";
-import { Plus } from "lucide-react";
-import { motion } from "framer-motion";
+const BUNDLE_SLUGS = [
+  "full-stack-web-app",
+  "microservices-platform",
+  "data-pipeline",
+  "secure-api-backend",
+];
 
-export default function MyStuffPage() {
+const bundles = (templatesData as Template[]).filter((t) =>
+  BUNDLE_SLUGS.includes(t.slug)
+);
+const individual = (templatesData as Template[]).filter(
+  (t) => !BUNDLE_SLUGS.includes(t.slug)
+);
+
+export default function TemplatesPage() {
   return (
-    <div className="mx-auto max-w-7xl">
-      {/* Header Area */}
-      <motion.div
-        initial={{ opacity: 0, y: -10 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="mb-8 flex flex-col items-start justify-between gap-4 border-b border-border pb-6 sm:flex-row sm:items-end"
-      >
-        <div className="flex flex-col">
-          <span className="mb-2 font-mono text-[10px] font-semibold uppercase tracking-widest text-text-muted">
-            My Stuff
-          </span>
-          <h1 className="font-display text-3xl font-extrabold tracking-tight text-text">
-            My stuff
-          </h1>
-          <p className="mt-2 text-sm text-text-muted">
-            Click any item to see its receipt, change settings, or shut it down.
+    <PageTransition>
+      <div className="mx-auto max-w-7xl px-6 py-8 md:px-8 md:py-12">
+        <Breadcrumb
+          items={[{ label: "Home", href: "/" }, { label: "Templates" }]}
+        />
+
+        {/* Scenario Bundles */}
+        <section className="mb-12">
+          <h2 className="text-2xl font-semibold text-text">Scenario Bundles</h2>
+          <p className="mt-1 text-sm text-text-muted">
+            Pre-built multi-resource configurations for common workloads.
           </p>
-        </div>
+          <div className="mt-6 grid gap-5 sm:grid-cols-2">
+            {bundles.map((t) => (
+              <TemplateCard key={t.slug} template={t} />
+            ))}
+          </div>
+        </section>
 
-        <Link
-          href="/builder"
-          className="group relative flex h-10 items-center justify-center gap-2 overflow-hidden rounded-md bg-accent px-4 py-2 text-sm font-bold text-white shadow-sm transition-all hover:bg-accent-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
-        >
-          <div className="absolute inset-0 -translate-x-full bg-white/20 transition-transform duration-500 group-hover:translate-x-full" />
-          <Plus size={16} strokeWidth={2.5} />
-          Create something new
-        </Link>
-      </motion.div>
-
-      {/* Tabs Layout */}
-      <div className="flex gap-6 border-b border-border">
-        <button className="relative pb-4 font-display text-sm font-bold text-text">
-          My projects
-          <div className="absolute bottom-0 left-0 h-[2px] w-full bg-text" />
-        </button>
+        {/* Individual Resources */}
+        <section>
+          <h2 className="mb-1 text-2xl font-semibold text-text">
+            Individual Resources
+          </h2>
+          <p className="mb-6 text-sm text-text-muted">
+            Single-resource deployments for targeted infrastructure needs.
+          </p>
+          <TemplateGrid templates={individual} />
+        </section>
       </div>
-
-      {/* Data Table */}
-      <DeployedTable />
-    </div>
+    </PageTransition>
   );
 }
