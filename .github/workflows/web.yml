@@ -15,6 +15,7 @@ on:
 
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+  AZURE_WEBAPP_NAME: epf-experimental-sandbox-playground
 
 jobs:
   web:
@@ -53,13 +54,17 @@ jobs:
           AZURE_STORAGE_CONNECTION_STRING: DefaultEndpointsProtocol=https;AccountName=build;AccountKey=AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==;EndpointSuffix=core.windows.net
 
       - name: Prune dev dependencies
-        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
         run: npm prune --omit=dev
 
-      - name: Deploy to Azure App Service
+      - name: Zip release
+        if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+        run: zip -r ../release.zip . -x "__tests__/*" -x ".next/cache/*"
+
+      - name: Deploy to Azure Web App
+        if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
         uses: azure/webapps-deploy@v3
-        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
         with:
-          app-name: epf-experimental-sandbox-playground
+          app-name: ${{ env.AZURE_WEBAPP_NAME }}
           publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
-          package: web/
+          package: release.zip
