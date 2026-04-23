@@ -34,14 +34,14 @@ Both flows converge at a shared Review & Submit page, calling `POST /api/deploym
 | `AZURE_STORAGE_CONNECTION_STRING` | Storage account connection string for queue |
 
 **CI/CD deploy approach (`web.yml`):**
-1. `npm ci` → lint → type-check → test → `npm run build`
-2. `npm prune --omit=dev` — removes dev dependencies from `node_modules/`
-3. Deploy `web/` folder directly via `azure/webapps-deploy@v3` — includes `.next/` and prod `node_modules/`
-4. App Service auto-detects `package.json` start script (`node server.js`) and runs it
-5. `web/server.js` deletes the `HOSTNAME` env var (Azure sets it to the container hostname which breaks Next.js binding) then starts Next.js via the programmatic API
+1. `npm ci` → lint → type-check → test → `npm run build` (with dummy env vars)
+2. Assemble standalone release: copy `public/` and `.next/static/` into `.next/standalone/`, copy `server.js`, write `oryx-manifest.toml`
+3. Zip `.next/standalone/` → `release.zip` and deploy via `azure/webapps-deploy@v3`
+4. App Service runs `node server.js` (declared in `oryx-manifest.toml` as `StartupFileName`)
+5. `web/server.js` deletes the `HOSTNAME` env var, then calls `startServer` from `next/dist/server/lib/start-server` bound to `0.0.0.0`
 
-> Do NOT use `output: 'standalone'` in `next.config.js` — it is incompatible with the programmatic API in `server.js`.
-> Do NOT exclude `node_modules/` from the deploy package — Oryx re-runs the build in the container and fails because runtime env vars are not available at build time.
+> `next.config.js` uses `output: 'standalone'`. The custom `server.js` **must** use `startServer` from `next/dist/server/lib/start-server` — **not** the public programmatic API (`require('next')`). The programmatic API is incompatible with standalone output and will fail at runtime.
+> Do NOT switch back to the programmatic API (`next({ dev: false, dir })`). It does not work with the standalone build artifact.
 
 ---
 
