@@ -660,7 +660,7 @@
   "icon": "Layers",
   "resourceCount": 6,
   "estimatedTime": "~8 minutes",
-  "policyBlocked": false,
+  "policyBlocked": true,
   "steps": [
     {
       "title": "App Details",
@@ -776,7 +776,7 @@
   "icon": "Network",
   "resourceCount": 4,
   "estimatedTime": "~6 minutes",
-  "policyBlocked": false,
+  "policyBlocked": true,
   "steps": [
     {
       "title": "App Details",
@@ -855,7 +855,7 @@
   "icon": "GitMerge",
   "resourceCount": 4,
   "estimatedTime": "~6 minutes",
-  "policyBlocked": false,
+  "policyBlocked": true,
   "steps": [
     {
       "title": "Pipeline Name",
@@ -933,7 +933,7 @@
   "icon": "ShieldCheck",
   "resourceCount": 5,
   "estimatedTime": "~10 minutes",
-  "policyBlocked": false,
+  "policyBlocked": true,
   "steps": [
     {
       "title": "API Details",

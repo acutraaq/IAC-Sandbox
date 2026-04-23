@@ -13,6 +13,10 @@ export const SLUG_PRIMARY_FIELD: Record<string, string> = {
   "key-vault": "vaultName",
   "container-app": "appName",
   "landing-zone": "projectName",
+  "full-stack-web-app":     "appName",
+  "microservices-platform": "appName",
+  "data-pipeline":          "pipelineName",
+  "secure-api-backend":     "apiName",
 };
 
 export function deriveResourceGroupName(

@@ -37,12 +37,14 @@ async function processDeployment(
       payload,
       location,
       tags,
+      log: (msg) => context.log(msg),
     });
 
     context.log(`Deployment ${submissionId} succeeded`);
   } catch (err) {
     const errorMessage = err instanceof Error ? err.message : String(err);
-    context.error(`Deployment ${submissionId} failed: ${errorMessage}`);
+    const stack = err instanceof Error && err.stack ? `\n${err.stack}` : "";
+    context.error(`Deployment ${submissionId} failed: ${errorMessage}${stack}`);
   }
 }
 
