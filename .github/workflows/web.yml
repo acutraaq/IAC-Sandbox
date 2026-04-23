@@ -64,7 +64,7 @@ jobs:
           cp -r public "$STANDALONE_DIR/public"
           mkdir -p "$STANDALONE_DIR/.next"
           cp -r .next/static "$STANDALONE_DIR/.next/static"
-          printf 'NodeVersion = "22"\nStartupCommand = "next start -H 0.0.0.0 -p 8080"\n' > "$STANDALONE_DIR/oryx-manifest.toml"
+          printf 'NodeVersion = "22"\nStartupCommand = "env -u HOSTNAME node server.js"\n' > "$STANDALONE_DIR/oryx-manifest.toml"
           cd "$STANDALONE_DIR" && zip -r "$GITHUB_WORKSPACE/release.zip" .
 
       - name: Deploy to Azure Web App
