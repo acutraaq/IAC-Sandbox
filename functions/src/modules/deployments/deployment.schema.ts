@@ -7,9 +7,7 @@ const tagsSchema = z.object({
   "Expiry Date": z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
 });
 
-export type ResourceGroupTags = z.infer<typeof tagsSchema>;
-
-export const templateDeploymentSchema = z.object({
+const templateDeploymentSchema = z.object({
   mode: z.literal("template"),
   tags: tagsSchema,
   template: z.object({
@@ -18,7 +16,7 @@ export const templateDeploymentSchema = z.object({
   }),
 });
 
-export const customDeploymentSchema = z.object({
+const customDeploymentSchema = z.object({
   mode: z.literal("custom"),
   tags: tagsSchema,
   resources: z.array(

@@ -63,7 +63,7 @@ jobs:
           # Azure sets HOSTNAME to the internal container hostname; without this the
           # app listens on the wrong interface and fails the nginx health check.
           sed -i '1s/^/process.env.HOSTNAME = "0.0.0.0";\n/' .next/standalone/server.js
-          printf 'NodeVersion=22\nStartupFileName=server.js\n' > .next/standalone/oryx-manifest.toml
+          printf 'NodeVersion = "22"\nStartupFileName = "server.js"\n' > .next/standalone/oryx-manifest.toml
 
       - name: Zip standalone release
         if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'

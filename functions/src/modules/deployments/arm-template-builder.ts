@@ -10,7 +10,7 @@ function generatePassword(): string {
 // Deny effect — any resource type NOT in this list will be rejected by Azure.
 // ---------------------------------------------------------------------------
 
-export const POLICY_ALLOWED_RESOURCE_TYPES = new Set([
+const POLICY_ALLOWED_RESOURCE_TYPES = new Set([
   "Microsoft.Compute/virtualMachines",
   "Microsoft.Compute/virtualMachines/extensions",
   "Microsoft.ContainerInstance/containerGroups",
@@ -53,7 +53,7 @@ export function validateTemplateAgainstPolicy(template: ArmTemplate): string[] {
     .filter((type) => !POLICY_ALLOWED_RESOURCE_TYPES.has(type));
 }
 
-export interface ArmResource {
+interface ArmResource {
   type: string;
   apiVersion: string;
   name: string;
@@ -61,7 +61,7 @@ export interface ArmResource {
   [key: string]: unknown;
 }
 
-export interface ArmTemplate {
+interface ArmTemplate {
   $schema: string;
   contentVersion: string;
   parameters: Record<string, unknown>;
