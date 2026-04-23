@@ -57,6 +57,7 @@ jobs:
         if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
         run: |
           cp -r public .next/standalone/public
+          mkdir -p .next/standalone/.next
           cp -r .next/static .next/standalone/.next/static
           cp server.js .next/standalone/server.js
 
