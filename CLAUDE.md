@@ -11,7 +11,7 @@ Before starting any work, read the active specs in `docs/superpowers/specs/` to 
 | Spec | Status | Summary |
 |------|--------|---------|
 | `docs/superpowers/specs/2026-04-23-refactor-cleanup-design.md` | **Designed — not yet implemented** | 4-phase refactor: deps, cleanup, tests, observability |
-| `docs/superpowers/specs/2026-04-23-ui-redesign-design.md` | **Designed — not yet implemented** | Full UI/UX redesign: IBM Plex fonts, soft blue-gray palette, top nav, 4 new templates, nice-to-haves |
+| ~~UI redesign~~ | **Complete** | Archived to `docs/superpowers/archive/` |
 
 **What is live and working:** See Live Deployment section below.
 **What is designed but not built:** The two specs above.
@@ -116,7 +116,7 @@ Prisma and PostgreSQL have been removed. ARM is the source of truth for all depl
 │   │       ├── my-deployments/      # GET list RGs by deployedBy tag
 │   │       └── healthz/
 │   ├── components/
-│   │   ├── layout/   # PageShell, Sidebar, Topbar, ThemeToggle
+│   │   ├── layout/   # Navbar, Breadcrumb, Footer, PageTransition, ThemeToggle
 │   │   ├── ui/       # Button, Card, Badge, Modal, Toast
 │   │   ├── templates/
 │   │   ├── wizard/
@@ -182,12 +182,10 @@ Prisma and PostgreSQL have been removed. ARM is the source of truth for all depl
 $env:NODE_OPTIONS="--use-system-ca"; npm run dev   # Start dev server (localhost:3000)
 npm run build
 npm start
-npm run lint         # must pass with 0 errors
-npm run test:run     # must all pass
-npx tsc --noEmit     # must pass with 0 errors
-
-# Run a single test file
-npx vitest run path/to/Component.test.tsx
+npm run lint              # must pass with 0 errors
+npx vitest run            # run full test suite (preferred over npm run test:run)
+npx vitest run "SomeFile" # run a single test file by name
+npx tsc --noEmit          # must pass with 0 errors (npm run type-check does not exist)
 ```
 
 No docker-compose or local database needed.
@@ -211,8 +209,7 @@ No docker-compose or local database needed.
 
 ## Design System
 
-> **Active spec:** `docs/superpowers/specs/2026-04-23-ui-redesign-design.md`
-> Font: IBM Plex Sans + IBM Plex Mono. Light mode is default. Dark mode via toggle.
+> UI redesign complete. Font: IBM Plex Sans + IBM Plex Mono. Light mode is default (`:root`). Dark via `html[data-theme="dark"]` set by ThemeToggle at runtime.
 
 ### Color Tokens (Light Theme — default)
 | Token | Value | Usage |
@@ -324,7 +321,7 @@ chore: remove Prisma and DATABASE_URL
 # web/
 npm run lint         # 0 errors
 npx tsc --noEmit     # 0 errors
-npm run test:run     # all pass
+npx vitest run       # all pass
 npm run build        # .next/ produced
 
 # functions/
@@ -339,7 +336,7 @@ npx tsc --noEmit     # 0 errors
 - `next` (v16), `react`, `react-dom` (v19)
 - `@azure/storage-queue`, `@azure/arm-resources`, `@azure/identity`
 - `zustand`, `react-hook-form`, `@hookform/resolvers`, `zod`
-- `lucide-react`, `framer-motion` (fonts: IBM Plex Sans + IBM Plex Mono via `next/font/google`)
+- `lucide-react` (fonts: IBM Plex Sans + IBM Plex Mono via `next/font/google`)
 
 ### `web/` — Development
 - `typescript`, `@types/react`, `@types/react-dom`, `@types/node`
@@ -349,3 +346,12 @@ npx tsc --noEmit     # 0 errors
 
 ### `functions/` — Production
 - `@azure/functions` (v4), `@azure/arm-resources`, `@azure/identity`, `zod`
+
+---
+
+## Gotchas
+
+- `npm run test --run` prints "Unknown cli config" warning — use `npx vitest run` instead
+- `npm run type-check` does not exist — use `npx tsc --noEmit`
+- Do not call `setState()` directly inside `useEffect` — triggers `react-hooks/set-state-in-effect` ESLint error; use CSS animations (`animate-fade-in` utility in globals.css) instead
+- Subagent `general-purpose` (haiku) cannot execute Bash file deletions — handle `rm` commands in the controller session directly
