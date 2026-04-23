@@ -13,6 +13,8 @@ import { Send, Loader2, ArrowLeft, Tag } from "lucide-react";
 import { tagsSchema } from "@/lib/deployments/schema";
 import type { ResourceGroupTags } from "@/types";
 import Link from "next/link";
+import { Breadcrumb } from "@/components/layout/Breadcrumb";
+import { PageTransition } from "@/components/layout/PageTransition";
 
 export default function ReviewPage() {
   const router = useRouter();
@@ -143,7 +145,9 @@ export default function ReviewPage() {
     : "/builder";
 
   return (
-    <div className="mx-auto max-w-2xl px-6 py-12">
+    <PageTransition>
+    <div className="mx-auto max-w-2xl px-6 md:px-8 py-8 md:py-12">
+      <Breadcrumb items={[{ label: "Home", href: "/" }, { label: "Review" }]} />
       <div className="mb-8">
         <Link
           href={backHref}
@@ -176,7 +180,7 @@ export default function ReviewPage() {
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           {(["Cost Center", "Project ID", "Project Owner"] as const).map((field) => (
             <div key={field}>
-              <label className="mb-1 block text-xs font-medium text-text-muted">
+              <label className="mb-1.5 block text-sm font-medium text-text-muted">
                 {field} <span className="text-error">*</span>
               </label>
               <input
@@ -186,7 +190,7 @@ export default function ReviewPage() {
                   setTags((prev) => ({ ...prev, [field]: e.target.value }));
                   if (tagErrors[field]) setTagErrors((prev) => ({ ...prev, [field]: undefined }));
                 }}
-                className="w-full rounded-lg border border-border bg-bg px-3 py-2 text-sm text-text placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-accent"
+                className="w-full rounded-lg border border-border bg-bg px-3 h-11 text-sm text-text placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-accent"
                 placeholder={field}
               />
               {tagErrors[field] && (
@@ -195,7 +199,7 @@ export default function ReviewPage() {
             </div>
           ))}
           <div>
-            <label className="mb-1 block text-xs font-medium text-text-muted">
+            <label className="mb-1.5 block text-sm font-medium text-text-muted">
               Expiry Date <span className="text-error">*</span>
             </label>
             <input
@@ -205,7 +209,7 @@ export default function ReviewPage() {
                 setTags((prev) => ({ ...prev, "Expiry Date": e.target.value }));
                 if (tagErrors["Expiry Date"]) setTagErrors((prev) => ({ ...prev, "Expiry Date": undefined }));
               }}
-              className="w-full rounded-lg border border-border bg-bg px-3 py-2 text-sm text-text focus:outline-none focus:ring-2 focus:ring-accent"
+              className="w-full rounded-lg border border-border bg-bg px-3 h-11 text-sm text-text focus:outline-none focus:ring-2 focus:ring-accent"
             />
             {tagErrors["Expiry Date"] && (
               <p className="mt-1 text-xs text-error">{tagErrors["Expiry Date"]}</p>
@@ -248,5 +252,6 @@ export default function ReviewPage() {
         onReset={handleReset}
       />
     </div>
+    </PageTransition>
   );
 }
