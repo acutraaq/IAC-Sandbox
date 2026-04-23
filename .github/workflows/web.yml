@@ -56,18 +56,15 @@ jobs:
       - name: Assemble and zip standalone release
         if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
         run: |
-          # Next.js workspace root detection can place server.js at .next/standalone/server.js
-          # or .next/standalone/web/server.js depending on whether it detects a monorepo root.
-          # Find it dynamically so the workflow is resilient to either layout.
-          SERVER_JS=$(find .next/standalone -name "server.js" -maxdepth 3 | head -1)
-          STANDALONE_DIR=$(dirname "$SERVER_JS")
+          # Next.js workspace root detection can place standalone output at .next/standalone/
+          # or .next/standalone/web/ depending on whether it detects a monorepo root.
+          # Find the standalone dir dynamically so the workflow handles either layout.
+          STANDALONE_DIR=$(dirname "$(find .next/standalone -name "server.js" -maxdepth 3 | head -1)")
           echo "Standalone root: $STANDALONE_DIR"
           cp -r public "$STANDALONE_DIR/public"
           mkdir -p "$STANDALONE_DIR/.next"
           cp -r .next/static "$STANDALONE_DIR/.next/static"
-          # Prepend HOSTNAME override so Next.js binds to 0.0.0.0 not the Azure container hostname.
-          sed -i '1s/^/process.env.HOSTNAME = "0.0.0.0";\n/' "$SERVER_JS"
-          printf 'NodeVersion = "22"\nStartupFileName = "server.js"\n' > "$STANDALONE_DIR/oryx-manifest.toml"
+          printf 'NodeVersion = "22"\nStartupCommand = "next start -H 0.0.0.0 -p 8080"\n' > "$STANDALONE_DIR/oryx-manifest.toml"
           cd "$STANDALONE_DIR" && zip -r "$GITHUB_WORKSPACE/release.zip" .
 
       - name: Deploy to Azure Web App
