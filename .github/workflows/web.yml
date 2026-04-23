@@ -53,13 +53,16 @@ jobs:
           AZURE_TENANT_ID: 00000000-0000-0000-0000-000000000000
           AZURE_STORAGE_CONNECTION_STRING: DefaultEndpointsProtocol=https;AccountName=build;AccountKey=AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==;EndpointSuffix=core.windows.net
 
-      - name: Prune dev dependencies
+      - name: Assemble standalone output
         if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
-        run: npm prune --omit=dev
+        run: |
+          cp -r public .next/standalone/public
+          cp -r .next/static .next/standalone/.next/static
+          cp server.js .next/standalone/server.js
 
-      - name: Zip release
+      - name: Zip standalone release
         if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
-        run: zip -r ../release.zip . -x "__tests__/*" -x ".next/cache/*"
+        run: cd .next/standalone && zip -r ../../../release.zip .
 
       - name: Deploy to Azure Web App
         if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
