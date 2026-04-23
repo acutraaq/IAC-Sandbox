@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { Modal } from "@/components/ui/Modal";
 import { Button } from "@/components/ui/Button";
-import { Check, Copy, RotateCcw, Loader2, CheckCircle2, XCircle, Clock } from "lucide-react";
+import { Check, Copy, RotateCcw } from "lucide-react";
 import Link from "next/link";
 import type { DeploymentStatus } from "@/types";
 
@@ -16,42 +16,108 @@ interface ConfirmModalProps {
   onReset: () => void;
 }
 
-function StatusBanner({ status, error }: { status: DeploymentStatus | null; error: string | null }) {
-  if (!status) return null;
+const TIMELINE_STEPS = ["Queued", "Provisioning", "Deploying", "Complete"];
 
-  const configs = {
-    accepted: {
-      icon: <Clock className="h-4 w-4 shrink-0" />,
-      text: "Queued — waiting to start",
-      className: "bg-surface border-border text-text-muted",
-    },
-    running: {
-      icon: <Loader2 className="h-4 w-4 shrink-0 animate-spin" />,
-      text: "Deploying to Azure…",
-      className: "bg-blue-500/10 border-blue-500/30 text-blue-400",
-    },
-    succeeded: {
-      icon: <CheckCircle2 className="h-4 w-4 shrink-0" />,
-      text: "Deployed successfully",
-      className: "bg-green-500/10 border-green-500/30 text-green-400",
-    },
-    failed: {
-      icon: <XCircle className="h-4 w-4 shrink-0" />,
-      text: "Deployment failed",
-      className: "bg-red-500/10 border-red-500/30 text-red-400",
-    },
-  };
+function activeStepIndex(status: DeploymentStatus | null): number {
+  switch (status) {
+    case "accepted":  return 0;
+    case "running":   return 2;
+    case "succeeded":
+    case "failed":    return 3;
+    default:          return 0;
+  }
+}
 
-  const { icon, text, className } = configs[status];
+type StepState = "done" | "active" | "pending" | "failed";
+
+interface TimelineStepProps {
+  label: string;
+  state: StepState;
+  isLast: boolean;
+}
+
+function TimelineStep({ label, state, isLast }: TimelineStepProps) {
+  const dotClass =
+    state === "failed"
+      ? "bg-error"
+      : state === "done" || state === "active"
+      ? "bg-primary"
+      : "border-2 border-border bg-surface";
+
+  const labelClass =
+    state === "failed"
+      ? "text-error font-medium"
+      : state === "active"
+      ? "text-text font-medium"
+      : state === "done"
+      ? "text-text"
+      : "text-text-muted";
 
   return (
-    <div className={`flex flex-col gap-1 rounded-lg border px-3 py-2.5 text-sm ${className}`}>
-      <div className="flex items-center gap-2">
-        {icon}
-        <span className="font-medium">{text}</span>
+    <li
+      data-active={state === "active" ? "" : undefined}
+      data-failed={state === "failed" ? "" : undefined}
+      className="flex flex-col items-start gap-1.5"
+      style={{ flex: isLast ? "0 0 auto" : 1 }}
+    >
+      <div className="flex w-full items-center">
+        <span
+          aria-hidden="true"
+          className={`flex h-3 w-3 shrink-0 rounded-full transition-colors ${dotClass} ${
+            state === "active"
+              ? "animate-pulse motion-reduce:animate-none"
+              : ""
+          }`}
+        />
+        {!isLast && (
+          <span
+            aria-hidden="true"
+            className={`h-px flex-1 transition-colors ${
+              state === "done" ? "bg-primary" : "bg-border"
+            }`}
+          />
+        )}
       </div>
+      <span className={`text-xs ${labelClass}`}>{label}</span>
+    </li>
+  );
+}
+
+function StatusTimeline({
+  status,
+  error,
+}: {
+  status: DeploymentStatus | null;
+  error: string | null;
+}) {
+  const activeIdx = activeStepIndex(status);
+
+  return (
+    <div className="space-y-2">
+      <ol className="flex w-full items-start">
+        {TIMELINE_STEPS.map((label, i) => {
+          let state: StepState;
+          if (status === "failed" && i === 3) {
+            state = "failed";
+          } else if (i < activeIdx) {
+            state = "done";
+          } else if (i === activeIdx) {
+            state = "active";
+          } else {
+            state = "pending";
+          }
+          return (
+            <TimelineStep
+              key={label}
+              label={label}
+              state={state}
+              isLast={i === TIMELINE_STEPS.length - 1}
+            />
+          );
+        })}
+      </ol>
       {status === "failed" && error && (
-        <p className="ml-6 text-xs opacity-80">{error}</p>
+        <p className="text-xs text-error">{error}</p>
       )}
     </div>
   );
@@ -73,7 +139,6 @@ export function ConfirmModal({
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch {
-      // Fallback: select text
       const el = document.getElementById("proof-text");
       if (el) {
         const range = document.createRange();
@@ -92,7 +157,9 @@ export function ConfirmModal({
           with your approver for HOD sign-off.
         </p>
 
-        <StatusBanner status={deploymentStatus} error={deploymentError} />
+        {deploymentStatus && (
+          <StatusTimeline status={deploymentStatus} error={deploymentError} />
+        )}
 
         <div className="relative">
           <pre
@@ -104,7 +171,11 @@ export function ConfirmModal({
         </div>
 
         <div className="flex flex-col gap-3">
-          <Button onClick={handleCopy} variant={copied ? "secondary" : "primary"} className="w-full">
+          <Button
+            onClick={handleCopy}
+            variant={copied ? "secondary" : "primary"}
+            className="w-full"
+          >
             {copied ? (
               <>
                 <Check className="h-4 w-4 text-success" />
@@ -118,12 +189,7 @@ export function ConfirmModal({
             )}
           </Button>
 
-          <Button
-            asChild
-            variant="ghost"
-            className="w-full"
-            onClick={onReset}
-          >
+          <Button asChild variant="ghost" className="w-full" onClick={onReset}>
             <Link href="/">
               <RotateCcw className="h-4 w-4" />
               Start New Deployment

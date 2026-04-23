@@ -4,8 +4,18 @@ import userEvent from "@testing-library/user-event";
 import { ConfirmModal } from "./ConfirmModal";
 
 vi.mock("next/link", () => ({
-  default: ({ href, children, ...props }: { href: string; children: React.ReactNode; [key: string]: unknown }) => (
-    <a href={href} {...props}>{children}</a>
+  default: ({
+    href,
+    children,
+    ...props
+  }: {
+    href: string;
+    children: React.ReactNode;
+    [key: string]: unknown;
+  }) => (
+    <a href={href} {...props}>
+      {children}
+    </a>
   ),
 }));
 
@@ -37,7 +47,7 @@ describe("ConfirmModal", () => {
   it("shows Copy to Clipboard button", () => {
     render(<ConfirmModal open={true} {...defaultProps} />);
     expect(
-      screen.getByRole("button", { name: /Copy to Clipboard/i }),
+      screen.getByRole("button", { name: /Copy to Clipboard/i })
     ).toBeInTheDocument();
   });
 
@@ -60,26 +70,47 @@ describe("ConfirmModal", () => {
     expect(onClose).toHaveBeenCalledTimes(1);
   });
 
-  it("shows running status banner", () => {
-    render(<ConfirmModal open={true} {...defaultProps} deploymentStatus="running" />);
-    expect(screen.getByText(/Deploying to Azure/i)).toBeInTheDocument();
+  it("shows Queued step active for accepted status", () => {
+    render(
+      <ConfirmModal open={true} {...defaultProps} deploymentStatus="accepted" />
+    );
+    const queuedLi = screen.getByText("Queued").closest("li");
+    expect(queuedLi).toHaveAttribute("data-active");
   });
 
-  it("shows succeeded status banner", () => {
-    render(<ConfirmModal open={true} {...defaultProps} deploymentStatus="succeeded" />);
-    expect(screen.getByText(/Deployed successfully/i)).toBeInTheDocument();
+  it("shows Deploying step active for running status", () => {
+    render(
+      <ConfirmModal open={true} {...defaultProps} deploymentStatus="running" />
+    );
+    const deployingLi = screen.getByText("Deploying").closest("li");
+    expect(deployingLi).toHaveAttribute("data-active");
   });
 
-  it("shows failed status banner with error", () => {
+  it("shows Complete step active for succeeded status", () => {
+    render(
+      <ConfirmModal
+        open={true}
+        {...defaultProps}
+        deploymentStatus="succeeded"
+      />
+    );
+    const completeLi = screen.getByText("Complete").closest("li");
+    expect(completeLi).toHaveAttribute("data-active");
+  });
+
+  it("shows Complete step in error state with error message for failed status", () => {
     render(
       <ConfirmModal
         open={true}
         {...defaultProps}
         deploymentStatus="failed"
         deploymentError="ResourceGroupNotFound: The resource group was not found."
-      />,
+      />
     );
-    expect(screen.getByText(/Deployment failed/i)).toBeInTheDocument();
-    expect(screen.getByText(/ResourceGroupNotFound/i)).toBeInTheDocument();
+    const completeLi = screen.getByText("Complete").closest("li");
+    expect(completeLi).toHaveAttribute("data-failed");
+    expect(
+      screen.getByText(/ResourceGroupNotFound/i)
+    ).toBeInTheDocument();
   });
 });
