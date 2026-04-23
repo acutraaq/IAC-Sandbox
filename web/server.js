@@ -1,30 +1,30 @@
 'use strict';
 
 // Azure App Service sets HOSTNAME to the internal worker hostname which resolves
-// to the container private IP. Next.js uses it as the bind address, so it would
-// listen on the wrong interface and fail the nginx health check. Delete it so
-// Next.js falls back to binding on 0.0.0.0.
+// to the container private IP. The standalone startServer uses HOSTNAME for the
+// bind address — override it to 0.0.0.0 so the app passes the nginx health check.
 delete process.env.HOSTNAME;
 
-const next = require('next');
-const http = require('http');
+process.env.NODE_ENV = 'production';
+process.chdir(__dirname);
+
+if (!process.env.NEXT_MANUAL_SIG_HANDLE) {
+  process.on('SIGTERM', () => process.exit(0));
+  process.on('SIGINT', () => process.exit(0));
+}
+
+const { startServer } = require('next/dist/server/lib/start-server');
 
 const port = parseInt(process.env.PORT || '3000', 10);
 
-// Use the programmatic API so Node.js module resolution handles the
-// node_modules→/node_modules symlink that Oryx creates at startup.
-const app = next({ dev: false, dir: __dirname });
-const handle = app.getRequestHandler();
-
-app.prepare()
-  .then(() => {
-    http
-      .createServer((req, res) => handle(req, res))
-      .listen(port, '0.0.0.0', () => {
-        console.log(`> Ready on http://0.0.0.0:${port}`);
-      });
-  })
-  .catch((err) => {
-    console.error('Failed to start Next.js:', err);
-    process.exit(1);
-  });
+startServer({
+  dir: __dirname,
+  isDev: false,
+  hostname: '0.0.0.0',
+  port,
+  allowRetry: false,
+  keepAliveTimeout: 5000,
+}).catch((err) => {
+  console.error('Failed to start Next.js:', err);
+  process.exit(1);
+});
