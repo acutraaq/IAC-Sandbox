@@ -38,10 +38,10 @@ Both flows converge at a shared Review & Submit page, calling `POST /api/deploym
 2. Assemble standalone release: copy `public/` and `.next/static/` into `.next/standalone/`, copy `server.js`, write `oryx-manifest.toml`
 3. Zip `.next/standalone/` → `release.zip` and deploy via `azure/webapps-deploy@v3`
 4. App Service runs `node server.js` (declared in `oryx-manifest.toml` as `StartupFileName`)
-5. `web/server.js` deletes the `HOSTNAME` env var, then calls `startServer` from `next/dist/server/lib/start-server` bound to `0.0.0.0`
+5. The CI workflow patches the auto-generated `.next/standalone/server.js` with `sed` to prepend `process.env.HOSTNAME = "0.0.0.0"` — Azure sets `HOSTNAME` to the container's internal hostname, which would make Next.js bind to the wrong interface and fail the nginx health check.
 
-> `next.config.js` uses `output: 'standalone'`. The custom `server.js` **must** use `startServer` from `next/dist/server/lib/start-server` — **not** the public programmatic API (`require('next')`). The programmatic API is incompatible with standalone output and will fail at runtime.
-> Do NOT switch back to the programmatic API (`next({ dev: false, dir })`). It does not work with the standalone build artifact.
+> `next.config.js` uses `output: 'standalone'`. The CI workflow patches the auto-generated standalone `server.js` directly — it does **not** copy `web/server.js` into the standalone package. Do not add `cp server.js .next/standalone/server.js` back to the workflow; it replaced the correct standalone server with an incompatible programmatic-API server.
+> `web/server.js` is kept for local `npm start` use only (programmatic API + explicit `0.0.0.0` bind). It is not deployed to Azure.
 
 ---
 

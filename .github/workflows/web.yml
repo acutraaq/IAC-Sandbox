@@ -59,7 +59,10 @@ jobs:
           cp -r public .next/standalone/public
           mkdir -p .next/standalone/.next
           cp -r .next/static .next/standalone/.next/static
-          cp server.js .next/standalone/server.js
+          # Prepend HOSTNAME override so Next.js standalone server binds to 0.0.0.0.
+          # Azure sets HOSTNAME to the internal container hostname; without this the
+          # app listens on the wrong interface and fails the nginx health check.
+          sed -i '1s/^/process.env.HOSTNAME = "0.0.0.0";\n/' .next/standalone/server.js
           printf 'NodeVersion=22\nStartupFileName=server.js\n' > .next/standalone/oryx-manifest.toml
 
       - name: Zip standalone release
