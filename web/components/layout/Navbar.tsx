@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Menu, X } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 import { Logo } from "@/components/ui/Logo";
 import { ThemeToggle } from "./ThemeToggle";
 
@@ -59,9 +60,11 @@ export function Navbar() {
               >
                 {label}
                 {active && (
-                  <span
+                  <motion.span
+                    layoutId="nav-underline"
                     aria-hidden="true"
                     className="absolute -bottom-0.5 left-0 right-0 h-0.5 bg-primary"
+                    transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
                   />
                 )}
               </Link>
@@ -90,20 +93,30 @@ export function Navbar() {
       </div>
 
       {/* Mobile menu */}
-      {mobileOpen && (
-        <div className="sm:hidden border-t border-border bg-surface px-6 py-4 flex flex-col gap-4">
-          {navLinks.map(({ href, label }) => (
-            <Link
-              key={href}
-              href={href}
-              onClick={() => setMobileOpen(false)}
-              className="text-sm font-medium text-text"
-            >
-              {label}
-            </Link>
-          ))}
-        </div>
-      )}
+      <AnimatePresence initial={false}>
+        {mobileOpen && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
+            className="sm:hidden overflow-hidden border-t border-border bg-surface"
+          >
+            <div className="flex flex-col gap-4 px-6 py-4">
+              {navLinks.map(({ href, label }) => (
+                <Link
+                  key={href}
+                  href={href}
+                  onClick={() => setMobileOpen(false)}
+                  className="text-sm font-medium text-text"
+                >
+                  {label}
+                </Link>
+              ))}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </nav>
   );
 }

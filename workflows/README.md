@@ -18,6 +18,7 @@ This copies `workflows/agents/` and `workflows/skills/` into `.claude/` where Cl
 
 | ID | File | Status | Description | File Ownership |
 |----|------|--------|-------------|----------------|
+| A0 | `a0-architect.md` | **Active** | Cross-cutting design, feature planning, structural consistency | `docs/superpowers/specs/`, `docs/superpowers/plans/`, cross-domain files |
 | A1 | `a1-product.md` | **Active** | Requirements, ADRs, scope decisions | `implementation/SPEC.md`, `CLAUDE.md` |
 | A2 | `a2-frontend-auth.md` | Stub | Microsoft Entra ID SSO, route guards | `web/app/login/` — blocked on admin credentials |
 | A3 | `a3-frontend-flows.md` | **Active** | Template + Builder + Review flows | `web/app/templates/`, `web/app/builder/`, `web/app/review/`, `web/components/` (flows) |
@@ -45,6 +46,7 @@ This copies `workflows/agents/` and `workflows/skills/` into `.claude/` where Cl
 
 | Skill | What it does | Invoke |
 |-------|-------------|--------|
+| `arch-file` | Enforce structured file-creation format (filepath, purpose, deps, consumers, tests) | `/arch-file` |
 | `dev` | Start dev server on localhost:3000 (MSW active in dev) | `/dev` |
 | `test` | Run Vitest test suite | `/test` |
 | `lint` | Run ESLint — must exit 0 | `/lint` |

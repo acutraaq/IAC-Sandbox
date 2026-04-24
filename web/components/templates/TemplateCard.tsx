@@ -19,12 +19,11 @@ const categoryLabels: Record<string, string> = {
 };
 
 export function TemplateCard({ template }: TemplateCardProps) {
-  if (template.policyBlocked) return null;
 
   return (
     <Link
       href={`/templates/${template.slug}`}
-      className="group relative flex flex-col gap-4 overflow-hidden rounded-md border border-border bg-surface p-6 transition-colors hover:border-accent/25 hover:bg-surface-elevated"
+      className="group relative flex flex-col gap-4 overflow-hidden rounded-md border border-border bg-surface p-6 transition-all duration-200 hover:border-accent/25 hover:bg-surface-elevated hover:-translate-y-1 hover:shadow-lg hover:shadow-accent/10"
     >
       <div
         aria-hidden="true"

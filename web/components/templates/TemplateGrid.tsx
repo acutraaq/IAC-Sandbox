@@ -14,10 +14,11 @@ interface TemplateGridProps {
 export function TemplateGrid({ templates }: TemplateGridProps) {
   const [selectedCategory, setSelectedCategory] = useState("all");
 
-  const filtered =
-    selectedCategory === "all"
-      ? templates
-      : templates.filter((t) => t.category === selectedCategory);
+  const filtered = templates.filter(
+    (t) =>
+      !t.policyBlocked &&
+      (selectedCategory === "all" || t.category === selectedCategory),
+  );
 
   return (
     <div className="space-y-8">

@@ -548,7 +548,10 @@ function buildTemplateResources(
     case "landing-zone":
       return buildLandingZone(formValues, location, tenantId);
     default:
-      throw new Error(`Unknown template slug: "${slug}". No ARM builder is registered for this template.`);
+      throw new Error(
+        `Template slug "${slug}" has no ARM builder. ` +
+        `Implement a builder or set policyBlocked: true in templates.json.`
+      );
   }
 }
 
@@ -595,6 +598,10 @@ function buildCustomResources(
       case "Microsoft.App/containerApps":
         armResources.push(...buildContainerApp(resource.name, location, resource.config));
         break;
+      default:
+        throw new Error(
+          `Resource type "${resource.type}" has no ARM builder in buildCustomResources.`
+        );
     }
   }
 

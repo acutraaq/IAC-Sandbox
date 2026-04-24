@@ -16,9 +16,22 @@ export default function Home() {
       <div className="mx-auto max-w-7xl space-y-12 px-6 py-8 md:px-8 md:py-12">
         {/* Zone 1: Welcome */}
         <div>
-          <h1 className="text-4xl font-bold text-text">Sandbox</h1>
-          <p className="mt-2 text-text-muted">Deploy Azure resources in minutes.</p>
-          <div className="mt-6 flex flex-wrap gap-3">
+          <h1
+            className="text-4xl font-bold text-text animate-fade-up motion-reduce:animate-none"
+            style={{ animationDelay: "0ms" }}
+          >
+            Sandbox
+          </h1>
+          <p
+            className="mt-2 text-text-muted animate-fade-up motion-reduce:animate-none"
+            style={{ animationDelay: "80ms" }}
+          >
+            Deploy Azure resources in minutes.
+          </p>
+          <div
+            className="mt-6 flex flex-wrap gap-3 animate-fade-up motion-reduce:animate-none"
+            style={{ animationDelay: "160ms" }}
+          >
             <Button asChild size="md">
               <Link href="/templates">Browse Templates</Link>
             </Button>
@@ -29,7 +42,10 @@ export default function Home() {
         </div>
 
         {/* Zone 2: Popular Templates */}
-        <div>
+        <div
+          className="animate-fade-up motion-reduce:animate-none"
+          style={{ animationDelay: "260ms" }}
+        >
           <div className="mb-4 flex items-center justify-between">
             <h2 className="text-sm font-semibold uppercase tracking-wider text-text-muted">
               Popular Templates
@@ -42,7 +58,10 @@ export default function Home() {
         </div>
 
         {/* Zone 3: Recent Deployments */}
-        <div>
+        <div
+          className="animate-fade-up motion-reduce:animate-none"
+          style={{ animationDelay: "360ms" }}
+        >
           <h2 className="mb-4 text-sm font-semibold uppercase tracking-wider text-text-muted">
             My Recent Deployments
           </h2>
