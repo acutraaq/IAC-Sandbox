@@ -13,10 +13,12 @@ Before starting any work, read the active specs in `docs/superpowers/specs/` to 
 | `docs/superpowers/specs/2026-04-23-refactor-cleanup-design.md` | **Designed — not yet implemented** | 4-phase refactor: deps, cleanup, tests, observability |
 | ~~UI redesign~~ | **Complete** | Archived to `docs/superpowers/archive/` |
 | ~~EPF templates + status + request flow~~ | **Complete** | 4 EPF templates, 3-step timeline, /request page |
+| ~~UI sizing + Functions host fix~~ | **Complete** | Builder/review/modal sizing, West Europe removed, functions main path fixed |
 
 **What is live and working:** See Live Deployment section below.
 **What is designed but not built:** The refactor-cleanup spec above.
 **What is blocked:** Microsoft SSO / MSAL (pending admin App Registration credentials).
+**What needs Azure config verification:** Function App RG creation — `AZURE_SUBSCRIPTION_ID` in Function App settings must be `1fed33d2-00fd-40a8-a5c1-c120aec1b902` and managed identity needs Contributor on sub-epf-sandbox-internal.
 
 ---
 
@@ -430,3 +432,5 @@ npx vitest run       # all pass
 - Subagent `general-purpose` (haiku) cannot execute Bash file deletions — handle `rm` commands in the controller session directly
 - Functions errors must propagate (not be swallowed) so the runtime can retry and poison-queue bad messages
 - When adding a new deployable template slug, update BOTH `web/lib/deployments/policy.ts` (DEPLOYABLE_SLUGS) AND `web/lib/deployments/rg-name.ts` (primary field map)
+- `functions/package.json` `main` must be `dist/functions/*.js` — tsconfig `rootDir: ./src` strips the `src/` prefix, so compiled output is at `dist/functions/`, not `dist/src/functions/`. Getting this wrong causes "Function host is not running"
+- Function App Azure settings: `AZURE_SUBSCRIPTION_ID` must point to `sub-epf-sandbox-internal` (`1fed33d2-00fd-40a8-a5c1-c120aec1b902`), not the cloud sub. Managed identity needs Contributor on that subscription.
