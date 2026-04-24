@@ -1,5 +1,6 @@
 import { randomBytes } from "crypto";
 import type { DeploymentPayload } from "./deployment.schema.js";
+import { sanitizeStorageName, sanitizeKeyVaultName, sanitizeGenericName } from "./sanitize.js";
 
 function generatePassword(): string {
   return randomBytes(16).toString("base64url");
@@ -104,11 +105,7 @@ function buildStorageAccount(
   location: string,
   config: Record<string, unknown>
 ): ArmResource {
-  // Storage account names: 3-24 chars, lowercase letters and numbers only
-  const safeName = name
-    .toLowerCase()
-    .replace(/[^a-z0-9]/g, "")
-    .slice(0, 24) || "sandboxstorage";
+  const safeName = sanitizeStorageName(name) || "sandboxstorage";
 
   return {
     type: "Microsoft.Storage/storageAccounts",
@@ -129,9 +126,7 @@ function buildVirtualNetwork(
   location: string,
   config: Record<string, unknown>
 ): ArmResource {
-  const safeName = (
-    name.toLowerCase().replace(/[^a-z0-9-]/g, "-").replace(/-+/g, "-").replace(/^-+|-+$/g, "").slice(0, 64) || "sandbox-vnet"
-  );
+  const safeName = sanitizeGenericName(name, 64) || "sandbox-vnet";
   const addressSpace =
     typeof config.addressSpace === "string" ? config.addressSpace : "10.0.0.0/16";
   const subnetName =
@@ -157,16 +152,7 @@ function buildKeyVault(
   config: Record<string, unknown>,
   tenantId: string
 ): ArmResource {
-  // Key Vault names: 3-24 chars, must start with a letter, alphanumeric and hyphens only
-  const safeName = (
-    name
-      .toLowerCase()
-      .replace(/[^a-z0-9-]/g, "-")
-      .replace(/-+/g, "-")
-      .replace(/^[^a-z]+/, "")
-      .replace(/-+$/, "")
-      .slice(0, 24) || "sandbox-kv"
-  );
+  const safeName = sanitizeKeyVaultName(name) || "sandbox-kv";
 
   return {
     type: "Microsoft.KeyVault/vaults",
@@ -189,12 +175,7 @@ function buildPostgresServer(
   location: string,
   config: Record<string, unknown>
 ): ArmResource {
-  // PostgreSQL server names: 3-63 chars, lowercase letters, digits, hyphens
-  const safeName = name
-    .toLowerCase()
-    .replace(/[^a-z0-9-]/g, "-")
-    .replace(/^-+|-+$/g, "")
-    .slice(0, 63) || "sandbox-db";
+  const safeName = sanitizeGenericName(name, 63) || "sandbox-db";
 
   const storageSizeGB =
     typeof config.storageGB === "number" ? config.storageGB : 32;
@@ -228,15 +209,7 @@ function buildWebApplication(
   location: string,
   config: Record<string, unknown>
 ): ArmResource[] {
-  // App Service names: globally unique, 2-60 chars, alphanumeric and hyphens
-  const safeName = (
-    name
-      .toLowerCase()
-      .replace(/[^a-z0-9-]/g, "-")
-      .replace(/-+/g, "-")
-      .replace(/^-+|-+$/g, "")
-      .slice(0, 60) || "sandbox-app"
-  );
+  const safeName = sanitizeGenericName(name, 60) || "sandbox-app";
   const rawPlanSize = typeof config.planSize === "string" ? config.planSize : "B1";
   const planSize = ALLOWED_APP_SERVICE_SKUS.has(rawPlanSize) ? rawPlanSize : "B1";
   const planName = `${safeName}-plan`;
@@ -270,15 +243,7 @@ function buildContainerApp(
   location: string,
   config: Record<string, unknown>
 ): ArmResource[] {
-  // Container App names: 2-32 chars, lowercase alphanumeric and hyphens
-  const safeName = (
-    name
-      .toLowerCase()
-      .replace(/[^a-z0-9-]/g, "-")
-      .replace(/-+/g, "-")
-      .replace(/^-+|-+$/g, "")
-      .slice(0, 32) || "sandbox-app"
-  );
+  const safeName = sanitizeGenericName(name, 32) || "sandbox-app";
   const envName = `${safeName}-env`;
   const minReplicas = typeof config.minReplicas === "number" ? Math.max(0, Math.floor(config.minReplicas)) : 1;
   const maxReplicas = typeof config.maxReplicas === "number" ? Math.max(minReplicas, Math.floor(config.maxReplicas)) : 3;
@@ -329,10 +294,7 @@ function buildVirtualMachine(
   location: string,
   config: Record<string, unknown>
 ): ArmResource[] {
-  // VM names: 1-15 chars (Windows constraint; keeps NIC/VNet names predictable)
-  const safeName = (
-    name.toLowerCase().replace(/[^a-z0-9-]/g, "-").replace(/-+/g, "-").replace(/^-+|-+$/g, "").slice(0, 15) || "sandbox-vm"
-  );
+  const safeName = sanitizeGenericName(name, 15) || "sandbox-vm";
   const vmSize =
     typeof config.vmSize === "string" ? config.vmSize : "Standard_B2s";
   const osType =

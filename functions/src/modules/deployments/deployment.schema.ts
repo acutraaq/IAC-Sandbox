@@ -1,3 +1,4 @@
+// SYNC: must match web/lib/deployments/schema.ts
 import { z } from "zod";
 
 const tagsSchema = z.object({

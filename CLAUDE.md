@@ -204,6 +204,7 @@ No docker-compose or local database needed.
 | Server env | `serverEnv` from `web/lib/server-env.ts` (never raw `process.env`) |
 | Client API | helpers in `web/lib/api.ts` (never raw `fetch('/api/...')`) |
 | Errors | `AppError` + `toErrorResponse()` from `web/lib/errors.ts` |
+| Schema sync | `functions/src/modules/deployments/deployment.schema.ts` must match `web/lib/deployments/schema.ts` — edit both together |
 
 ---
 

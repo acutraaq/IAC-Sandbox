@@ -6,16 +6,18 @@
   "main": "dist/src/functions/*.js",
   "scripts": {
     "build": "tsc",
-    "start": "func start"
+    "start": "func start",
+    "test": "vitest run"
   },
   "dependencies": {
-    "@azure/arm-resources": "^5.2.0",
+    "@azure/arm-resources": "^7.0.0",
     "@azure/functions": "^4.0.0",
     "@azure/identity": "^4.4.0",
     "zod": "^4.3.6"
   },
   "devDependencies": {
     "@types/node": "^22.0.0",
-    "typescript": "^5.5.0"
+    "typescript": "^5.5.0",
+    "vitest": "^3.0.0"
   }
 }
