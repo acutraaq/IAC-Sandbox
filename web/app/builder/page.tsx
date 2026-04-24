@@ -41,33 +41,25 @@ export default function BuilderPage() {
 
   return (
     <PageTransition>
-      <div className="mx-auto max-w-6xl px-6 py-12">
-        <div className="mb-8 flex flex-col items-start justify-between gap-4 border-b border-border pb-6 sm:flex-row sm:items-end">
-          <div className="flex flex-col">
-            <span className="mb-2 font-mono text-[10px] font-semibold uppercase tracking-widest text-text-muted">
-              Custom builder
-            </span>
-            <h1 className="font-display text-3xl font-extrabold tracking-tight text-text">
-              Build Your Own Setup
-            </h1>
-            <p className="mt-2 text-sm text-text-muted">
-              Choose Azure resources one at a time and configure each one. Review
-              your complete setup before submitting.
-            </p>
-          </div>
+      <div className="mx-auto max-w-7xl px-6 py-8 md:px-8 md:py-12">
+        <Breadcrumb items={[{ label: "Home", href: "/" }, { label: "Builder" }]} />
+
+        <div className="mb-8">
+          <h1 className="text-2xl font-semibold text-text">Build Your Own Setup</h1>
+          <p className="mt-1 text-sm text-text-muted">
+            Choose Azure resources one at a time and configure each one. Review
+            your complete setup before submitting.
+          </p>
         </div>
 
         <div className="grid gap-8 lg:grid-cols-[1fr_300px]">
-          <div>
-            <Breadcrumb items={[{ label: "Home", href: "/" }, { label: "Builder" }]} />
-            <ResourceCatalog
-              resources={resources as AzureResource[]}
-              selectedTypes={selectedTypes}
-              onSelect={handleSelect}
-            />
-          </div>
+          <ResourceCatalog
+            resources={resources as AzureResource[]}
+            selectedTypes={selectedTypes}
+            onSelect={handleSelect}
+          />
 
-          <div className="lg:sticky lg:top-24 lg:h-fit">
+          <div className="lg:sticky lg:top-24 lg:flex lg:max-h-[calc(100vh-7rem)] lg:flex-col">
             <SelectedPanel resources={selectedResources} onRemove={removeResource} />
           </div>
         </div>

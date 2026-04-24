@@ -169,7 +169,7 @@ export function ConfirmModal({
         <div className="relative">
           <pre
             id="proof-text"
-            className="max-h-64 overflow-auto rounded-lg border border-border bg-bg p-4 font-mono text-xs leading-relaxed text-text"
+            className="max-h-48 overflow-auto rounded-lg border border-border bg-bg p-3 font-mono text-[11px] leading-relaxed text-text sm:max-h-64 sm:p-4 sm:text-xs"
           >
             {proofText}
           </pre>

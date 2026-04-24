@@ -69,7 +69,7 @@ export function Modal({ open, onClose, title, children }: ModalProps) {
   return (
     <AnimatePresence>
       {open && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6">
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -87,10 +87,10 @@ export function Modal({ open, onClose, title, children }: ModalProps) {
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 10 }}
             transition={{ duration: 0.15 }}
-            className="relative z-10 mx-4 w-full max-w-lg rounded-xl border border-border bg-surface-elevated p-6 shadow-2xl"
+            className="relative z-10 flex max-h-[calc(100dvh-2rem)] w-full max-w-lg flex-col rounded-xl border border-border bg-surface-elevated shadow-2xl sm:max-h-[calc(100dvh-3rem)]"
           >
-            <div className="mb-4 flex items-center justify-between">
-              <h2 className="text-lg font-semibold text-text">{title}</h2>
+            <div className="flex items-center justify-between border-b border-border px-5 py-3 sm:px-6 sm:py-4">
+              <h2 className="text-base font-semibold text-text sm:text-lg">{title}</h2>
               <button
                 onClick={onClose}
                 aria-label="Close dialog"
@@ -99,7 +99,9 @@ export function Modal({ open, onClose, title, children }: ModalProps) {
                 <X className="h-5 w-5" />
               </button>
             </div>
-            {children}
+            <div className="flex-1 overflow-y-auto px-5 py-4 sm:px-6 sm:py-5">
+              {children}
+            </div>
           </motion.div>
         </div>
       )}

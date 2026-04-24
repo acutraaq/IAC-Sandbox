@@ -23,8 +23,7 @@
         "options": [
           { "label": "Southeast Asia (Singapore)", "value": "southeastasia" },
           { "label": "East Asia (Hong Kong)", "value": "eastasia" },
-          { "label": "Australia East (Sydney)", "value": "australiaeast" },
-          { "label": "West Europe (Netherlands)", "value": "westeurope" }
+          { "label": "Australia East (Sydney)", "value": "australiaeast" }
         ]
       },
       {
@@ -106,8 +105,7 @@
         "options": [
           { "label": "Southeast Asia (Singapore)", "value": "southeastasia" },
           { "label": "East Asia (Hong Kong)", "value": "eastasia" },
-          { "label": "Australia East (Sydney)", "value": "australiaeast" },
-          { "label": "West Europe (Netherlands)", "value": "westeurope" }
+          { "label": "Australia East (Sydney)", "value": "australiaeast" }
         ]
       },
       {
@@ -146,8 +144,7 @@
         "options": [
           { "label": "Southeast Asia (Singapore)", "value": "southeastasia" },
           { "label": "East Asia (Hong Kong)", "value": "eastasia" },
-          { "label": "Australia East (Sydney)", "value": "australiaeast" },
-          { "label": "West Europe (Netherlands)", "value": "westeurope" }
+          { "label": "Australia East (Sydney)", "value": "australiaeast" }
         ]
       },
       {
@@ -187,8 +184,7 @@
         "options": [
           { "label": "Southeast Asia (Singapore)", "value": "southeastasia" },
           { "label": "East Asia (Hong Kong)", "value": "eastasia" },
-          { "label": "Australia East (Sydney)", "value": "australiaeast" },
-          { "label": "West Europe (Netherlands)", "value": "westeurope" }
+          { "label": "Australia East (Sydney)", "value": "australiaeast" }
         ]
       },
       {
@@ -225,8 +221,7 @@
         "options": [
           { "label": "Southeast Asia (Singapore)", "value": "southeastasia" },
           { "label": "East Asia (Hong Kong)", "value": "eastasia" },
-          { "label": "Australia East (Sydney)", "value": "australiaeast" },
-          { "label": "West Europe (Netherlands)", "value": "westeurope" }
+          { "label": "Australia East (Sydney)", "value": "australiaeast" }
         ]
       },
       {

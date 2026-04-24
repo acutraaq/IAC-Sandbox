@@ -148,16 +148,16 @@ export default function ReviewPage() {
     <PageTransition>
     <div className="mx-auto max-w-2xl px-6 md:px-8 py-8 md:py-12">
       <Breadcrumb items={[{ label: "Home", href: "/" }, { label: "Review" }]} />
-      <div className="mb-8">
+      <div className="mb-6">
         <Link
           href={backHref}
-          className="mb-4 inline-flex items-center gap-1.5 text-sm text-text-muted hover:text-text"
+          className="mb-3 inline-flex items-center gap-1.5 text-sm text-text-muted hover:text-text"
         >
           <ArrowLeft className="h-4 w-4" />
           {mode === "template" ? "Back to setup" : "Back to builder"}
         </Link>
-        <h1 className="text-3xl font-bold text-text">Review Your Setup</h1>
-        <p className="mt-1 text-text-muted">
+        <h1 className="text-2xl font-semibold text-text">Review Your Setup</h1>
+        <p className="mt-1 text-sm text-text-muted">
           Check everything looks right before submitting.
         </p>
       </div>
