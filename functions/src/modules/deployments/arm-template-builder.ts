@@ -78,6 +78,29 @@ interface ArmTemplate {
 const ALLOWED_APP_SERVICE_SKUS = new Set(["F1", "B1", "B2", "B3"]);
 
 // ---------------------------------------------------------------------------
+// Policy-blocked template slugs (source of truth: web/data/templates.json
+// `policyBlocked: true`). Mirrored here so the backend rejects these with a
+// clear error instead of the misleading "no builder" fallback.
+// ---------------------------------------------------------------------------
+
+export const POLICY_BLOCKED_TEMPLATE_SLUGS = new Set([
+  "virtual-machine",
+  "full-stack-web-app",
+  "microservices-platform",
+  "data-pipeline",
+  "secure-api-backend",
+]);
+
+export class PolicyBlockedTemplateError extends Error {
+  readonly slug: string;
+  constructor(slug: string) {
+    super(`Template "${slug}" is blocked by subscription policy and cannot be deployed.`);
+    this.name = "PolicyBlockedTemplateError";
+    this.slug = slug;
+  }
+}
+
+// ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
 
@@ -452,6 +475,11 @@ function buildTemplateResources(
   tenantId: string
 ): ArmResource[] {
   const { slug, formValues } = template;
+
+  if (POLICY_BLOCKED_TEMPLATE_SLUGS.has(slug)) {
+    throw new PolicyBlockedTemplateError(slug);
+  }
+
   const location =
     typeof formValues.region === "string" ? formValues.region : "southeastasia";
 

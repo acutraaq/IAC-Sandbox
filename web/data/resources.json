@@ -269,43 +269,5 @@
         "helpText": "Enable if your app needs to be reachable from outside your organization's network."
       }
     ]
-  },
-  {
-    "type": "Microsoft.Network/networkSecurityGroups",
-    "name": "Firewall Rules",
-    "policyBlocked": true,
-    "description": "Control which traffic is allowed in and out of your cloud resources — like a digital firewall.",
-    "category": "security",
-    "icon": "Shield",
-    "fields": [
-      {
-        "name": "nsgName",
-        "label": "What should we call these firewall rules?",
-        "type": "text",
-        "required": true,
-        "placeholder": "my-firewall-rules",
-        "helpText": "Use a name that describes what these rules protect."
-      },
-      {
-        "name": "region",
-        "label": "Where should it be created?",
-        "type": "select",
-        "required": true,
-        "helpText": "Must be in the same location as the resources it will protect.",
-        "options": [
-          { "label": "Southeast Asia (Singapore)", "value": "southeastasia" },
-          { "label": "East Asia (Hong Kong)", "value": "eastasia" },
-          { "label": "Australia East (Sydney)", "value": "australiaeast" },
-          { "label": "West Europe (Netherlands)", "value": "westeurope" }
-        ]
-      },
-      {
-        "name": "allowHTTPS",
-        "label": "Allow secure web traffic (HTTPS)?",
-        "type": "toggle",
-        "required": false,
-        "helpText": "Enable this if your resources serve web content over HTTPS (port 443)."
-      }
-    ]
   }
 ]

@@ -36,6 +36,10 @@ export class AppError extends Error {
   static internal(message = "Internal server error"): AppError {
     return new AppError("INTERNAL_ERROR", message, 500);
   }
+
+  static forbidden(message: string): AppError {
+    return new AppError("FORBIDDEN", message, 403);
+  }
 }
 
 export function toErrorResponse(err: AppError, requestId: string) {

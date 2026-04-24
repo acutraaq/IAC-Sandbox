@@ -151,8 +151,18 @@ export async function executeBicepDeployment(
 
   // Step 1: build and validate the ARM template against subscription policy
   // before touching Azure — avoids creating an empty RG on policy violations.
+  // The full tag set (policy tags + identity/correlation) is applied to both
+  // the RG and every resource in the template for consistent attribution.
   log?.(`[${id}] Building ARM template`);
-  const template = buildArmTemplate(opts.payload, { tenantId: env.AZURE_TENANT_ID, tags: opts.tags });
+  const fullTags = {
+    ...opts.tags,
+    deployedBy: "demo@sandbox.local",
+    "iac-submissionId": id,
+  };
+  const template = buildArmTemplate(opts.payload, {
+    tenantId: env.AZURE_TENANT_ID,
+    tags: fullTags,
+  });
 
   const blockedTypes = validateTemplateAgainstPolicy(template);
   if (blockedTypes.length > 0) {
@@ -166,11 +176,7 @@ export async function executeBicepDeployment(
   log?.(`[${id}] Creating resource group ${opts.resourceGroupName}`);
   await client.resourceGroups.createOrUpdate(opts.resourceGroupName, {
     location: opts.location,
-    tags: {
-      ...opts.tags,
-      deployedBy: "demo@sandbox.local",
-      "iac-submissionId": id,
-    },
+    tags: fullTags,
   });
 
   // Step 3: deploy ARM template into the resource group

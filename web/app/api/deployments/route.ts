@@ -56,10 +56,10 @@ export async function POST(request: Request) {
 
     const policyViolation = validateDeploymentPolicy(payload);
     if (policyViolation) {
-      const err = AppError.validation(
+      const err = AppError.forbidden(
         `Deployment blocked by subscription policy. Not permitted: ${policyViolation.blocked.join(", ")}`
       );
-      return NextResponse.json(toErrorResponse(err, requestId), { status: 400 });
+      return NextResponse.json(toErrorResponse(err, requestId), { status: err.statusCode });
     }
 
     const submissionId = crypto.randomUUID();

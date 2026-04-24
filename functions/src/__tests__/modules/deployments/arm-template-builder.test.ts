@@ -222,9 +222,16 @@ describe("buildContainerApp", () => {
 // Virtual Machine builder (4 resources)
 // ---------------------------------------------------------------------------
 
-describe("buildVirtualMachine", () => {
+describe("buildVirtualMachine (custom mode)", () => {
+  // The `virtual-machine` template slug is blocked by subscription policy
+  // (see POLICY_BLOCKED_TEMPLATE_SLUGS). The custom-mode builder for the
+  // underlying Microsoft.Compute/virtualMachines resource type is still
+  // reachable — exercise it here.
   it("returns 4 resources: publicIP, vnet, nic, vm", () => {
-    const t = buildArmTemplate(templatePayload("virtual-machine", { vmName: "myvm" }), { tenantId: TENANT_ID });
+    const t = buildArmTemplate(
+      customPayload("Microsoft.Compute/virtualMachines", "myvm"),
+      { tenantId: TENANT_ID }
+    );
     expect(t.resources).toHaveLength(4);
     expect(t.resources[0].type).toBe("Microsoft.Network/publicIPAddresses");
     expect(t.resources[1].type).toBe("Microsoft.Network/virtualNetworks");
@@ -233,13 +240,38 @@ describe("buildVirtualMachine", () => {
   });
 
   it("sanitizes name, max 15 chars", () => {
-    const t = buildArmTemplate(templatePayload("virtual-machine", { vmName: "a".repeat(30) }), { tenantId: TENANT_ID });
+    const t = buildArmTemplate(
+      customPayload("Microsoft.Compute/virtualMachines", "a".repeat(30)),
+      { tenantId: TENANT_ID }
+    );
     expect(t.resources[3].name.length).toBeLessThanOrEqual(15);
   });
 
   it("uses fallback name when sanitized result is empty", () => {
-    const t = buildArmTemplate(templatePayload("virtual-machine", { vmName: "---" }), { tenantId: TENANT_ID });
+    const t = buildArmTemplate(
+      customPayload("Microsoft.Compute/virtualMachines", "---"),
+      { tenantId: TENANT_ID }
+    );
     expect(t.resources[3].name).toBe("sandbox-vm");
+  });
+});
+
+describe("policy-blocked template slugs", () => {
+  it("throws PolicyBlockedTemplateError for virtual-machine slug", () => {
+    expect(() =>
+      buildArmTemplate(templatePayload("virtual-machine", { vmName: "x" }), { tenantId: TENANT_ID })
+    ).toThrow(/blocked by subscription policy/);
+  });
+
+  it.each([
+    "full-stack-web-app",
+    "microservices-platform",
+    "data-pipeline",
+    "secure-api-backend",
+  ])("throws PolicyBlockedTemplateError for %s", (slug) => {
+    expect(() =>
+      buildArmTemplate(templatePayload(slug), { tenantId: TENANT_ID })
+    ).toThrow(/blocked by subscription policy/);
   });
 });
 

@@ -12,7 +12,7 @@ const deploymentJobMessageSchema = z.object({
   tags: z.record(z.string(), z.string()),
 });
 
-async function processDeployment(
+export async function processDeployment(
   queueItem: unknown,
   context: InvocationContext
 ): Promise<void> {
@@ -22,30 +22,31 @@ async function processDeployment(
     const detail = parsed.error.issues
       .map((i) => `${i.path.join(".")}: ${i.message}`)
       .join("; ");
-    context.error(`Invalid queue message: ${detail}`);
+    const preview = JSON.stringify(rawMessage).slice(0, 500);
+    context.error(`Invalid queue message: ${detail} | raw: ${preview}`);
+    // Return without throwing: malformed messages should NOT trigger the
+    // Functions runtime retry loop (they will never succeed). They are
+    // effectively dropped; poison queue is reserved for executor failures.
     return;
   }
   const { submissionId, resourceGroupName, location, payload, tags } = parsed.data;
 
   context.log(`Processing deployment ${submissionId} for RG ${resourceGroupName}`);
 
-  try {
-    await executeBicepDeployment({
-      subscriptionId: env.AZURE_SUBSCRIPTION_ID,
-      resourceGroupName,
-      deploymentName: submissionId,
-      payload,
-      location,
-      tags,
-      log: (msg) => context.log(msg),
-    });
+  // Any error here must propagate so the Functions runtime applies the retry
+  // policy from host.json (maxDequeueCount: 3) and then routes the message
+  // to deployment-jobs-poison for investigation.
+  await executeBicepDeployment({
+    subscriptionId: env.AZURE_SUBSCRIPTION_ID,
+    resourceGroupName,
+    deploymentName: submissionId,
+    payload,
+    location,
+    tags,
+    log: (msg) => context.log(msg),
+  });
 
-    context.log(`Deployment ${submissionId} succeeded`);
-  } catch (err) {
-    const errorMessage = err instanceof Error ? err.message : String(err);
-    const stack = err instanceof Error && err.stack ? `\n${err.stack}` : "";
-    context.error(`Deployment ${submissionId} failed: ${errorMessage}${stack}`);
-  }
+  context.log(`Deployment ${submissionId} succeeded`);
 }
 
 app.storageQueue("processDeployment", {
