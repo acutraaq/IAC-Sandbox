@@ -129,6 +129,9 @@ function buildVirtualNetwork(
   location: string,
   config: Record<string, unknown>
 ): ArmResource {
+  const safeName = (
+    name.toLowerCase().replace(/[^a-z0-9-]/g, "-").replace(/-+/g, "-").replace(/^-+|-+$/g, "").slice(0, 64) || "sandbox-vnet"
+  );
   const addressSpace =
     typeof config.addressSpace === "string" ? config.addressSpace : "10.0.0.0/16";
   const subnetName =
@@ -139,7 +142,7 @@ function buildVirtualNetwork(
   return {
     type: "Microsoft.Network/virtualNetworks",
     apiVersion: "2023-09-01",
-    name,
+    name: safeName,
     location,
     properties: {
       addressSpace: { addressPrefixes: [addressSpace] },
@@ -277,6 +280,8 @@ function buildContainerApp(
       .slice(0, 32) || "sandbox-app"
   );
   const envName = `${safeName}-env`;
+  const minReplicas = typeof config.minReplicas === "number" ? Math.max(0, Math.floor(config.minReplicas)) : 1;
+  const maxReplicas = typeof config.maxReplicas === "number" ? Math.max(minReplicas, Math.floor(config.maxReplicas)) : 3;
 
   return [
     {
@@ -312,12 +317,7 @@ function buildContainerApp(
               resources: { cpu: 0.5, memory: "1Gi" },
             },
           ],
-          scale: {
-            minReplicas:
-              typeof config.minReplicas === "number" ? config.minReplicas : 1,
-            maxReplicas:
-              typeof config.maxReplicas === "number" ? config.maxReplicas : 3,
-          },
+          scale: { minReplicas, maxReplicas },
         },
       },
     },
@@ -329,6 +329,10 @@ function buildVirtualMachine(
   location: string,
   config: Record<string, unknown>
 ): ArmResource[] {
+  // VM names: 1-15 chars (Windows constraint; keeps NIC/VNet names predictable)
+  const safeName = (
+    name.toLowerCase().replace(/[^a-z0-9-]/g, "-").replace(/-+/g, "-").replace(/^-+|-+$/g, "").slice(0, 15) || "sandbox-vm"
+  );
   const vmSize =
     typeof config.vmSize === "string" ? config.vmSize : "Standard_B2s";
   const osType =
@@ -346,10 +350,11 @@ function buildVirtualMachine(
       : { publisher: "Canonical", offer: "0001-com-ubuntu-server-jammy", sku: "22_04-lts", version: "latest" };
 
   const isWindows = osType === "WindowsServer2022";
-  const ipName = `${name}-ip`;
-  const vnetName = `${name}-vnet`;
-  const nicName = `${name}-nic`;
-  const computerName = name.slice(0, 15);
+  const adminPassword = generatePassword();
+  const ipName = `${safeName}-ip`;
+  const vnetName = `${safeName}-vnet`;
+  const nicName = `${safeName}-nic`;
+  const computerName = safeName;
 
   return [
     {
@@ -401,7 +406,7 @@ function buildVirtualMachine(
     {
       type: "Microsoft.Compute/virtualMachines",
       apiVersion: "2024-03-01",
-      name,
+      name: safeName,
       location,
       dependsOn: [
         `[resourceId('Microsoft.Network/networkInterfaces', '${nicName}')]`,
@@ -418,10 +423,10 @@ function buildVirtualMachine(
         osProfile: {
           computerName,
           adminUsername,
-          ...(isWindows ? { adminPassword: generatePassword() } : {}),
+          adminPassword,
           ...(isWindows
             ? { windowsConfiguration: { enableAutomaticUpdates: true } }
-            : { linuxConfiguration: { disablePasswordAuthentication: true } }),
+            : { linuxConfiguration: { disablePasswordAuthentication: false } }),
         },
         networkProfile: {
           networkInterfaces: [
@@ -543,7 +548,7 @@ function buildTemplateResources(
     case "landing-zone":
       return buildLandingZone(formValues, location, tenantId);
     default:
-      return [];
+      throw new Error(`Unknown template slug: "${slug}". No ARM builder is registered for this template.`);
   }
 }
 

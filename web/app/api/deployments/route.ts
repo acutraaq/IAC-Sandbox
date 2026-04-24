@@ -4,6 +4,7 @@ import { serverEnv } from "@/lib/server-env";
 import { AppError, toErrorResponse } from "@/lib/errors";
 import { deploymentPayloadSchema } from "@/lib/deployments/schema";
 import { deriveResourceGroupName, deriveLocation } from "@/lib/deployments/rg-name";
+import { validateDeploymentPolicy } from "@/lib/deployments/policy";
 import type { DeploymentPayload } from "@/lib/deployments/schema";
 
 // Must match deploymentJobMessageSchema in functions/src/functions/processDeployment.ts
@@ -52,6 +53,15 @@ export async function POST(request: Request) {
     }
 
     const payload = parseResult.data;
+
+    const policyViolation = validateDeploymentPolicy(payload);
+    if (policyViolation) {
+      const err = AppError.validation(
+        `Deployment blocked by subscription policy. Not permitted: ${policyViolation.blocked.join(", ")}`
+      );
+      return NextResponse.json(toErrorResponse(err, requestId), { status: 400 });
+    }
+
     const submissionId = crypto.randomUUID();
     const resourceGroupName = deriveResourceGroupName(payload);
     const location = deriveLocation(payload);
