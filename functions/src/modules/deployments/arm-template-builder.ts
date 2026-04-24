@@ -467,6 +467,114 @@ function buildLandingZone(
 }
 
 // ---------------------------------------------------------------------------
+// Logic App builder
+// ---------------------------------------------------------------------------
+
+function buildLogicApp(
+  name: string,
+  location: string,
+  config: Record<string, unknown>,
+  triggerType: "http" | "recurrence"
+): ArmResource {
+  const safeName = sanitizeGenericName(name, 43) || "sandbox-workflow";
+
+  const trigger =
+    triggerType === "http"
+      ? {
+          manual: {
+            type: "Request",
+            kind: "Http",
+            inputs: { schema: {} },
+          },
+        }
+      : (() => {
+          const freq =
+            typeof config.frequency === "string" ? config.frequency : "Week";
+          const time =
+            typeof config.runTime === "string" ? config.runTime : "09:00";
+          return {
+            Recurrence: {
+              type: "Recurrence",
+              recurrence: {
+                frequency: freq,
+                interval: 1,
+                timeZone: "SE Asia Standard Time",
+                startTime: `2026-01-01T${time}:00Z`,
+              },
+            },
+          };
+        })();
+
+  return {
+    type: "Microsoft.Logic/workflows",
+    apiVersion: "2019-05-01",
+    name: safeName,
+    location,
+    properties: {
+      state: "Enabled",
+      definition: {
+        $schema:
+          "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+        contentVersion: "1.0.0.0",
+        triggers: trigger,
+        actions: {},
+        outputs: {},
+      },
+    },
+  };
+}
+
+// ---------------------------------------------------------------------------
+// Service Bus namespace builder
+// ---------------------------------------------------------------------------
+
+function buildServiceBusNamespace(
+  name: string,
+  location: string,
+  config: Record<string, unknown>
+): ArmResource {
+  const safeName = sanitizeGenericName(name, 50) || "sandbox-servicebus";
+  const tier =
+    typeof config.tier === "string" && config.tier === "Standard"
+      ? "Standard"
+      : "Basic";
+
+  return {
+    type: "Microsoft.ServiceBus/namespaces",
+    apiVersion: "2022-10-01-preview",
+    name: safeName,
+    location,
+    sku: { name: tier, tier },
+    properties: {},
+  };
+}
+
+// ---------------------------------------------------------------------------
+// Event Grid topic builder
+// ---------------------------------------------------------------------------
+
+function buildEventGridTopic(
+  name: string,
+  location: string,
+  config: Record<string, unknown>
+): ArmResource {
+  const safeName = sanitizeGenericName(name, 50) || "sandbox-events";
+  const inputSchema =
+    typeof config.inputSchema === "string" &&
+    config.inputSchema === "CloudEventSchemaV1_0"
+      ? "CloudEventSchemaV1_0"
+      : "EventGridSchema";
+
+  return {
+    type: "Microsoft.EventGrid/topics",
+    apiVersion: "2022-06-15",
+    name: safeName,
+    location,
+    properties: { inputSchema },
+  };
+}
+
+// ---------------------------------------------------------------------------
 // Template-mode dispatcher
 // ---------------------------------------------------------------------------
 
@@ -537,6 +645,40 @@ function buildTemplateResources(
       );
     case "landing-zone":
       return buildLandingZone(formValues, location, tenantId);
+    case "approval-workflow":
+      return [
+        buildLogicApp(
+          typeof formValues.workflowName === "string" ? formValues.workflowName : "sandbox-workflow",
+          location,
+          formValues,
+          "http"
+        ),
+      ];
+    case "scheduled-automation":
+      return [
+        buildLogicApp(
+          typeof formValues.workflowName === "string" ? formValues.workflowName : "sandbox-workflow",
+          location,
+          formValues,
+          "recurrence"
+        ),
+      ];
+    case "message-queue":
+      return [
+        buildServiceBusNamespace(
+          typeof formValues.namespaceName === "string" ? formValues.namespaceName : "sandbox-queue",
+          location,
+          formValues
+        ),
+      ];
+    case "event-broadcaster":
+      return [
+        buildEventGridTopic(
+          typeof formValues.topicName === "string" ? formValues.topicName : "sandbox-events",
+          location,
+          formValues
+        ),
+      ];
     default:
       throw new Error(
         `Template slug "${slug}" has no ARM builder. ` +
@@ -587,6 +729,15 @@ function buildCustomResources(
         break;
       case "Microsoft.App/containerApps":
         armResources.push(...buildContainerApp(resource.name, location, resource.config));
+        break;
+      case "Microsoft.Logic/workflows":
+        armResources.push(buildLogicApp(resource.name, location, resource.config, "http"));
+        break;
+      case "Microsoft.ServiceBus/namespaces":
+        armResources.push(buildServiceBusNamespace(resource.name, location, resource.config));
+        break;
+      case "Microsoft.EventGrid/topics":
+        armResources.push(buildEventGridTopic(resource.name, location, resource.config));
         break;
       default:
         throw new Error(

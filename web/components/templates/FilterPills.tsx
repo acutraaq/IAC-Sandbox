@@ -7,6 +7,8 @@ interface FilterPillsProps {
 
 const categories = [
   { value: "all", label: "All" },
+  { value: "automation", label: "Automation" },
+  { value: "integration", label: "Integration" },
   { value: "compute", label: "Compute" },
   { value: "data", label: "Data" },
   { value: "network", label: "Network" },

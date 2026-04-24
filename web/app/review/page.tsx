@@ -248,6 +248,7 @@ export default function ReviewPage() {
         proofText={proofText}
         deploymentStatus={deploymentStatus}
         deploymentError={deploymentError}
+        resourceGroup={deployedResourceGroup ?? null}
         onClose={() => setModalOpen(false)}
         onReset={handleReset}
       />

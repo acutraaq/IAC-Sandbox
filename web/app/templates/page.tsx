@@ -1,3 +1,4 @@
+import Link from "next/link";
 import templatesData from "@/data/templates.json";
 import { TemplateCard } from "@/components/templates/TemplateCard";
 import { TemplateGrid } from "@/components/templates/TemplateGrid";
@@ -49,6 +50,25 @@ export default function TemplatesPage() {
             Single-resource deployments for targeted infrastructure needs.
           </p>
           <TemplateGrid templates={individual} />
+        </section>
+
+        {/* Custom Request CTA */}
+        <section className="mt-12 flex flex-col items-start gap-3 rounded-xl border border-border bg-surface p-6 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h3 className="text-base font-semibold text-text">
+              Need something specific?
+            </h3>
+            <p className="mt-1 text-sm text-text-muted">
+              If none of the templates match your use case, tell us what you need
+              and we will provision it for you after HOD approval.
+            </p>
+          </div>
+          <Link
+            href="/request"
+            className="shrink-0 rounded-lg border border-accent/40 bg-accent/5 px-4 py-2 text-sm font-medium text-accent transition-colors hover:bg-accent/10"
+          >
+            Request a Custom Setup →
+          </Link>
         </section>
       </div>
     </PageTransition>

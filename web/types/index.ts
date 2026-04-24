@@ -117,7 +117,7 @@ export interface ErrorResponse {
 /* ── Store State ── */
 
 export interface DeploymentState {
-  mode: "template" | "custom" | null;
+  mode: "template" | "custom" | "custom-request" | null;
   selectedTemplate: {
     slug: string;
     name: string;
@@ -136,7 +136,7 @@ export interface DeploymentState {
   deploymentError: string | null;
 
   // Actions
-  setMode: (mode: "template" | "custom") => void;
+  setMode: (mode: "template" | "custom" | "custom-request") => void;
   selectTemplate: (template: Template) => void;
   updateWizardStep: (step: number) => void;
   completeStep: (step: number) => void;
@@ -145,5 +145,6 @@ export interface DeploymentState {
   removeResource: (type: string) => void;
   setSubmissionResult: (id: string, summary: string, resourceGroup: string) => void;
   setDeploymentStatus: (status: DeploymentStatus, error?: string | null) => void;
+  resetCustomRequest: () => void;
   reset: () => void;
 }

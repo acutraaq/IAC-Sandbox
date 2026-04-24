@@ -38,6 +38,9 @@ export default function Home() {
             <Button asChild variant="secondary" size="md">
               <Link href="/builder">Build Custom</Link>
             </Button>
+            <Button asChild variant="ghost" size="md">
+              <Link href="/request">Request Custom Setup</Link>
+            </Button>
           </div>
         </div>
 

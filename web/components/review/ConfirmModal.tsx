@@ -3,27 +3,31 @@
 import { useState } from "react";
 import { Modal } from "@/components/ui/Modal";
 import { Button } from "@/components/ui/Button";
-import { Check, Copy, RotateCcw } from "lucide-react";
+import { Check, Copy, RotateCcw, ExternalLink } from "lucide-react";
 import Link from "next/link";
 import type { DeploymentStatus } from "@/types";
+
+const AZURE_TENANT_ID = "3335e1a2-2058-4baf-b03b-031abf0fc821";
+const AZURE_SUBSCRIPTION_ID = "1fed33d2-00fd-40a8-a5c1-c120aec1b902";
 
 interface ConfirmModalProps {
   open: boolean;
   proofText: string;
   deploymentStatus: DeploymentStatus | null;
   deploymentError: string | null;
+  resourceGroup: string | null;
   onClose: () => void;
   onReset: () => void;
 }
 
-const TIMELINE_STEPS = ["Queued", "Provisioning", "Deploying", "Complete"];
+const TIMELINE_STEPS = ["Submitted", "Deploying", "Complete"];
 
 function activeStepIndex(status: DeploymentStatus | null): number {
   switch (status) {
     case "accepted":  return 0;
-    case "running":   return 2;
+    case "running":   return 1;
     case "succeeded":
-    case "failed":    return 3;
+    case "failed":    return 2;
     default:          return 0;
   }
 }
@@ -97,7 +101,7 @@ function StatusTimeline({
       <ol className="flex w-full items-start">
         {TIMELINE_STEPS.map((label, i) => {
           let state: StepState;
-          if (status === "failed" && i === 3) {
+          if (status === "failed" && i === TIMELINE_STEPS.length - 1) {
             state = "failed";
           } else if (i < activeIdx) {
             state = "done";
@@ -128,6 +132,7 @@ export function ConfirmModal({
   proofText,
   deploymentStatus,
   deploymentError,
+  resourceGroup,
   onClose,
   onReset,
 }: ConfirmModalProps) {
@@ -188,6 +193,18 @@ export function ConfirmModal({
               </>
             )}
           </Button>
+
+          {deploymentStatus === "succeeded" && resourceGroup && (
+            <a
+              href={`https://portal.azure.com/#@${AZURE_TENANT_ID}/resource/subscriptions/${AZURE_SUBSCRIPTION_ID}/resourceGroups/${resourceGroup}/overview`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center justify-center gap-2 rounded-lg border border-accent/40 bg-accent/5 px-4 py-2.5 text-sm font-medium text-accent transition-colors hover:bg-accent/10"
+            >
+              <ExternalLink className="h-4 w-4" />
+              View in Azure Portal
+            </a>
+          )}
 
           <Button asChild variant="ghost" className="w-full" onClick={onReset}>
             <Link href="/">

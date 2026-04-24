@@ -27,10 +27,9 @@
             "required": true,
             "helpText": "Choose a location close to your users for the best performance.",
             "options": [
-              { "label": "Southeast Asia (Singapore)", "value": "southeastasia" },
-              { "label": "East Asia (Hong Kong)", "value": "eastasia" },
-              { "label": "Australia East (Sydney)", "value": "australiaeast" },
-              { "label": "West Europe (Netherlands)", "value": "westeurope" }
+              { "label": "Asia Pacific (Malaysia West)", "value": "malaysiasouth" },
+              { "label": "Asia Pacific (Southeast Asia)", "value": "southeastasia" },
+              { "label": "Asia Pacific (East Asia)", "value": "eastasia" }
             ]
           }
         ]
@@ -123,10 +122,9 @@
             "required": true,
             "helpText": "Choose a location close to your users or your office.",
             "options": [
-              { "label": "Southeast Asia (Singapore)", "value": "southeastasia" },
-              { "label": "East Asia (Hong Kong)", "value": "eastasia" },
-              { "label": "Australia East (Sydney)", "value": "australiaeast" },
-              { "label": "West Europe (Netherlands)", "value": "westeurope" }
+              { "label": "Asia Pacific (Malaysia West)", "value": "malaysiasouth" },
+              { "label": "Asia Pacific (Southeast Asia)", "value": "southeastasia" },
+              { "label": "Asia Pacific (East Asia)", "value": "eastasia" }
             ]
           }
         ]
@@ -200,10 +198,9 @@
             "required": true,
             "helpText": "For best performance, choose the same location as your application.",
             "options": [
-              { "label": "Southeast Asia (Singapore)", "value": "southeastasia" },
-              { "label": "East Asia (Hong Kong)", "value": "eastasia" },
-              { "label": "Australia East (Sydney)", "value": "australiaeast" },
-              { "label": "West Europe (Netherlands)", "value": "westeurope" }
+              { "label": "Asia Pacific (Malaysia West)", "value": "malaysiasouth" },
+              { "label": "Asia Pacific (Southeast Asia)", "value": "southeastasia" },
+              { "label": "Asia Pacific (East Asia)", "value": "eastasia" }
             ]
           },
           {
@@ -286,10 +283,9 @@
             "required": true,
             "helpText": "Choose a location close to where you'll be uploading and downloading files.",
             "options": [
-              { "label": "Southeast Asia (Singapore)", "value": "southeastasia" },
-              { "label": "East Asia (Hong Kong)", "value": "eastasia" },
-              { "label": "Australia East (Sydney)", "value": "australiaeast" },
-              { "label": "West Europe (Netherlands)", "value": "westeurope" }
+              { "label": "Asia Pacific (Malaysia West)", "value": "malaysiasouth" },
+              { "label": "Asia Pacific (Southeast Asia)", "value": "southeastasia" },
+              { "label": "Asia Pacific (East Asia)", "value": "eastasia" }
             ]
           }
         ]
@@ -367,10 +363,9 @@
             "required": true,
             "helpText": "Must be in the same location as the resources that will use this network.",
             "options": [
-              { "label": "Southeast Asia (Singapore)", "value": "southeastasia" },
-              { "label": "East Asia (Hong Kong)", "value": "eastasia" },
-              { "label": "Australia East (Sydney)", "value": "australiaeast" },
-              { "label": "West Europe (Netherlands)", "value": "westeurope" }
+              { "label": "Asia Pacific (Malaysia West)", "value": "malaysiasouth" },
+              { "label": "Asia Pacific (Southeast Asia)", "value": "southeastasia" },
+              { "label": "Asia Pacific (East Asia)", "value": "eastasia" }
             ]
           }
         ]
@@ -441,10 +436,9 @@
             "required": true,
             "helpText": "For best performance, choose the same location as your application.",
             "options": [
-              { "label": "Southeast Asia (Singapore)", "value": "southeastasia" },
-              { "label": "East Asia (Hong Kong)", "value": "eastasia" },
-              { "label": "Australia East (Sydney)", "value": "australiaeast" },
-              { "label": "West Europe (Netherlands)", "value": "westeurope" }
+              { "label": "Asia Pacific (Malaysia West)", "value": "malaysiasouth" },
+              { "label": "Asia Pacific (Southeast Asia)", "value": "southeastasia" },
+              { "label": "Asia Pacific (East Asia)", "value": "eastasia" }
             ]
           }
         ]
@@ -524,10 +518,9 @@
             "required": true,
             "helpText": "Choose a location close to your users.",
             "options": [
-              { "label": "Southeast Asia (Singapore)", "value": "southeastasia" },
-              { "label": "East Asia (Hong Kong)", "value": "eastasia" },
-              { "label": "Australia East (Sydney)", "value": "australiaeast" },
-              { "label": "West Europe (Netherlands)", "value": "westeurope" }
+              { "label": "Asia Pacific (Malaysia West)", "value": "malaysiasouth" },
+              { "label": "Asia Pacific (Southeast Asia)", "value": "southeastasia" },
+              { "label": "Asia Pacific (East Asia)", "value": "eastasia" }
             ]
           }
         ]
@@ -601,10 +594,9 @@
             "required": true,
             "helpText": "Choose a location close to your team or users.",
             "options": [
-              { "label": "Southeast Asia (Singapore)", "value": "southeastasia" },
-              { "label": "East Asia (Hong Kong)", "value": "eastasia" },
-              { "label": "Australia East (Sydney)", "value": "australiaeast" },
-              { "label": "West Europe (Netherlands)", "value": "westeurope" }
+              { "label": "Asia Pacific (Malaysia West)", "value": "malaysiasouth" },
+              { "label": "Asia Pacific (Southeast Asia)", "value": "southeastasia" },
+              { "label": "Asia Pacific (East Asia)", "value": "eastasia" }
             ]
           }
         ]
@@ -647,6 +639,246 @@
             "required": true,
             "placeholder": "proj",
             "helpText": "A short prefix (2-5 letters) that will be added to all resource names. Helps identify resources in billing and reports."
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "slug": "approval-workflow",
+    "name": "Automated Approval Workflow",
+    "description": "Set up an automated approval chain — for leave requests, expense claims, or document sign-off — that runs when someone submits a form or calls a URL.",
+    "category": "automation",
+    "icon": "GitBranch",
+    "resourceCount": 1,
+    "estimatedTime": "~3 minutes",
+    "steps": [
+      {
+        "title": "Workflow Details",
+        "description": "Give your approval workflow a name and choose where it will run.",
+        "fields": [
+          {
+            "name": "workflowName",
+            "label": "What should we call this workflow?",
+            "type": "text",
+            "required": true,
+            "placeholder": "leave-approval-workflow",
+            "helpText": "Use a name that describes what this workflow approves, e.g. 'expense-claims' or 'document-review'."
+          },
+          {
+            "name": "region",
+            "label": "Where should it be created?",
+            "type": "select",
+            "required": true,
+            "helpText": "Choose a location close to your users for the best performance.",
+            "options": [
+              { "label": "Asia Pacific (Malaysia West)", "value": "malaysiasouth" },
+              { "label": "Asia Pacific (Southeast Asia)", "value": "southeastasia" },
+              { "label": "Asia Pacific (East Asia)", "value": "eastasia" }
+            ]
+          }
+        ]
+      },
+      {
+        "title": "Approval Settings",
+        "description": "Configure how approvals are handled and how long to wait for a response.",
+        "fields": [
+          {
+            "name": "approvalSteps",
+            "label": "How many levels of approval are needed?",
+            "type": "select",
+            "required": true,
+            "helpText": "For most use cases, 1 or 2 levels is sufficient. Add more levels for high-value or compliance-sensitive requests.",
+            "options": [
+              { "label": "1 level — single approver", "value": "1" },
+              { "label": "2 levels — two approvers in sequence", "value": "2" },
+              { "label": "3 levels — three approvers in sequence", "value": "3" }
+            ]
+          },
+          {
+            "name": "timeoutDays",
+            "label": "How many days before an unanswered request is flagged?",
+            "type": "number",
+            "required": false,
+            "min": 1,
+            "max": 30,
+            "helpText": "If an approver does not respond within this many days, the request will be marked as overdue. Recommended: 3 days."
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "slug": "scheduled-automation",
+    "name": "Scheduled Task Runner",
+    "description": "Run an automated task on a schedule — daily reports, weekly data syncs, or overnight batch jobs — without anyone needing to remember to do it.",
+    "category": "automation",
+    "icon": "Clock",
+    "resourceCount": 1,
+    "estimatedTime": "~3 minutes",
+    "steps": [
+      {
+        "title": "Task Details",
+        "description": "Give your scheduled task a name and choose where it will run.",
+        "fields": [
+          {
+            "name": "workflowName",
+            "label": "What should we call this scheduled task?",
+            "type": "text",
+            "required": true,
+            "placeholder": "weekly-report-runner",
+            "helpText": "Use a name that describes what this task does, e.g. 'monthly-member-report' or 'nightly-data-sync'."
+          },
+          {
+            "name": "region",
+            "label": "Where should it run?",
+            "type": "select",
+            "required": true,
+            "helpText": "Choose a location close to your data or systems.",
+            "options": [
+              { "label": "Asia Pacific (Malaysia West)", "value": "malaysiasouth" },
+              { "label": "Asia Pacific (Southeast Asia)", "value": "southeastasia" },
+              { "label": "Asia Pacific (East Asia)", "value": "eastasia" }
+            ]
+          }
+        ]
+      },
+      {
+        "title": "Schedule",
+        "description": "Set how often this task should run and at what time.",
+        "fields": [
+          {
+            "name": "frequency",
+            "label": "How often should this task run?",
+            "type": "select",
+            "required": true,
+            "helpText": "Choose the interval that matches your business need.",
+            "options": [
+              { "label": "Daily — every day", "value": "Day" },
+              { "label": "Weekly — once a week", "value": "Week" },
+              { "label": "Monthly — once a month", "value": "Month" }
+            ]
+          },
+          {
+            "name": "runTime",
+            "label": "What time should it run?",
+            "type": "select",
+            "required": true,
+            "helpText": "All times are Malaysia time (UTC+8).",
+            "options": [
+              { "label": "Early morning — 6:00 AM", "value": "06:00" },
+              { "label": "Morning — 9:00 AM", "value": "09:00" },
+              { "label": "Midday — 12:00 PM", "value": "12:00" },
+              { "label": "End of day — 5:00 PM", "value": "17:00" }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "slug": "message-queue",
+    "name": "Reliable Message Queue",
+    "description": "Create a reliable message channel between two systems so they do not need to talk to each other directly. Useful for connecting a legacy system to a new one, or handling bursts of requests without overloading a backend.",
+    "category": "integration",
+    "icon": "ArrowLeftRight",
+    "resourceCount": 1,
+    "estimatedTime": "~3 minutes",
+    "steps": [
+      {
+        "title": "Queue Details",
+        "description": "Give your message queue a name and choose where it will be created.",
+        "fields": [
+          {
+            "name": "namespaceName",
+            "label": "What should we call this message queue?",
+            "type": "text",
+            "required": true,
+            "placeholder": "epf-integration-queue",
+            "helpText": "Use a name that describes the systems it connects, e.g. 'hr-to-finance' or 'claims-processing'."
+          },
+          {
+            "name": "region",
+            "label": "Where should it be created?",
+            "type": "select",
+            "required": true,
+            "helpText": "Choose a location close to the systems that will use this queue.",
+            "options": [
+              { "label": "Asia Pacific (Malaysia West)", "value": "malaysiasouth" },
+              { "label": "Asia Pacific (Southeast Asia)", "value": "southeastasia" },
+              { "label": "Asia Pacific (East Asia)", "value": "eastasia" }
+            ]
+          }
+        ]
+      },
+      {
+        "title": "Capacity",
+        "description": "Choose how much load this queue needs to handle.",
+        "fields": [
+          {
+            "name": "tier",
+            "label": "How much load do you expect?",
+            "type": "select",
+            "required": true,
+            "helpText": "Basic is free and great for testing. Standard supports larger workloads and advanced features like message sessions and dead-lettering.",
+            "options": [
+              { "label": "Basic — for testing and low traffic", "value": "Basic" },
+              { "label": "Standard — for moderate production load", "value": "Standard" }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "slug": "event-broadcaster",
+    "name": "Event Notification Hub",
+    "description": "Publish events — like 'member record updated' or 'claim approved' — and let multiple systems react independently without needing to call each one individually.",
+    "category": "integration",
+    "icon": "Radio",
+    "resourceCount": 1,
+    "estimatedTime": "~3 minutes",
+    "steps": [
+      {
+        "title": "Topic Details",
+        "description": "Give your event hub a name and choose where it will be created.",
+        "fields": [
+          {
+            "name": "topicName",
+            "label": "What should we call this event hub?",
+            "type": "text",
+            "required": true,
+            "placeholder": "member-events-topic",
+            "helpText": "Use a name that describes the events it will carry, e.g. 'member-updates' or 'claims-events'."
+          },
+          {
+            "name": "region",
+            "label": "Where should it be created?",
+            "type": "select",
+            "required": true,
+            "helpText": "Choose a location close to the systems that will publish and receive events.",
+            "options": [
+              { "label": "Asia Pacific (Malaysia West)", "value": "malaysiasouth" },
+              { "label": "Asia Pacific (Southeast Asia)", "value": "southeastasia" },
+              { "label": "Asia Pacific (East Asia)", "value": "eastasia" }
+            ]
+          }
+        ]
+      },
+      {
+        "title": "Event Settings",
+        "description": "Choose the format that events will use when they are published to this hub.",
+        "fields": [
+          {
+            "name": "inputSchema",
+            "label": "What format should events use?",
+            "type": "select",
+            "required": true,
+            "helpText": "Event Grid Schema is simpler to start with. Cloud Events 1.0 is an open standard — better if you need to connect to non-Microsoft platforms.",
+            "options": [
+              { "label": "Event Grid Schema — simpler, recommended for getting started", "value": "EventGridSchema" },
+              { "label": "Cloud Events 1.0 — open standard for cross-platform use", "value": "CloudEventSchemaV1_0" }
+            ]
           }
         ]
       }

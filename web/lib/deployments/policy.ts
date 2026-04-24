@@ -44,6 +44,10 @@ const DEPLOYABLE_SLUGS = new Set([
   "key-vault",
   "container-app",
   "landing-zone",
+  "approval-workflow",
+  "scheduled-automation",
+  "message-queue",
+  "event-broadcaster",
 ]);
 
 export interface PolicyViolation {

@@ -345,4 +345,127 @@ describe("buildArmTemplate — custom mode", () => {
       buildArmTemplate(customPayload("Microsoft.Unknown/resource", "thing"), { tenantId: TENANT_ID })
     ).toThrow();
   });
+
+  it("builds Logic App from custom payload", () => {
+    const t = buildArmTemplate(customPayload("Microsoft.Logic/workflows", "my-workflow"), { tenantId: TENANT_ID });
+    expect(t.resources).toHaveLength(1);
+    expect(t.resources[0].type).toBe("Microsoft.Logic/workflows");
+  });
+
+  it("builds Service Bus namespace from custom payload", () => {
+    const t = buildArmTemplate(customPayload("Microsoft.ServiceBus/namespaces", "my-queue"), { tenantId: TENANT_ID });
+    expect(t.resources).toHaveLength(1);
+    expect(t.resources[0].type).toBe("Microsoft.ServiceBus/namespaces");
+  });
+
+  it("builds Event Grid topic from custom payload", () => {
+    const t = buildArmTemplate(customPayload("Microsoft.EventGrid/topics", "my-topic"), { tenantId: TENANT_ID });
+    expect(t.resources).toHaveLength(1);
+    expect(t.resources[0].type).toBe("Microsoft.EventGrid/topics");
+  });
+});
+
+// ---------------------------------------------------------------------------
+// New EPF business-user template builders
+// ---------------------------------------------------------------------------
+
+describe("buildApprovalWorkflow (approval-workflow template)", () => {
+  it("returns 1 Logic App resource with HTTP trigger", () => {
+    const t = buildArmTemplate(
+      templatePayload("approval-workflow", { workflowName: "leave-approval", region: "southeastasia" }),
+      { tenantId: TENANT_ID }
+    );
+    expect(t.resources).toHaveLength(1);
+    expect(t.resources[0].type).toBe("Microsoft.Logic/workflows");
+    const def = (t.resources[0] as Record<string, unknown>).properties as { definition: { triggers: Record<string, unknown> } };
+    expect(def.definition.triggers).toHaveProperty("manual");
+  });
+
+  it("sanitizes workflow name", () => {
+    const t = buildArmTemplate(
+      templatePayload("approval-workflow", { workflowName: "My Leave Approval!!" }),
+      { tenantId: TENANT_ID }
+    );
+    expect(t.resources[0].name).toMatch(/^[a-z0-9-]+$/);
+  });
+});
+
+describe("buildScheduledAutomation (scheduled-automation template)", () => {
+  it("returns 1 Logic App resource with recurrence trigger", () => {
+    const t = buildArmTemplate(
+      templatePayload("scheduled-automation", { workflowName: "weekly-report", frequency: "Week", runTime: "09:00" }),
+      { tenantId: TENANT_ID }
+    );
+    expect(t.resources).toHaveLength(1);
+    expect(t.resources[0].type).toBe("Microsoft.Logic/workflows");
+    const def = (t.resources[0] as Record<string, unknown>).properties as { definition: { triggers: { Recurrence: { recurrence: { frequency: string } } } } };
+    expect(def.definition.triggers.Recurrence.recurrence.frequency).toBe("Week");
+  });
+
+  it("uses frequency from formValues", () => {
+    const t = buildArmTemplate(
+      templatePayload("scheduled-automation", { workflowName: "daily-sync", frequency: "Day" }),
+      { tenantId: TENANT_ID }
+    );
+    const def = (t.resources[0] as Record<string, unknown>).properties as { definition: { triggers: { Recurrence: { recurrence: { frequency: string } } } } };
+    expect(def.definition.triggers.Recurrence.recurrence.frequency).toBe("Day");
+  });
+});
+
+describe("buildMessageQueue (message-queue template)", () => {
+  it("returns 1 Service Bus namespace", () => {
+    const t = buildArmTemplate(
+      templatePayload("message-queue", { namespaceName: "epf-queue", tier: "Basic" }),
+      { tenantId: TENANT_ID }
+    );
+    expect(t.resources).toHaveLength(1);
+    expect(t.resources[0].type).toBe("Microsoft.ServiceBus/namespaces");
+  });
+
+  it("uses Standard tier when specified", () => {
+    const t = buildArmTemplate(
+      templatePayload("message-queue", { namespaceName: "epf-queue", tier: "Standard" }),
+      { tenantId: TENANT_ID }
+    );
+    const sku = (t.resources[0] as Record<string, unknown>).sku as { name: string };
+    expect(sku.name).toBe("Standard");
+  });
+
+  it("falls back to Basic tier for unknown values", () => {
+    const t = buildArmTemplate(
+      templatePayload("message-queue", { namespaceName: "epf-queue", tier: "Premium" }),
+      { tenantId: TENANT_ID }
+    );
+    const sku = (t.resources[0] as Record<string, unknown>).sku as { name: string };
+    expect(sku.name).toBe("Basic");
+  });
+});
+
+describe("buildEventBroadcaster (event-broadcaster template)", () => {
+  it("returns 1 Event Grid topic", () => {
+    const t = buildArmTemplate(
+      templatePayload("event-broadcaster", { topicName: "member-events" }),
+      { tenantId: TENANT_ID }
+    );
+    expect(t.resources).toHaveLength(1);
+    expect(t.resources[0].type).toBe("Microsoft.EventGrid/topics");
+  });
+
+  it("uses CloudEventSchemaV1_0 when specified", () => {
+    const t = buildArmTemplate(
+      templatePayload("event-broadcaster", { topicName: "events", inputSchema: "CloudEventSchemaV1_0" }),
+      { tenantId: TENANT_ID }
+    );
+    const props = (t.resources[0] as Record<string, unknown>).properties as { inputSchema: string };
+    expect(props.inputSchema).toBe("CloudEventSchemaV1_0");
+  });
+
+  it("defaults to EventGridSchema", () => {
+    const t = buildArmTemplate(
+      templatePayload("event-broadcaster", { topicName: "events" }),
+      { tenantId: TENANT_ID }
+    );
+    const props = (t.resources[0] as Record<string, unknown>).properties as { inputSchema: string };
+    expect(props.inputSchema).toBe("EventGridSchema");
+  });
 });

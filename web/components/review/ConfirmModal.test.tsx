@@ -28,6 +28,7 @@ const defaultProps = {
   proofText: mockProofText,
   deploymentStatus: null as null,
   deploymentError: null,
+  resourceGroup: null,
   onClose: () => {},
   onReset: () => {},
 };
@@ -70,12 +71,12 @@ describe("ConfirmModal", () => {
     expect(onClose).toHaveBeenCalledTimes(1);
   });
 
-  it("shows Queued step active for accepted status", () => {
+  it("shows Submitted step active for accepted status", () => {
     render(
       <ConfirmModal open={true} {...defaultProps} deploymentStatus="accepted" />
     );
-    const queuedLi = screen.getByText("Queued").closest("li");
-    expect(queuedLi).toHaveAttribute("data-active");
+    const submittedLi = screen.getByText("Submitted").closest("li");
+    expect(submittedLi).toHaveAttribute("data-active");
   });
 
   it("shows Deploying step active for running status", () => {
@@ -96,6 +97,32 @@ describe("ConfirmModal", () => {
     );
     const completeLi = screen.getByText("Complete").closest("li");
     expect(completeLi).toHaveAttribute("data-active");
+  });
+
+  it("shows View in Azure Portal link when succeeded with resource group", () => {
+    render(
+      <ConfirmModal
+        open={true}
+        {...defaultProps}
+        deploymentStatus="succeeded"
+        resourceGroup="my-test-rg"
+      />
+    );
+    const link = screen.getByRole("link", { name: /View in Azure Portal/i });
+    expect(link).toHaveAttribute("href", expect.stringContaining("my-test-rg"));
+    expect(link).toHaveAttribute("target", "_blank");
+  });
+
+  it("does not show portal link without resource group", () => {
+    render(
+      <ConfirmModal
+        open={true}
+        {...defaultProps}
+        deploymentStatus="succeeded"
+        resourceGroup={null}
+      />
+    );
+    expect(screen.queryByRole("link", { name: /View in Azure Portal/i })).toBeNull();
   });
 
   it("shows Complete step in error state with error message for failed status", () => {
