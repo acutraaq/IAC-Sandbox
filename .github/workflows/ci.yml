@@ -1,25 +1,39 @@
-name: Web
+name: CI
 
 on:
   push:
     branches: [main]
-    paths:
-      - 'web/**'
-      - '.github/workflows/web.yml'
   pull_request:
     branches: [main]
-    paths:
-      - 'web/**'
-      - '.github/workflows/web.yml'
   workflow_dispatch:
 
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
-  AZURE_WEBAPP_NAME: epf-experimental-sandbox-playground
 
 jobs:
+  changes:
+    name: Detect changed paths
+    runs-on: ubuntu-latest
+    outputs:
+      web: ${{ steps.filter.outputs.web }}
+      functions: ${{ steps.filter.outputs.functions }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            web:
+              - 'web/**'
+              - '.github/workflows/ci.yml'
+            functions:
+              - 'functions/**'
+              - '.github/workflows/ci.yml'
+
   web:
-    name: Frontend
+    name: Web
+    needs: changes
+    if: needs.changes.outputs.web == 'true'
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -56,9 +70,6 @@ jobs:
       - name: Assemble and zip standalone release
         if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
         run: |
-          # Next.js workspace root detection can place standalone output at .next/standalone/
-          # or .next/standalone/web/ depending on whether it detects a monorepo root.
-          # Find the standalone dir dynamically so the workflow handles either layout.
           STANDALONE_DIR=$(dirname "$(find .next/standalone -name "server.js" -maxdepth 3 | head -1)")
           echo "Standalone root: $STANDALONE_DIR"
           cp -r public "$STANDALONE_DIR/public"
@@ -71,6 +82,52 @@ jobs:
         if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
         uses: azure/webapps-deploy@v3
         with:
-          app-name: ${{ env.AZURE_WEBAPP_NAME }}
+          app-name: epf-experimental-sandbox-playground
           publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_7331FFE3C5B34C84A639B5C17E1CA22E }}
           package: release.zip
+
+  functions:
+    name: Functions
+    needs: changes
+    if: needs.changes.outputs.functions == 'true'
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: functions
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: functions/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Type check
+        run: npx tsc --noEmit
+
+      - name: Test
+        run: npx vitest run
+
+      - name: Build
+        run: npm run build
+
+      - name: Prune dev dependencies
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        run: npm prune --omit=dev
+
+      - name: Create deployment package
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        run: zip -r ../functions-deploy.zip dist host.json package.json node_modules
+
+      - name: Deploy to Azure Functions
+        uses: azure/functions-action@v1
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        with:
+          app-name: epf-sandbox-functions
+          publish-profile: ${{ secrets.AZURE_FUNCTIONAPP_PUBLISH_PROFILE }}
+          package: functions-deploy.zip
