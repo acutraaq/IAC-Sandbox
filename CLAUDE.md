@@ -12,21 +12,23 @@ Before starting any work, read the active specs in `docs/superpowers/specs/` to 
 |------|--------|---------|
 | `docs/superpowers/specs/2026-04-23-refactor-cleanup-design.md` | **Designed — not yet implemented** | 4-phase refactor: deps, cleanup, tests, observability |
 | ~~UI redesign~~ | **Complete** | Archived to `docs/superpowers/archive/` |
+| ~~EPF templates + status + request flow~~ | **Complete** | 4 EPF templates, 3-step timeline, /request page |
 
 **What is live and working:** See Live Deployment section below.
-**What is designed but not built:** The two specs above.
+**What is designed but not built:** The refactor-cleanup spec above.
 **What is blocked:** Microsoft SSO / MSAL (pending admin App Registration credentials).
 
 ---
 
 ## Project Overview
 
-**Sandbox IAC** is an Azure Infrastructure-as-Code deployment platform for EPF (Employees Provident Fund, Malaysia). It lets non-expert users configure and submit Azure infrastructure deployments through two guided flows:
+**Sandbox IAC** is an Azure Infrastructure-as-Code deployment platform for EPF (Employees Provident Fund, Malaysia). It lets non-expert users configure and submit Azure infrastructure deployments through three flows:
 
-- **Template Flow** — Multi-step wizard using predefined templates (8 templates)
-- **Custom Builder Flow** — Resource-by-resource configuration builder
+- **Template Flow** — Multi-step wizard using predefined templates (12 templates across 4 categories)
+- **Custom Builder Flow** — Resource-by-resource configuration builder (auto-deploy)
+- **Custom Request Flow** — Resource picker at `/request` that generates a copy-paste request document to email the IAC team (no auto-deployment; manual provisioning after HOD approval)
 
-Both flows converge at a shared Review & Submit page, calling `POST /api/deployments`. After submission, a copyable plain-text proof artifact is generated for manual HOD approval. Deployment status is tracked via Azure ARM — ARM is the source of truth (no database).
+Both Template and Custom Builder flows converge at a shared Review & Submit page, calling `POST /api/deployments`. After submission, a copyable plain-text proof artifact is generated for manual HOD approval. Deployment status is tracked via Azure ARM — ARM is the source of truth (no database).
 
 **Microsoft SSO (Entra ID / MSAL.js)** is a planned requirement but is currently blocked on admin providing App Registration credentials. Until then, `deployedBy` is hardcoded to `"demo@sandbox.local"`.
 
@@ -37,39 +39,95 @@ Both flows converge at a shared Review & Submit page, calling `POST /api/deploym
 **URL:** `https://epf-experimental-sandbox-playground-cvhdbjgdcqabdjau.southeastasia-01.azurewebsites.net`
 
 **Infrastructure:**
-- Azure App Service (Linux, Node 22, B1 SKU) — runs `node server.js` (Next.js standard build output)
-- Azure Storage Queue: `deployment-jobs` in storage account `coeiacsandbox8bfc`
-- Azure Function App: `epf-sandbox-functions` (queue-triggered ARM deployments)
+
+| Resource | Name | Subscription |
+|----------|------|--------------|
+| Azure App Service (Linux, Node 22, B1 SKU) | `epf-experimental-sandbox-playground` | sub-epf-sandbox-cloud (`bcef681c-2e70-4357-8fa3-c36b558d61da`) |
+| Azure Function App (queue-triggered) | `epf-sandbox-functions` | sub-epf-sandbox-cloud (`bcef681c-2e70-4357-8fa3-c36b558d61da`) |
+| Azure Storage Account + Queue (`deployment-jobs`) | `coeiacsandbox8bfc` | sub-epf-sandbox-cloud (`bcef681c-2e70-4357-8fa3-c36b558d61da`) |
+| User-deployed resource groups (ARM target) | — | sub-epf-sandbox-internal (`1fed33d2-00fd-40a8-a5c1-c120aec1b902`) |
 
 **App Service env vars (required):**
 | Variable | Purpose |
 |----------|---------|
-| `AZURE_SUBSCRIPTION_ID` | Azure subscription (`1fed33d2-00fd-40a8-a5c1-c120aec1b902`) |
+| `AZURE_SUBSCRIPTION_ID` | Deployment target subscription (`1fed33d2-00fd-40a8-a5c1-c120aec1b902`) — sub-epf-sandbox-internal |
 | `AZURE_TENANT_ID` | Azure tenant ID (`3335e1a2-2058-4baf-b03b-031abf0fc821`) |
 | `AZURE_STORAGE_CONNECTION_STRING` | Storage account connection string for queue |
 
-**CI/CD deploy approach (`web.yml`):**
-1. `npm ci` → lint → type-check → test → `npm run build` (with dummy env vars)
-2. Assemble standalone release: copy `public/` and `.next/static/` into `.next/standalone/`, copy `server.js`, write `oryx-manifest.toml`
-3. Zip `.next/standalone/` → `release.zip` and deploy via `azure/webapps-deploy@v3`
-4. App Service runs `node server.js` (declared in `oryx-manifest.toml` as `StartupFileName`)
-5. The CI workflow patches the auto-generated `.next/standalone/server.js` with `sed` to prepend `process.env.HOSTNAME = "0.0.0.0"` — Azure sets `HOSTNAME` to the container's internal hostname, which would make Next.js bind to the wrong interface and fail the nginx health check.
+**GitHub Secrets required:**
+| Secret | Used by |
+|--------|---------|
+| `AZUREAPPSERVICE_PUBLISHPROFILE_7331FFE3C5B34C84A639B5C17E1CA22E` | Web App deployment |
+| `AZURE_FUNCTIONAPP_PUBLISH_PROFILE` | Function App deployment (download from Azure Portal → `epf-sandbox-functions` → Get publish profile) |
 
-> `next.config.js` uses `output: 'standalone'`. The CI workflow patches the auto-generated standalone `server.js` directly — it does **not** copy `web/server.js` into the standalone package. Do not add `cp server.js .next/standalone/server.js` back to the workflow; it replaced the correct standalone server with an incompatible programmatic-API server.
-> `web/server.js` is kept for local `npm start` use only (programmatic API + explicit `0.0.0.0` bind). It is not deployed to Azure.
+**CI/CD deploy approach (`ci.yml` — single workflow, two parallel jobs):**
+
+Both `web` and `functions` jobs live in `.github/workflows/ci.yml`. A `changes` job runs first using `dorny/paths-filter@v3` to detect which paths changed — each job only runs when its relevant files are modified.
+
+Web job:
+1. `npm ci` → lint → type-check → test → `npm run build` (with dummy env vars)
+2. Assemble standalone: copy `public/` and `.next/static/` into the standalone dir, write `oryx-manifest.toml` with `StartupCommand = "env -u HOSTNAME node server.js"` (strips the Azure-injected `HOSTNAME` env var so Next.js binds to `0.0.0.0`)
+3. Zip → `release.zip` → deploy via `azure/webapps-deploy@v3`
+
+Functions job:
+1. `npm ci` → type-check → test → `npm run build`
+2. `npm prune --omit=dev` → zip `dist/ host.json package.json node_modules`
+3. Deploy via `azure/functions-action@v1` using `AZURE_FUNCTIONAPP_PUBLISH_PROFILE`
+
+> `next.config.js` uses `output: 'standalone'`. Do not add `cp server.js .next/standalone/server.js` to the workflow — it would replace the correct standalone server with an incompatible one. `web/server.js` is for local `npm start` only.
 
 ---
 
 ## Architecture — How Deployments Work
 
-1. User submits → `POST /api/deployments` generates a `submissionId` (UUID), derives resource group name, enqueues a message. Returns `{ submissionId, resourceGroup }`.
-2. Azure Function App picks up the queue message, creates the resource group (tagged with `deployedBy` and `iac-submissionId`), runs the ARM deployment using `submissionId` as the ARM deployment name.
+1. User submits → `POST /api/deployments` validates policy (returns 403 if slug is blocked), generates a `submissionId` (UUID), derives resource group name, enqueues a message. Returns `{ submissionId, resourceGroup }`.
+2. Azure Function App picks up the queue message, creates the resource group with full tags (6 tags — see below), runs the ARM deployment with the same 6 tags applied to every resource.
 3. Review page polls `GET /api/deployments/:id?rg=<rgName>` every 3 s — queries ARM directly for deployment status. Returns `"accepted"` if the ARM deployment does not exist yet (still queued).
 4. "My Stuff" page calls `GET /api/my-deployments` — queries ARM for resource groups tagged `deployedBy: demo@sandbox.local`.
+5. On `succeeded`, ConfirmModal shows a "View in Azure Portal" deep-link to the resource group in `sub-epf-sandbox-internal`.
 
-**ARM tags on every resource group:**
+**ARM tags applied to both resource group AND every individual resource:**
 - Policy-required: `Cost Center`, `Project ID`, `Project Owner`, `Expiry Date`
-- App-added by Function: `deployedBy` (user identity stub), `iac-submissionId` (for status back-lookup)
+- App-added: `deployedBy` (user identity stub), `iac-submissionId` (for status back-lookup)
+
+**Status timeline (ConfirmModal — 3 steps):**
+- `accepted` → Submitted (active)
+- `running` → Deploying (active)
+- `succeeded` / `failed` → Complete (active or failed state)
+
+**Error handling in Function App:**
+- Zod validation failure → logs and returns (no retry, message is malformed)
+- ARM/executor errors → thrown (not caught) so the Functions runtime retries and eventually poison-queues
+
+---
+
+## Template Catalog
+
+12 templates across 4 categories. All region options are locked to:
+- Asia Pacific (Malaysia West)
+- Asia Pacific (Southeast Asia)
+- Asia Pacific (East Asia)
+
+| Category | Slug | Resource Type |
+|----------|------|---------------|
+| compute | `virtual-machine` | `Microsoft.Compute/virtualMachines` — policy-blocked, shows lock UI |
+| storage | `storage-account` | `Microsoft.Storage/storageAccounts` |
+| storage | `key-vault` | `Microsoft.KeyVault/vaults` |
+| networking | `virtual-network` | `Microsoft.Network/virtualNetworks` |
+| networking | `landing-zone` | VNet + subnet bundle |
+| databases | `sql-database` | `Microsoft.Sql/servers` + `databases` |
+| automation | `approval-workflow` | `Microsoft.Logic/workflows` (HTTP trigger) |
+| automation | `scheduled-automation` | `Microsoft.Logic/workflows` (recurrence trigger) |
+| integration | `message-queue` | `Microsoft.ServiceBus/namespaces` |
+| integration | `event-broadcaster` | `Microsoft.EventGrid/topics` |
+| bundles | `full-stack-web-app` | App Service + SQL + Storage |
+| bundles | `microservices-platform` | AKS + Service Bus |
+
+Policy-blocked slugs (enforced server-side at `POST /api/deployments` → 403):
+- `virtual-machine`, `microservices-platform`, `data-pipeline`, `secure-api-backend`
+
+Deployable slugs (allow-list in `web/lib/deployments/policy.ts`):
+- `storage-account`, `key-vault`, `virtual-network`, `landing-zone`, `sql-database`, `full-stack-web-app`, `approval-workflow`, `scheduled-automation`, `message-queue`, `event-broadcaster`
 
 ---
 
@@ -90,6 +148,7 @@ Both flows converge at a shared Review & Submit page, calling `POST /api/deploym
 ### Azure Functions (`functions/`)
 - Node.js 22 LTS, TypeScript, Azure Functions v4 SDK
 - Queue-triggered `processDeployment` — creates tagged resource group, deploys ARM template via managed identity
+- ARM builders: Storage, KeyVault, VNet, SQL, Logic App (HTTP + recurrence), Service Bus, Event Grid
 
 ### No database
 Prisma and PostgreSQL have been removed. ARM is the source of truth for all deployment state.
@@ -104,14 +163,14 @@ Prisma and PostgreSQL have been removed. ARM is the source of truth for all depl
 │   ├── app/
 │   │   ├── globals.css
 │   │   ├── layout.tsx
-│   │   ├── page.tsx             # Home (/)
-│   │   ├── login/               # /login — removed (MSAL blocked; page deleted in UI redesign)
+│   │   ├── page.tsx             # Home (/) — includes "Request Custom Setup" CTA
 │   │   ├── templates/           # /templates and /templates/[slug]
-│   │   ├── builder/             # /builder
+│   │   ├── builder/             # /builder (Custom Builder — auto-deploy)
+│   │   ├── request/             # /request (Custom Request — copy-paste doc, no deploy)
 │   │   ├── review/              # /review
 │   │   ├── my-stuff/            # /my-stuff — user's deployed resource groups
 │   │   └── api/
-│   │       ├── deployments/         # POST create
+│   │       ├── deployments/         # POST create (validates policy → 403 if blocked)
 │   │       │   └── [submissionId]/  # GET status (ARM, requires ?rg= param)
 │   │       ├── my-deployments/      # GET list RGs by deployedBy tag
 │   │       └── healthz/
@@ -121,41 +180,52 @@ Prisma and PostgreSQL have been removed. ARM is the source of truth for all depl
 │   │   ├── templates/
 │   │   ├── wizard/
 │   │   ├── builder/
-│   │   └── review/
+│   │   ├── request/  # RequestDocument — copy-paste request block
+│   │   └── review/   # ConfirmModal (3-step timeline + portal deep-link)
 │   ├── store/
-│   │   └── deploymentStore.ts   # includes deployedResourceGroup field
+│   │   └── deploymentStore.ts   # mode: "template"|"custom"|"custom-request"; resetCustomRequest()
 │   ├── lib/
 │   │   ├── api.ts               # Client-side fetch helpers
 │   │   ├── arm.ts               # getArmClient() factory
-│   │   ├── errors.ts
+│   │   ├── errors.ts            # AppError (incl. forbidden()), toErrorResponse()
 │   │   ├── server-env.ts        # Zod env (no DATABASE_URL)
 │   │   ├── schema.ts
 │   │   ├── icons.ts
 │   │   ├── report.ts
 │   │   └── deployments/
 │   │       ├── schema.ts        # Zod payload schemas + tagsSchema
+│   │       ├── policy.ts        # DEPLOYABLE_SLUGS allow-list + POLICY_BLOCKED_TEMPLATE_SLUGS
 │   │       ├── rg-name.ts       # deriveResourceGroupName / deriveLocation
 │   │       └── arm-status.ts    # mapArmProvisioningState → DeploymentStatus
 │   ├── types/index.ts
 │   ├── data/
-│   │   ├── templates.json
-│   │   └── resources.json
+│   │   ├── templates.json       # 12 templates; regions locked to MY/SEA/EA only
+│   │   └── resources.json       # NSG removed; used by Custom Builder + Request pages
 │   └── __tests__/
 │       ├── store/
-│       ├── lib/deployments/     # arm-status.test.ts
+│       ├── lib/deployments/
 │       └── app/
 │           ├── review/
 │           └── my-stuff/
 │
 ├── functions/
 │   └── src/
-│       ├── functions/processDeployment.ts
+│       ├── functions/processDeployment.ts   # exported handler; errors thrown for retry
 │       ├── lib/env.ts
 │       └── modules/deployments/
-│           ├── arm-template-builder.ts
-│           ├── bicep-executor.ts   # tags RG with deployedBy + iac-submissionId
+│           ├── arm-template-builder.ts      # builders + PolicyBlockedTemplateError
+│           ├── bicep-executor.ts            # applies 6 tags to RG + all ARM resources
 │           ├── deployment.schema.ts
 │           └── rg-name.ts
+│       └── __tests__/
+│           ├── functions/processDeployment.test.ts
+│           └── modules/deployments/
+│               ├── arm-template-builder.test.ts
+│               └── bicep-executor.test.ts
+│
+├── .github/
+│   └── workflows/
+│       └── ci.yml               # Single workflow; web + functions jobs run in parallel
 │
 ├── docs/
 │   ├── project/                 # Permanent project reference (READ-ONLY)
@@ -203,8 +273,9 @@ No docker-compose or local database needed.
 | ARM client | `getArmClient()` from `web/lib/arm.ts` (one per request) |
 | Server env | `serverEnv` from `web/lib/server-env.ts` (never raw `process.env`) |
 | Client API | helpers in `web/lib/api.ts` (never raw `fetch('/api/...')`) |
-| Errors | `AppError` + `toErrorResponse()` from `web/lib/errors.ts` |
+| Errors | `AppError` + `toErrorResponse()` from `web/lib/errors.ts`; use `AppError.forbidden()` for policy blocks |
 | Schema sync | `functions/src/modules/deployments/deployment.schema.ts` must match `web/lib/deployments/schema.ts` — edit both together |
+| Policy check | `DEPLOYABLE_SLUGS` in `web/lib/deployments/policy.ts` — add new slugs here when adding templates |
 
 ---
 
@@ -327,6 +398,7 @@ npm run build        # .next/ produced
 
 # functions/
 npx tsc --noEmit     # 0 errors
+npx vitest run       # all pass
 ```
 
 ---
@@ -356,3 +428,5 @@ npx tsc --noEmit     # 0 errors
 - `npm run type-check` does not exist — use `npx tsc --noEmit`
 - Do not call `setState()` directly inside `useEffect` — triggers `react-hooks/set-state-in-effect` ESLint error; use CSS animations (`animate-fade-in` utility in globals.css) instead
 - Subagent `general-purpose` (haiku) cannot execute Bash file deletions — handle `rm` commands in the controller session directly
+- Functions errors must propagate (not be swallowed) so the runtime can retry and poison-queue bad messages
+- When adding a new deployable template slug, update BOTH `web/lib/deployments/policy.ts` (DEPLOYABLE_SLUGS) AND `web/lib/deployments/rg-name.ts` (primary field map)
