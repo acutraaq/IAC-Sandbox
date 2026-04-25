@@ -48,6 +48,7 @@ const DEPLOYABLE_SLUGS = new Set([
   "scheduled-automation",
   "message-queue",
   "event-broadcaster",
+  "full-stack-web-app",
 ]);
 
 export interface PolicyViolation {

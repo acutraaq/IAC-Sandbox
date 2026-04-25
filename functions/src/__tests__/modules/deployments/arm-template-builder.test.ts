@@ -264,7 +264,6 @@ describe("policy-blocked template slugs", () => {
   });
 
   it.each([
-    "full-stack-web-app",
     "microservices-platform",
     "data-pipeline",
     "secure-api-backend",
@@ -272,6 +271,12 @@ describe("policy-blocked template slugs", () => {
     expect(() =>
       buildArmTemplate(templatePayload(slug), { tenantId: TENANT_ID })
     ).toThrow(/blocked by subscription policy/);
+  });
+
+  it("full-stack-web-app is now deployable (not blocked)", () => {
+    expect(() =>
+      buildArmTemplate(templatePayload("full-stack-web-app", { appName: "test-app" }), { tenantId: TENANT_ID })
+    ).not.toThrow();
   });
 });
 
@@ -467,5 +472,147 @@ describe("buildEventBroadcaster (event-broadcaster template)", () => {
     );
     const props = (t.resources[0] as Record<string, unknown>).properties as { inputSchema: string };
     expect(props.inputSchema).toBe("EventGridSchema");
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Key Vault SKU from config
+// ---------------------------------------------------------------------------
+
+describe("buildKeyVault — SKU selection", () => {
+  it("defaults to standard when no kvSku provided", () => {
+    const t = buildArmTemplate(templatePayload("key-vault", { vaultName: "my-kv" }), { tenantId: TENANT_ID });
+    const props = (t.resources[0] as Record<string, unknown>).properties as { sku: { name: string } };
+    expect(props.sku.name).toBe("standard");
+  });
+
+  it("uses premium when kvSku: premium", () => {
+    const t = buildArmTemplate(templatePayload("key-vault", { vaultName: "my-kv", kvSku: "premium" }), { tenantId: TENANT_ID });
+    const props = (t.resources[0] as Record<string, unknown>).properties as { sku: { name: string } };
+    expect(props.sku.name).toBe("premium");
+  });
+
+  it("falls back to standard for unrecognised kvSku values", () => {
+    const t = buildArmTemplate(templatePayload("key-vault", { vaultName: "my-kv", kvSku: "enterprise" }), { tenantId: TENANT_ID });
+    const props = (t.resources[0] as Record<string, unknown>).properties as { sku: { name: string } };
+    expect(props.sku.name).toBe("standard");
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Azure SQL Server builder (via custom mode)
+// ---------------------------------------------------------------------------
+
+describe("buildSqlServer (custom mode Microsoft.Sql/servers)", () => {
+  it("returns 2 resources: server + database", () => {
+    const t = buildArmTemplate(customPayload("Microsoft.Sql/servers", "my-sql", {
+      adminUser: "sqladmin",
+      adminPassword: "P@ssw0rd123!",
+      dbSku: "Basic",
+    }), { tenantId: TENANT_ID });
+    expect(t.resources).toHaveLength(2);
+    expect(t.resources[0].type).toBe("Microsoft.Sql/servers");
+    expect(t.resources[1].type).toBe("Microsoft.Sql/servers/databases");
+  });
+
+  it("database name is nested under server: server/db", () => {
+    const t = buildArmTemplate(customPayload("Microsoft.Sql/servers", "myapp-sql", {}), { tenantId: TENANT_ID });
+    const dbName = t.resources[1].name as string;
+    expect(dbName).toContain("/");
+    expect(dbName.split("/")[0]).toBe(t.resources[0].name);
+  });
+
+  it("database dependsOn the server resourceId", () => {
+    const t = buildArmTemplate(customPayload("Microsoft.Sql/servers", "my-sql", {}), { tenantId: TENANT_ID });
+    const dependsOn = t.resources[1].dependsOn as string[];
+    expect(dependsOn).toBeDefined();
+    expect(dependsOn[0]).toContain("Microsoft.Sql/servers");
+  });
+
+  it("falls back to sandboxadmin when no adminUser provided", () => {
+    const t = buildArmTemplate(customPayload("Microsoft.Sql/servers", "my-sql", {}), { tenantId: TENANT_ID });
+    const props = (t.resources[0] as Record<string, unknown>).properties as { administratorLogin: string };
+    expect(props.administratorLogin).toBe("sandboxadmin");
+  });
+
+  it("sanitizes server name — strips special chars, max 63", () => {
+    const t = buildArmTemplate(customPayload("Microsoft.Sql/servers", "My SQL Server!!", {}), { tenantId: TENANT_ID });
+    expect(t.resources[0].name).toMatch(/^[a-z0-9-]+$/);
+    expect(t.resources[0].name.length).toBeLessThanOrEqual(63);
+  });
+
+  it("applies tags to both server and database resources", () => {
+    const t = buildArmTemplate(customPayload("Microsoft.Sql/servers", "my-sql", {}), { tenantId: TENANT_ID, tags: TAGS });
+    expect(t.resources[0].tags).toEqual(TAGS);
+    expect(t.resources[1].tags).toEqual(TAGS);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Full-stack web app bundle (template mode)
+// ---------------------------------------------------------------------------
+
+describe("buildFullStackWebApp (full-stack-web-app template)", () => {
+  it("returns 6 resources", () => {
+    const t = buildArmTemplate(templatePayload("full-stack-web-app", {
+      appName: "my-app",
+      planSize: "B1",
+      region: "southeastasia",
+      sqlAdminUser: "sqladmin",
+      sqlAdminPassword: "P@ssw0rd!",
+      dbSku: "Basic",
+      storageTier: "Standard_LRS",
+      kvSku: "standard",
+    }), { tenantId: TENANT_ID });
+    expect(t.resources).toHaveLength(6);
+  });
+
+  it("contains one resource of each expected type", () => {
+    const t = buildArmTemplate(templatePayload("full-stack-web-app", { appName: "my-app" }), { tenantId: TENANT_ID });
+    const types = t.resources.map(r => r.type);
+    expect(types).toContain("Microsoft.Web/serverfarms");
+    expect(types).toContain("Microsoft.Web/sites");
+    expect(types).toContain("Microsoft.Sql/servers");
+    expect(types).toContain("Microsoft.Sql/servers/databases");
+    expect(types).toContain("Microsoft.Storage/storageAccounts");
+    expect(types).toContain("Microsoft.KeyVault/vaults");
+  });
+
+  it("all resources share the same location", () => {
+    const t = buildArmTemplate(templatePayload("full-stack-web-app", { appName: "my-app", region: "eastasia" }), { tenantId: TENANT_ID });
+    for (const r of t.resources) {
+      expect(r.location).toBe("eastasia");
+    }
+  });
+
+  it("uses kvSku: premium when specified", () => {
+    const t = buildArmTemplate(templatePayload("full-stack-web-app", { appName: "my-app", kvSku: "premium" }), { tenantId: TENANT_ID });
+    const kv = t.resources.find(r => r.type === "Microsoft.KeyVault/vaults")!;
+    const props = (kv as Record<string, unknown>).properties as { sku: { name: string } };
+    expect(props.sku.name).toBe("premium");
+  });
+
+  it("applies tags to all 6 resources", () => {
+    const t = buildArmTemplate(templatePayload("full-stack-web-app", { appName: "my-app" }), { tenantId: TENANT_ID, tags: TAGS });
+    expect(t.resources).toHaveLength(6);
+    for (const r of t.resources) {
+      expect(r.tags).toEqual(TAGS);
+    }
+  });
+
+  it("all resource types pass COE policy validation", () => {
+    const t = buildArmTemplate(templatePayload("full-stack-web-app", { appName: "my-app" }), { tenantId: TENANT_ID });
+    const blocked = validateTemplateAgainstPolicy(t);
+    expect(blocked).toHaveLength(0);
+  });
+
+  it("sanitizes long app names to fit within Azure name limits", () => {
+    const t = buildArmTemplate(
+      templatePayload("full-stack-web-app", { appName: "a".repeat(80) }),
+      { tenantId: TENANT_ID }
+    );
+    for (const r of t.resources) {
+      expect((r.name as string).length).toBeLessThanOrEqual(128);
+    }
   });
 });

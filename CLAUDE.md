@@ -10,13 +10,13 @@ Before starting any work, read the active specs in `docs/superpowers/specs/` to 
 
 | Spec | Status | Summary |
 |------|--------|---------|
-| `docs/superpowers/specs/2026-04-23-refactor-cleanup-design.md` | **Designed — not yet implemented** | 4-phase refactor: deps, cleanup, tests, observability |
+| ~~`docs/superpowers/specs/2026-04-23-refactor-cleanup-design.md`~~ | **Complete** | 4-phase refactor: deps, cleanup, tests, observability |
 | ~~UI redesign~~ | **Complete** | Archived to `docs/superpowers/archive/` |
 | ~~EPF templates + status + request flow~~ | **Complete** | 4 EPF templates, 3-step timeline, /request page |
 | ~~UI sizing + Functions host fix~~ | **Complete** | Builder/review/modal sizing, West Europe removed, functions main path fixed |
 
 **What is live and working:** See Live Deployment section below.
-**What is designed but not built:** The refactor-cleanup spec above.
+**What is designed but not built:** Nothing — all approved specs implemented.
 **What is blocked:** Microsoft SSO / MSAL (pending admin App Registration credentials).
 **What needs Azure config verification:** Function App RG creation — `AZURE_SUBSCRIPTION_ID` in Function App settings must be `1fed33d2-00fd-40a8-a5c1-c120aec1b902` and managed identity needs Contributor on sub-epf-sandbox-internal.
 
@@ -105,31 +105,35 @@ Functions job:
 
 ## Template Catalog
 
-12 templates across 4 categories. All region options are locked to:
-- Asia Pacific (Malaysia West)
+16 templates across 6 categories. All region options are locked to:
 - Asia Pacific (Southeast Asia)
 - Asia Pacific (East Asia)
+- Asia Pacific (Australia East)
 
 | Category | Slug | Resource Type |
 |----------|------|---------------|
+| compute | `web-application` | `Microsoft.Web/serverfarms` + `Microsoft.Web/sites` |
 | compute | `virtual-machine` | `Microsoft.Compute/virtualMachines` — policy-blocked, shows lock UI |
-| storage | `storage-account` | `Microsoft.Storage/storageAccounts` |
-| storage | `key-vault` | `Microsoft.KeyVault/vaults` |
-| networking | `virtual-network` | `Microsoft.Network/virtualNetworks` |
-| networking | `landing-zone` | VNet + subnet bundle |
-| databases | `sql-database` | `Microsoft.Sql/servers` + `databases` |
+| compute | `container-app` | `Microsoft.App/managedEnvironments` + `Microsoft.App/containerApps` |
+| compute | `full-stack-web-app` | App Service + Azure SQL + Storage + Key Vault (6 resources) |
+| compute | `microservices-platform` | Container Apps + Service Bus — policy-blocked |
+| data | `database` | `Microsoft.DBforPostgreSQL/flexibleServers` |
+| data | `storage-account` | `Microsoft.Storage/storageAccounts` |
+| data | `data-pipeline` | policy-blocked |
+| security | `key-vault` | `Microsoft.KeyVault/vaults` |
+| security | `secure-api-backend` | policy-blocked |
+| network | `virtual-network` | `Microsoft.Network/virtualNetworks` |
+| network | `landing-zone` | VNet + Key Vault + Log Analytics (conditional) |
 | automation | `approval-workflow` | `Microsoft.Logic/workflows` (HTTP trigger) |
 | automation | `scheduled-automation` | `Microsoft.Logic/workflows` (recurrence trigger) |
 | integration | `message-queue` | `Microsoft.ServiceBus/namespaces` |
 | integration | `event-broadcaster` | `Microsoft.EventGrid/topics` |
-| bundles | `full-stack-web-app` | App Service + SQL + Storage |
-| bundles | `microservices-platform` | AKS + Service Bus |
 
 Policy-blocked slugs (enforced server-side at `POST /api/deployments` → 403):
 - `virtual-machine`, `microservices-platform`, `data-pipeline`, `secure-api-backend`
 
 Deployable slugs (allow-list in `web/lib/deployments/policy.ts`):
-- `storage-account`, `key-vault`, `virtual-network`, `landing-zone`, `sql-database`, `full-stack-web-app`, `approval-workflow`, `scheduled-automation`, `message-queue`, `event-broadcaster`
+- `web-application`, `database`, `storage-account`, `key-vault`, `virtual-network`, `container-app`, `landing-zone`, `full-stack-web-app`, `approval-workflow`, `scheduled-automation`, `message-queue`, `event-broadcaster`
 
 ---
 
