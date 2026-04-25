@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { QueueServiceClient } from "@azure/storage-queue";
 import { serverEnv } from "@/lib/server-env";
-import { AppError, toErrorResponse } from "@/lib/errors";
+import { AppError, toErrorResponse, logError } from "@/lib/errors";
 import { deploymentPayloadSchema } from "@/lib/deployments/schema";
 import { deriveResourceGroupName, deriveLocation } from "@/lib/deployments/rg-name";
 import { validateDeploymentPolicy } from "@/lib/deployments/policy";
@@ -18,14 +18,10 @@ interface DeploymentJobMessage {
 
 const QUEUE_NAME = "deployment-jobs";
 
-let _queueClient: ReturnType<InstanceType<typeof QueueServiceClient>["getQueueClient"]> | null = null;
 function getQueueClient() {
-  if (!_queueClient) {
-    _queueClient = QueueServiceClient.fromConnectionString(
-      serverEnv.AZURE_STORAGE_CONNECTION_STRING
-    ).getQueueClient(QUEUE_NAME);
-  }
-  return _queueClient;
+  return QueueServiceClient.fromConnectionString(
+    serverEnv.AZURE_STORAGE_CONNECTION_STRING
+  ).getQueueClient(QUEUE_NAME);
 }
 
 export async function POST(request: Request) {
@@ -83,7 +79,7 @@ export async function POST(request: Request) {
     if (err instanceof AppError) {
       return NextResponse.json(toErrorResponse(err, requestId), { status: err.statusCode });
     }
-    console.error("POST /api/deployments error:", err instanceof Error ? err.message : String(err));
+    logError("POST /api/deployments", requestId, err);
     const internal = AppError.internal();
     return NextResponse.json(toErrorResponse(internal, requestId), { status: 500 });
   }

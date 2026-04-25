@@ -42,6 +42,19 @@ export class AppError extends Error {
   }
 }
 
+export function logError(endpoint: string, requestId: string, err: unknown): void {
+  console.error(JSON.stringify({
+    timestamp: new Date().toISOString(),
+    endpoint,
+    requestId,
+    error: err instanceof Error ? err.message : String(err),
+  }));
+}
+
+export function isArmError(v: unknown): v is { statusCode: number } {
+  return typeof v === "object" && v !== null && "statusCode" in v && typeof (v as Record<string, unknown>).statusCode === "number";
+}
+
 export function toErrorResponse(err: AppError, requestId: string) {
   const body: { error: { code: string; message: string; details?: ErrorDetail[] }; requestId: string } = {
     error: { code: err.code, message: err.message },

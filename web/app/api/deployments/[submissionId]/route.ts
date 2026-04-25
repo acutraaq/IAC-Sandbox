@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { AppError, toErrorResponse } from "@/lib/errors";
+import { AppError, toErrorResponse, logError, isArmError } from "@/lib/errors";
 import { getArmClient } from "@/lib/arm";
 import { mapArmProvisioningState } from "@/lib/deployments/arm-status";
 
@@ -34,12 +34,7 @@ export async function GET(
           : "Deployment failed";
       }
     } catch (armErr: unknown) {
-      if (
-        typeof armErr === "object" &&
-        armErr !== null &&
-        "statusCode" in armErr &&
-        (armErr as { statusCode: number }).statusCode === 404
-      ) {
+      if (isArmError(armErr) && armErr.statusCode === 404) {
         status = "accepted";
       } else {
         throw armErr;
@@ -51,7 +46,7 @@ export async function GET(
     if (err instanceof AppError) {
       return NextResponse.json(toErrorResponse(err, requestId), { status: err.statusCode });
     }
-    console.error("GET /api/deployments/[submissionId] error:", err instanceof Error ? err.message : String(err));
+    logError("GET /api/deployments/[submissionId]", requestId, err);
     const internal = AppError.internal();
     return NextResponse.json(toErrorResponse(internal, requestId), { status: 500 });
   }

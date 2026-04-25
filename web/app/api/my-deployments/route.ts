@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { AppError, toErrorResponse } from "@/lib/errors";
+import { AppError, toErrorResponse, logError } from "@/lib/errors";
 import { getArmClient } from "@/lib/arm";
 import { mapArmProvisioningState } from "@/lib/deployments/arm-status";
 import type { MyDeploymentItem, DeploymentStatus } from "@/types";
@@ -57,7 +57,7 @@ export async function GET() {
     if (err instanceof AppError) {
       return NextResponse.json(toErrorResponse(err, requestId), { status: err.statusCode });
     }
-    console.error("GET /api/my-deployments error:", err instanceof Error ? err.message : String(err));
+    logError("GET /api/my-deployments", requestId, err);
     const internal = AppError.internal();
     return NextResponse.json(toErrorResponse(internal, requestId), { status: 500 });
   }

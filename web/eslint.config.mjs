@@ -22,6 +22,7 @@ const eslintConfig = defineConfig([
     // warning. These are informational only and do not affect runtime correctness.
     rules: {
       "react-hooks/incompatible-library": "off",
+      "no-console": ["warn", { allow: ["error", "warn"] }],
     },
   },
 ]);
