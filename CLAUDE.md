@@ -13,7 +13,7 @@ Before starting any work, check `docs/superpowers/specs/` for any active (non-ar
 | Spec | Status | Summary |
 |------|--------|---------|
 | ~~`docs/superpowers/archive/specs/2026-04-23-refactor-cleanup-design.md`~~ | **Complete — Archived** | 4-phase refactor: deps, cleanup, tests, observability |
-| ~~UI redesign~~ | **Complete** | Archived to `docs/superpowers/archive/` |
+| ~~UI redesign~~ | **Complete** | Archived to `docs/superpowers/archive/specs/` |
 | ~~EPF templates + status + request flow~~ | **Complete** | 4 EPF templates, 3-step timeline, /request page |
 | ~~UI sizing + Functions host fix~~ | **Complete** | Builder/review/modal sizing, West Europe removed, functions main path fixed |
 

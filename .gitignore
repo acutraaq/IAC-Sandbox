@@ -22,6 +22,15 @@ npm-debug.log*
 .DS_Store
 Thumbs.db
 
+# Leftover build artifact directories from old architecture
+/frontend/
+/backend/
+
+# Unrelated media files
+*.mkv
+*.mp4
+*.avi
+
 # Editor
 
 .idea/
