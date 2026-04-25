@@ -27,9 +27,18 @@
             "required": true,
             "helpText": "Choose a location close to your users for the best performance.",
             "options": [
-              { "label": "Asia Pacific (Malaysia West)", "value": "malaysiasouth" },
-              { "label": "Asia Pacific (Southeast Asia)", "value": "southeastasia" },
-              { "label": "Asia Pacific (East Asia)", "value": "eastasia" }
+              {
+                "label": "Asia Pacific (Malaysia West)",
+                "value": "malaysiasouth"
+              },
+              {
+                "label": "Asia Pacific (Southeast Asia)",
+                "value": "southeastasia"
+              },
+              {
+                "label": "Asia Pacific (East Asia)",
+                "value": "eastasia"
+              }
             ]
           }
         ]
@@ -45,9 +54,18 @@
             "required": true,
             "helpText": "You can change this later if your needs grow.",
             "options": [
-              { "label": "Small — Good for testing and demos", "value": "B1" },
-              { "label": "Medium — Suitable for most teams", "value": "B2" },
-              { "label": "Large — High traffic or demanding apps", "value": "B3" }
+              {
+                "label": "Small \u2014 Good for testing and demos",
+                "value": "B1"
+              },
+              {
+                "label": "Medium \u2014 Suitable for most teams",
+                "value": "B2"
+              },
+              {
+                "label": "Large \u2014 High traffic or demanding apps",
+                "value": "B3"
+              }
             ]
           },
           {
@@ -110,9 +128,18 @@
             "required": true,
             "helpText": "Choose the operating system you're most comfortable with.",
             "options": [
-              { "label": "Windows Server 2022", "value": "WindowsServer2022" },
-              { "label": "Ubuntu 22.04 (Linux)", "value": "Ubuntu2204" },
-              { "label": "Ubuntu 20.04 (Linux)", "value": "Ubuntu2004" }
+              {
+                "label": "Windows Server 2022",
+                "value": "WindowsServer2022"
+              },
+              {
+                "label": "Ubuntu 22.04 (Linux)",
+                "value": "Ubuntu2204"
+              },
+              {
+                "label": "Ubuntu 20.04 (Linux)",
+                "value": "Ubuntu2004"
+              }
             ]
           },
           {
@@ -122,9 +149,18 @@
             "required": true,
             "helpText": "Choose a location close to your users or your office.",
             "options": [
-              { "label": "Asia Pacific (Malaysia West)", "value": "malaysiasouth" },
-              { "label": "Asia Pacific (Southeast Asia)", "value": "southeastasia" },
-              { "label": "Asia Pacific (East Asia)", "value": "eastasia" }
+              {
+                "label": "Asia Pacific (Malaysia West)",
+                "value": "malaysiasouth"
+              },
+              {
+                "label": "Asia Pacific (Southeast Asia)",
+                "value": "southeastasia"
+              },
+              {
+                "label": "Asia Pacific (East Asia)",
+                "value": "eastasia"
+              }
             ]
           }
         ]
@@ -140,9 +176,18 @@
             "required": true,
             "helpText": "Larger sizes cost more but can handle heavier workloads.",
             "options": [
-              { "label": "Small (2 CPUs, 4 GB memory) — Light tasks", "value": "Standard_B2s" },
-              { "label": "Medium (4 CPUs, 8 GB memory) — Most workloads", "value": "Standard_B4ms" },
-              { "label": "Large (8 CPUs, 16 GB memory) — Heavy workloads", "value": "Standard_B8ms" }
+              {
+                "label": "Small (2 CPUs, 4 GB memory) \u2014 Light tasks",
+                "value": "Standard_B2s"
+              },
+              {
+                "label": "Medium (4 CPUs, 8 GB memory) \u2014 Most workloads",
+                "value": "Standard_B4ms"
+              },
+              {
+                "label": "Large (8 CPUs, 16 GB memory) \u2014 Heavy workloads",
+                "value": "Standard_B8ms"
+              }
             ]
           }
         ]
@@ -173,7 +218,7 @@
   {
     "slug": "database",
     "name": "Managed Database",
-    "description": "Create a fully managed database — no server maintenance needed. Great for apps that store data.",
+    "description": "Create a fully managed database \u2014 no server maintenance needed. Great for apps that store data.",
     "category": "data",
     "icon": "Database",
     "resourceCount": 2,
@@ -198,9 +243,18 @@
             "required": true,
             "helpText": "For best performance, choose the same location as your application.",
             "options": [
-              { "label": "Asia Pacific (Malaysia West)", "value": "malaysiasouth" },
-              { "label": "Asia Pacific (Southeast Asia)", "value": "southeastasia" },
-              { "label": "Asia Pacific (East Asia)", "value": "eastasia" }
+              {
+                "label": "Asia Pacific (Malaysia West)",
+                "value": "malaysiasouth"
+              },
+              {
+                "label": "Asia Pacific (Southeast Asia)",
+                "value": "southeastasia"
+              },
+              {
+                "label": "Asia Pacific (East Asia)",
+                "value": "eastasia"
+              }
             ]
           },
           {
@@ -210,9 +264,18 @@
             "required": true,
             "helpText": "PostgreSQL is the most versatile choice for most projects.",
             "options": [
-              { "label": "PostgreSQL 16 — Recommended", "value": "16" },
-              { "label": "PostgreSQL 15", "value": "15" },
-              { "label": "PostgreSQL 14", "value": "14" }
+              {
+                "label": "PostgreSQL 16 \u2014 Recommended",
+                "value": "16"
+              },
+              {
+                "label": "PostgreSQL 15",
+                "value": "15"
+              },
+              {
+                "label": "PostgreSQL 14",
+                "value": "14"
+              }
             ]
           }
         ]
@@ -229,7 +292,7 @@
             "placeholder": "32",
             "min": 32,
             "max": 16384,
-            "helpText": "Start with 32 GB — you can increase this later as your data grows."
+            "helpText": "Start with 32 GB \u2014 you can increase this later as your data grows."
           },
           {
             "name": "enableBackup",
@@ -258,7 +321,7 @@
   {
     "slug": "storage-account",
     "name": "File Storage",
-    "description": "Store files, documents, images, and data securely in the cloud — accessible from anywhere.",
+    "description": "Store files, documents, images, and data securely in the cloud \u2014 accessible from anywhere.",
     "category": "data",
     "icon": "HardDrive",
     "resourceCount": 1,
@@ -283,9 +346,18 @@
             "required": true,
             "helpText": "Choose a location close to where you'll be uploading and downloading files.",
             "options": [
-              { "label": "Asia Pacific (Malaysia West)", "value": "malaysiasouth" },
-              { "label": "Asia Pacific (Southeast Asia)", "value": "southeastasia" },
-              { "label": "Asia Pacific (East Asia)", "value": "eastasia" }
+              {
+                "label": "Asia Pacific (Malaysia West)",
+                "value": "malaysiasouth"
+              },
+              {
+                "label": "Asia Pacific (Southeast Asia)",
+                "value": "southeastasia"
+              },
+              {
+                "label": "Asia Pacific (East Asia)",
+                "value": "eastasia"
+              }
             ]
           }
         ]
@@ -301,9 +373,18 @@
             "required": true,
             "helpText": "More copies means better protection against data loss.",
             "options": [
-              { "label": "3 copies in the same location — Basic protection", "value": "LRS" },
-              { "label": "6 copies across 2 locations — Better protection", "value": "ZRS" },
-              { "label": "6 copies across distant locations — Best protection", "value": "GRS" }
+              {
+                "label": "3 copies in the same location \u2014 Basic protection",
+                "value": "LRS"
+              },
+              {
+                "label": "6 copies across 2 locations \u2014 Better protection",
+                "value": "ZRS"
+              },
+              {
+                "label": "6 copies across distant locations \u2014 Best protection",
+                "value": "GRS"
+              }
             ]
           },
           {
@@ -313,9 +394,18 @@
             "required": true,
             "helpText": "Choose based on how often you need to access the files. Hot is faster but costs more.",
             "options": [
-              { "label": "Frequently (Hot) — Daily use", "value": "Hot" },
-              { "label": "Occasionally (Cool) — Monthly access", "value": "Cool" },
-              { "label": "Rarely (Archive) — Long-term storage", "value": "Archive" }
+              {
+                "label": "Frequently (Hot) \u2014 Daily use",
+                "value": "Hot"
+              },
+              {
+                "label": "Occasionally (Cool) \u2014 Monthly access",
+                "value": "Cool"
+              },
+              {
+                "label": "Rarely (Archive) \u2014 Long-term storage",
+                "value": "Archive"
+              }
             ]
           }
         ]
@@ -363,9 +453,18 @@
             "required": true,
             "helpText": "Must be in the same location as the resources that will use this network.",
             "options": [
-              { "label": "Asia Pacific (Malaysia West)", "value": "malaysiasouth" },
-              { "label": "Asia Pacific (Southeast Asia)", "value": "southeastasia" },
-              { "label": "Asia Pacific (East Asia)", "value": "eastasia" }
+              {
+                "label": "Asia Pacific (Malaysia West)",
+                "value": "malaysiasouth"
+              },
+              {
+                "label": "Asia Pacific (Southeast Asia)",
+                "value": "southeastasia"
+              },
+              {
+                "label": "Asia Pacific (East Asia)",
+                "value": "eastasia"
+              }
             ]
           }
         ]
@@ -411,7 +510,7 @@
   {
     "slug": "key-vault",
     "name": "Secret Manager",
-    "description": "Safely store passwords, API keys, certificates, and encryption keys — away from your code.",
+    "description": "Safely store passwords, API keys, certificates, and encryption keys \u2014 away from your code.",
     "category": "security",
     "icon": "KeyRound",
     "resourceCount": 1,
@@ -436,9 +535,18 @@
             "required": true,
             "helpText": "For best performance, choose the same location as your application.",
             "options": [
-              { "label": "Asia Pacific (Malaysia West)", "value": "malaysiasouth" },
-              { "label": "Asia Pacific (Southeast Asia)", "value": "southeastasia" },
-              { "label": "Asia Pacific (East Asia)", "value": "eastasia" }
+              {
+                "label": "Asia Pacific (Malaysia West)",
+                "value": "malaysiasouth"
+              },
+              {
+                "label": "Asia Pacific (Southeast Asia)",
+                "value": "southeastasia"
+              },
+              {
+                "label": "Asia Pacific (East Asia)",
+                "value": "eastasia"
+              }
             ]
           }
         ]
@@ -474,8 +582,14 @@
             "required": true,
             "helpText": "Role-based access is the modern and recommended approach.",
             "options": [
-              { "label": "Role-based access — Recommended", "value": "rbac" },
-              { "label": "Vault access policies — Legacy approach", "value": "vault" }
+              {
+                "label": "Role-based access \u2014 Recommended",
+                "value": "rbac"
+              },
+              {
+                "label": "Vault access policies \u2014 Legacy approach",
+                "value": "vault"
+              }
             ]
           }
         ]
@@ -485,7 +599,7 @@
   {
     "slug": "container-app",
     "name": "Container Application",
-    "description": "Run containerized applications without managing servers — just provide your container image.",
+    "description": "Run containerized applications without managing servers \u2014 just provide your container image.",
     "category": "compute",
     "icon": "Box",
     "resourceCount": 3,
@@ -518,9 +632,18 @@
             "required": true,
             "helpText": "Choose a location close to your users.",
             "options": [
-              { "label": "Asia Pacific (Malaysia West)", "value": "malaysiasouth" },
-              { "label": "Asia Pacific (Southeast Asia)", "value": "southeastasia" },
-              { "label": "Asia Pacific (East Asia)", "value": "eastasia" }
+              {
+                "label": "Asia Pacific (Malaysia West)",
+                "value": "malaysiasouth"
+              },
+              {
+                "label": "Asia Pacific (Southeast Asia)",
+                "value": "southeastasia"
+              },
+              {
+                "label": "Asia Pacific (East Asia)",
+                "value": "eastasia"
+              }
             ]
           }
         ]
@@ -569,7 +692,7 @@
   {
     "slug": "landing-zone",
     "name": "Landing Zone Starter",
-    "description": "A complete foundation setup — includes a private network, security controls, and monitoring for your project.",
+    "description": "A complete foundation setup \u2014 includes a private network, security controls, and monitoring for your project.",
     "category": "landing-zone",
     "icon": "LayoutGrid",
     "resourceCount": 8,
@@ -594,9 +717,18 @@
             "required": true,
             "helpText": "Choose a location close to your team or users.",
             "options": [
-              { "label": "Asia Pacific (Malaysia West)", "value": "malaysiasouth" },
-              { "label": "Asia Pacific (Southeast Asia)", "value": "southeastasia" },
-              { "label": "Asia Pacific (East Asia)", "value": "eastasia" }
+              {
+                "label": "Asia Pacific (Malaysia West)",
+                "value": "malaysiasouth"
+              },
+              {
+                "label": "Asia Pacific (Southeast Asia)",
+                "value": "southeastasia"
+              },
+              {
+                "label": "Asia Pacific (East Asia)",
+                "value": "eastasia"
+              }
             ]
           }
         ]
@@ -647,7 +779,7 @@
   {
     "slug": "approval-workflow",
     "name": "Automated Approval Workflow",
-    "description": "Set up an automated approval chain — for leave requests, expense claims, or document sign-off — that runs when someone submits a form or calls a URL.",
+    "description": "Set up an automated approval chain \u2014 for leave requests, expense claims, or document sign-off \u2014 that runs when someone submits a form or calls a URL.",
     "category": "automation",
     "icon": "GitBranch",
     "resourceCount": 1,
@@ -672,9 +804,18 @@
             "required": true,
             "helpText": "Choose a location close to your users for the best performance.",
             "options": [
-              { "label": "Asia Pacific (Malaysia West)", "value": "malaysiasouth" },
-              { "label": "Asia Pacific (Southeast Asia)", "value": "southeastasia" },
-              { "label": "Asia Pacific (East Asia)", "value": "eastasia" }
+              {
+                "label": "Asia Pacific (Malaysia West)",
+                "value": "malaysiasouth"
+              },
+              {
+                "label": "Asia Pacific (Southeast Asia)",
+                "value": "southeastasia"
+              },
+              {
+                "label": "Asia Pacific (East Asia)",
+                "value": "eastasia"
+              }
             ]
           }
         ]
@@ -690,9 +831,18 @@
             "required": true,
             "helpText": "For most use cases, 1 or 2 levels is sufficient. Add more levels for high-value or compliance-sensitive requests.",
             "options": [
-              { "label": "1 level — single approver", "value": "1" },
-              { "label": "2 levels — two approvers in sequence", "value": "2" },
-              { "label": "3 levels — three approvers in sequence", "value": "3" }
+              {
+                "label": "1 level \u2014 single approver",
+                "value": "1"
+              },
+              {
+                "label": "2 levels \u2014 two approvers in sequence",
+                "value": "2"
+              },
+              {
+                "label": "3 levels \u2014 three approvers in sequence",
+                "value": "3"
+              }
             ]
           },
           {
@@ -711,7 +861,7 @@
   {
     "slug": "scheduled-automation",
     "name": "Scheduled Task Runner",
-    "description": "Run an automated task on a schedule — daily reports, weekly data syncs, or overnight batch jobs — without anyone needing to remember to do it.",
+    "description": "Run an automated task on a schedule \u2014 daily reports, weekly data syncs, or overnight batch jobs \u2014 without anyone needing to remember to do it.",
     "category": "automation",
     "icon": "Clock",
     "resourceCount": 1,
@@ -736,9 +886,18 @@
             "required": true,
             "helpText": "Choose a location close to your data or systems.",
             "options": [
-              { "label": "Asia Pacific (Malaysia West)", "value": "malaysiasouth" },
-              { "label": "Asia Pacific (Southeast Asia)", "value": "southeastasia" },
-              { "label": "Asia Pacific (East Asia)", "value": "eastasia" }
+              {
+                "label": "Asia Pacific (Malaysia West)",
+                "value": "malaysiasouth"
+              },
+              {
+                "label": "Asia Pacific (Southeast Asia)",
+                "value": "southeastasia"
+              },
+              {
+                "label": "Asia Pacific (East Asia)",
+                "value": "eastasia"
+              }
             ]
           }
         ]
@@ -754,9 +913,18 @@
             "required": true,
             "helpText": "Choose the interval that matches your business need.",
             "options": [
-              { "label": "Daily — every day", "value": "Day" },
-              { "label": "Weekly — once a week", "value": "Week" },
-              { "label": "Monthly — once a month", "value": "Month" }
+              {
+                "label": "Daily \u2014 every day",
+                "value": "Day"
+              },
+              {
+                "label": "Weekly \u2014 once a week",
+                "value": "Week"
+              },
+              {
+                "label": "Monthly \u2014 once a month",
+                "value": "Month"
+              }
             ]
           },
           {
@@ -766,10 +934,22 @@
             "required": true,
             "helpText": "All times are Malaysia time (UTC+8).",
             "options": [
-              { "label": "Early morning — 6:00 AM", "value": "06:00" },
-              { "label": "Morning — 9:00 AM", "value": "09:00" },
-              { "label": "Midday — 12:00 PM", "value": "12:00" },
-              { "label": "End of day — 5:00 PM", "value": "17:00" }
+              {
+                "label": "Early morning \u2014 6:00 AM",
+                "value": "06:00"
+              },
+              {
+                "label": "Morning \u2014 9:00 AM",
+                "value": "09:00"
+              },
+              {
+                "label": "Midday \u2014 12:00 PM",
+                "value": "12:00"
+              },
+              {
+                "label": "End of day \u2014 5:00 PM",
+                "value": "17:00"
+              }
             ]
           }
         ]
@@ -804,9 +984,18 @@
             "required": true,
             "helpText": "Choose a location close to the systems that will use this queue.",
             "options": [
-              { "label": "Asia Pacific (Malaysia West)", "value": "malaysiasouth" },
-              { "label": "Asia Pacific (Southeast Asia)", "value": "southeastasia" },
-              { "label": "Asia Pacific (East Asia)", "value": "eastasia" }
+              {
+                "label": "Asia Pacific (Malaysia West)",
+                "value": "malaysiasouth"
+              },
+              {
+                "label": "Asia Pacific (Southeast Asia)",
+                "value": "southeastasia"
+              },
+              {
+                "label": "Asia Pacific (East Asia)",
+                "value": "eastasia"
+              }
             ]
           }
         ]
@@ -822,8 +1011,14 @@
             "required": true,
             "helpText": "Basic is free and great for testing. Standard supports larger workloads and advanced features like message sessions and dead-lettering.",
             "options": [
-              { "label": "Basic — for testing and low traffic", "value": "Basic" },
-              { "label": "Standard — for moderate production load", "value": "Standard" }
+              {
+                "label": "Basic \u2014 for testing and low traffic",
+                "value": "Basic"
+              },
+              {
+                "label": "Standard \u2014 for moderate production load",
+                "value": "Standard"
+              }
             ]
           }
         ]
@@ -833,7 +1028,7 @@
   {
     "slug": "event-broadcaster",
     "name": "Event Notification Hub",
-    "description": "Publish events — like 'member record updated' or 'claim approved' — and let multiple systems react independently without needing to call each one individually.",
+    "description": "Publish events \u2014 like 'member record updated' or 'claim approved' \u2014 and let multiple systems react independently without needing to call each one individually.",
     "category": "integration",
     "icon": "Radio",
     "resourceCount": 1,
@@ -858,9 +1053,18 @@
             "required": true,
             "helpText": "Choose a location close to the systems that will publish and receive events.",
             "options": [
-              { "label": "Asia Pacific (Malaysia West)", "value": "malaysiasouth" },
-              { "label": "Asia Pacific (Southeast Asia)", "value": "southeastasia" },
-              { "label": "Asia Pacific (East Asia)", "value": "eastasia" }
+              {
+                "label": "Asia Pacific (Malaysia West)",
+                "value": "malaysiasouth"
+              },
+              {
+                "label": "Asia Pacific (Southeast Asia)",
+                "value": "southeastasia"
+              },
+              {
+                "label": "Asia Pacific (East Asia)",
+                "value": "eastasia"
+              }
             ]
           }
         ]
@@ -874,372 +1078,465 @@
             "label": "What format should events use?",
             "type": "select",
             "required": true,
-            "helpText": "Event Grid Schema is simpler to start with. Cloud Events 1.0 is an open standard — better if you need to connect to non-Microsoft platforms.",
+            "helpText": "Event Grid Schema is simpler to start with. Cloud Events 1.0 is an open standard \u2014 better if you need to connect to non-Microsoft platforms.",
             "options": [
-              { "label": "Event Grid Schema — simpler, recommended for getting started", "value": "EventGridSchema" },
-              { "label": "Cloud Events 1.0 — open standard for cross-platform use", "value": "CloudEventSchemaV1_0" }
+              {
+                "label": "Event Grid Schema \u2014 simpler, recommended for getting started",
+                "value": "EventGridSchema"
+              },
+              {
+                "label": "Cloud Events 1.0 \u2014 open standard for cross-platform use",
+                "value": "CloudEventSchemaV1_0"
+              }
             ]
           }
         ]
       }
     ]
   },
-{
-  "slug": "full-stack-web-app",
-  "name": "Full-Stack Web App",
-  "description": "App Service + Azure SQL + Storage + Key Vault — a complete production-ready web stack.",
-  "category": "compute",
-  "icon": "Layers",
-  "resourceCount": 6,
-  "estimatedTime": "~8 minutes",
-  "policyBlocked": true,
-  "steps": [
-    {
-      "title": "App Details",
-      "description": "Name your application and choose its compute tier.",
-      "fields": [
-        {
-          "name": "appName",
-          "label": "Application name",
-          "type": "text",
-          "required": true,
-          "placeholder": "my-fullstack-app",
-          "helpText": "Used as the base name for all resources in this stack."
-        },
-        {
-          "name": "planSize",
-          "label": "App Service tier",
-          "type": "select",
-          "required": true,
-          "helpText": "Choose the compute size for your web application.",
-          "options": [
-            { "label": "Small (B1) — Testing and demos", "value": "B1" },
-            { "label": "Medium (B2) — Most teams", "value": "B2" },
-            { "label": "Standard (S1) — Production workloads", "value": "S1" }
-          ]
-        },
-        {
-          "name": "region",
-          "label": "Region",
-          "type": "select",
-          "required": true,
-          "options": [
-            { "label": "Southeast Asia (Singapore)", "value": "southeastasia" },
-            { "label": "East Asia (Hong Kong)", "value": "eastasia" },
-            { "label": "Australia East (Sydney)", "value": "australiaeast" }
-          ]
-        }
-      ]
-    },
-    {
-      "title": "Database Settings",
-      "description": "Configure your Azure SQL database.",
-      "fields": [
-        {
-          "name": "sqlAdminUser",
-          "label": "SQL admin username",
-          "type": "text",
-          "required": true,
-          "placeholder": "sqladmin"
-        },
-        {
-          "name": "sqlAdminPassword",
-          "label": "SQL admin password",
-          "type": "text",
-          "required": true,
-          "placeholder": "Enter a strong password"
-        },
-        {
-          "name": "dbSku",
-          "label": "Database tier",
-          "type": "select",
-          "required": true,
-          "options": [
-            { "label": "Basic (2 GB) — Development", "value": "Basic" },
-            { "label": "Standard S2 — Most workloads", "value": "S2" }
-          ]
-        }
-      ]
-    },
-    {
-      "title": "Storage",
-      "description": "Configure blob storage for files and assets.",
-      "fields": [
-        {
-          "name": "storageTier",
-          "label": "Storage redundancy",
-          "type": "select",
-          "required": true,
-          "options": [
-            { "label": "Locally Redundant (LRS) — Cheapest", "value": "Standard_LRS" },
-            { "label": "Zone Redundant (ZRS) — Recommended", "value": "Standard_ZRS" }
-          ]
-        }
-      ]
-    },
-    {
-      "title": "Security",
-      "description": "Configure Key Vault for secrets management.",
-      "fields": [
-        {
-          "name": "kvSku",
-          "label": "Key Vault tier",
-          "type": "select",
-          "required": true,
-          "options": [
-            { "label": "Standard", "value": "standard" },
-            { "label": "Premium (HSM-backed)", "value": "premium" }
-          ]
-        }
-      ]
-    },
-    {
-      "title": "Review",
-      "description": "Review your full-stack web app configuration before deploying.",
-      "fields": []
-    }
-  ]
-},
-{
-  "slug": "microservices-platform",
-  "name": "Microservices Platform",
-  "description": "Container Apps + Service Bus + Managed Identity — event-driven microservices infrastructure.",
-  "category": "compute",
-  "icon": "Network",
-  "resourceCount": 4,
-  "estimatedTime": "~6 minutes",
-  "policyBlocked": true,
-  "steps": [
-    {
-      "title": "App Details",
-      "description": "Name your platform and configure the container.",
-      "fields": [
-        {
-          "name": "appName",
-          "label": "Platform name",
-          "type": "text",
-          "required": true,
-          "placeholder": "my-microservices",
-          "helpText": "Used as the base name for all resources."
-        },
-        {
-          "name": "containerImage",
-          "label": "Container image",
-          "type": "text",
-          "required": true,
-          "placeholder": "mcr.microsoft.com/azuredocs/containerapps-helloworld:latest",
-          "helpText": "Docker image to deploy into the Container App."
-        },
-        {
-          "name": "region",
-          "label": "Region",
-          "type": "select",
-          "required": true,
-          "options": [
-            { "label": "Southeast Asia (Singapore)", "value": "southeastasia" },
-            { "label": "East Asia (Hong Kong)", "value": "eastasia" },
-            { "label": "Australia East (Sydney)", "value": "australiaeast" }
-          ]
-        }
-      ]
-    },
-    {
-      "title": "Messaging",
-      "description": "Configure the Service Bus namespace for event-driven messaging.",
-      "fields": [
-        {
-          "name": "sbSku",
-          "label": "Service Bus tier",
-          "type": "select",
-          "required": true,
-          "options": [
-            { "label": "Basic — Simple queues", "value": "Basic" },
-            { "label": "Standard — Topics and subscriptions", "value": "Standard" }
-          ]
-        }
-      ]
-    },
-    {
-      "title": "Identity",
-      "description": "Configure a Managed Identity for secure service-to-service communication.",
-      "fields": [
-        {
-          "name": "enableManagedIdentity",
-          "label": "Enable user-assigned managed identity?",
-          "type": "toggle",
-          "required": false,
-          "helpText": "Recommended. Allows your Container App to access Azure services securely."
-        }
-      ]
-    },
-    {
-      "title": "Review",
-      "description": "Review your microservices platform configuration before deploying.",
-      "fields": []
-    }
-  ]
-},
-{
-  "slug": "data-pipeline",
-  "name": "Data Pipeline",
-  "description": "Storage Account + Azure Functions + Azure SQL — serverless data ingestion and processing.",
-  "category": "data",
-  "icon": "GitMerge",
-  "resourceCount": 4,
-  "estimatedTime": "~6 minutes",
-  "policyBlocked": true,
-  "steps": [
-    {
-      "title": "Pipeline Name",
-      "description": "Name your data pipeline.",
-      "fields": [
-        {
-          "name": "pipelineName",
-          "label": "Pipeline name",
-          "type": "text",
-          "required": true,
-          "placeholder": "my-data-pipeline",
-          "helpText": "Used as the base name for all resources."
-        },
-        {
-          "name": "region",
-          "label": "Region",
-          "type": "select",
-          "required": true,
-          "options": [
-            { "label": "Southeast Asia (Singapore)", "value": "southeastasia" },
-            { "label": "East Asia (Hong Kong)", "value": "eastasia" },
-            { "label": "Australia East (Sydney)", "value": "australiaeast" }
-          ]
-        }
-      ]
-    },
-    {
-      "title": "Storage",
-      "description": "Configure blob storage for raw pipeline data.",
-      "fields": [
-        {
-          "name": "storageTier",
-          "label": "Storage redundancy",
-          "type": "select",
-          "required": true,
-          "options": [
-            { "label": "Locally Redundant (LRS)", "value": "Standard_LRS" },
-            { "label": "Zone Redundant (ZRS)", "value": "Standard_ZRS" }
-          ]
-        }
-      ]
-    },
-    {
-      "title": "Database",
-      "description": "Configure the Azure SQL destination database.",
-      "fields": [
-        {
-          "name": "sqlAdminUser",
-          "label": "SQL admin username",
-          "type": "text",
-          "required": true,
-          "placeholder": "sqladmin"
-        },
-        {
-          "name": "sqlAdminPassword",
-          "label": "SQL admin password",
-          "type": "text",
-          "required": true,
-          "placeholder": "Enter a strong password"
-        }
-      ]
-    },
-    {
-      "title": "Review",
-      "description": "Review your data pipeline configuration before deploying.",
-      "fields": []
-    }
-  ]
-},
-{
-  "slug": "secure-api-backend",
-  "name": "Secure API Backend",
-  "description": "App Service + Key Vault + API Management + Log Analytics — a secure, observable API platform.",
-  "category": "compute",
-  "icon": "ShieldCheck",
-  "resourceCount": 5,
-  "estimatedTime": "~10 minutes",
-  "policyBlocked": true,
-  "steps": [
-    {
-      "title": "API Details",
-      "description": "Name your API and choose the management tier.",
-      "fields": [
-        {
-          "name": "apiName",
-          "label": "API name",
-          "type": "text",
-          "required": true,
-          "placeholder": "my-secure-api",
-          "helpText": "Used as the base name for all resources."
-        },
-        {
-          "name": "apimSku",
-          "label": "API Management tier",
-          "type": "select",
-          "required": true,
-          "helpText": "Developer tier is suitable for non-production workloads.",
-          "options": [
-            { "label": "Developer (no SLA) — Testing", "value": "Developer" },
-            { "label": "Standard (SLA) — Production", "value": "Standard" }
-          ]
-        },
-        {
-          "name": "region",
-          "label": "Region",
-          "type": "select",
-          "required": true,
-          "options": [
-            { "label": "Southeast Asia (Singapore)", "value": "southeastasia" },
-            { "label": "East Asia (Hong Kong)", "value": "eastasia" },
-            { "label": "Australia East (Sydney)", "value": "australiaeast" }
-          ]
-        }
-      ]
-    },
-    {
-      "title": "Security",
-      "description": "Configure Key Vault for secrets and certificate management.",
-      "fields": [
-        {
-          "name": "kvSku",
-          "label": "Key Vault tier",
-          "type": "select",
-          "required": true,
-          "options": [
-            { "label": "Standard", "value": "standard" },
-            { "label": "Premium (HSM-backed)", "value": "premium" }
-          ]
-        }
-      ]
-    },
-    {
-      "title": "Observability",
-      "description": "Configure Log Analytics for monitoring and diagnostics.",
-      "fields": [
-        {
-          "name": "logRetentionDays",
-          "label": "Log retention (days)",
-          "type": "number",
-          "required": true,
-          "placeholder": "30",
-          "min": 7,
-          "max": 90,
-          "helpText": "How long to retain logs in the workspace."
-        }
-      ]
-    },
-    {
-      "title": "Review",
-      "description": "Review your secure API backend configuration before deploying.",
-      "fields": []
-    }
-  ]
-}
+  {
+    "slug": "full-stack-web-app",
+    "name": "Full-Stack Web App",
+    "description": "App Service + Azure SQL + Storage + Key Vault \u2014 a complete production-ready web stack.",
+    "category": "compute",
+    "icon": "Layers",
+    "resourceCount": 6,
+    "estimatedTime": "~8 minutes",
+    "policyBlocked": false,
+    "steps": [
+      {
+        "title": "App Details",
+        "description": "Name your application and choose its compute tier.",
+        "fields": [
+          {
+            "name": "appName",
+            "label": "Application name",
+            "type": "text",
+            "required": true,
+            "placeholder": "my-fullstack-app",
+            "helpText": "Used as the base name for all resources in this stack."
+          },
+          {
+            "name": "planSize",
+            "label": "App Service tier",
+            "type": "select",
+            "required": true,
+            "helpText": "Choose the compute size for your web application.",
+            "options": [
+              {
+                "label": "Small (B1) \u2014 Testing and demos",
+                "value": "B1"
+              },
+              {
+                "label": "Medium (B2) \u2014 Most teams",
+                "value": "B2"
+              },
+              {
+                "label": "Standard (B3) \u2014 Production workloads",
+                "value": "B3"
+              }
+            ]
+          },
+          {
+            "name": "region",
+            "label": "Region",
+            "type": "select",
+            "required": true,
+            "options": [
+              {
+                "label": "Southeast Asia (Singapore)",
+                "value": "southeastasia"
+              },
+              {
+                "label": "East Asia (Hong Kong)",
+                "value": "eastasia"
+              },
+              {
+                "label": "Australia East (Sydney)",
+                "value": "australiaeast"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "title": "Database Settings",
+        "description": "Configure your Azure SQL database.",
+        "fields": [
+          {
+            "name": "sqlAdminUser",
+            "label": "SQL admin username",
+            "type": "text",
+            "required": true,
+            "placeholder": "sqladmin"
+          },
+          {
+            "name": "sqlAdminPassword",
+            "label": "SQL admin password",
+            "type": "text",
+            "required": true,
+            "placeholder": "Enter a strong password"
+          },
+          {
+            "name": "dbSku",
+            "label": "Database tier",
+            "type": "select",
+            "required": true,
+            "options": [
+              {
+                "label": "Basic (2 GB) \u2014 Development",
+                "value": "Basic"
+              },
+              {
+                "label": "Standard S2 \u2014 Most workloads",
+                "value": "S2"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "title": "Storage",
+        "description": "Configure blob storage for files and assets.",
+        "fields": [
+          {
+            "name": "storageTier",
+            "label": "Storage redundancy",
+            "type": "select",
+            "required": true,
+            "options": [
+              {
+                "label": "Locally Redundant (LRS) \u2014 Cheapest",
+                "value": "Standard_LRS"
+              },
+              {
+                "label": "Zone Redundant (ZRS) \u2014 Recommended",
+                "value": "Standard_ZRS"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "title": "Security",
+        "description": "Configure Key Vault for secrets management.",
+        "fields": [
+          {
+            "name": "kvSku",
+            "label": "Key Vault tier",
+            "type": "select",
+            "required": true,
+            "options": [
+              {
+                "label": "Standard",
+                "value": "standard"
+              },
+              {
+                "label": "Premium (HSM-backed)",
+                "value": "premium"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "title": "Review",
+        "description": "Review your full-stack web app configuration before deploying.",
+        "fields": []
+      }
+    ]
+  },
+  {
+    "slug": "microservices-platform",
+    "name": "Microservices Platform",
+    "description": "Container Apps + Service Bus + Managed Identity \u2014 event-driven microservices infrastructure.",
+    "category": "compute",
+    "icon": "Network",
+    "resourceCount": 4,
+    "estimatedTime": "~6 minutes",
+    "policyBlocked": true,
+    "steps": [
+      {
+        "title": "App Details",
+        "description": "Name your platform and configure the container.",
+        "fields": [
+          {
+            "name": "appName",
+            "label": "Platform name",
+            "type": "text",
+            "required": true,
+            "placeholder": "my-microservices",
+            "helpText": "Used as the base name for all resources."
+          },
+          {
+            "name": "containerImage",
+            "label": "Container image",
+            "type": "text",
+            "required": true,
+            "placeholder": "mcr.microsoft.com/azuredocs/containerapps-helloworld:latest",
+            "helpText": "Docker image to deploy into the Container App."
+          },
+          {
+            "name": "region",
+            "label": "Region",
+            "type": "select",
+            "required": true,
+            "options": [
+              {
+                "label": "Southeast Asia (Singapore)",
+                "value": "southeastasia"
+              },
+              {
+                "label": "East Asia (Hong Kong)",
+                "value": "eastasia"
+              },
+              {
+                "label": "Australia East (Sydney)",
+                "value": "australiaeast"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "title": "Messaging",
+        "description": "Configure the Service Bus namespace for event-driven messaging.",
+        "fields": [
+          {
+            "name": "sbSku",
+            "label": "Service Bus tier",
+            "type": "select",
+            "required": true,
+            "options": [
+              {
+                "label": "Basic \u2014 Simple queues",
+                "value": "Basic"
+              },
+              {
+                "label": "Standard \u2014 Topics and subscriptions",
+                "value": "Standard"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "title": "Identity",
+        "description": "Configure a Managed Identity for secure service-to-service communication.",
+        "fields": [
+          {
+            "name": "enableManagedIdentity",
+            "label": "Enable user-assigned managed identity?",
+            "type": "toggle",
+            "required": false,
+            "helpText": "Recommended. Allows your Container App to access Azure services securely."
+          }
+        ]
+      },
+      {
+        "title": "Review",
+        "description": "Review your microservices platform configuration before deploying.",
+        "fields": []
+      }
+    ]
+  },
+  {
+    "slug": "data-pipeline",
+    "name": "Data Pipeline",
+    "description": "Storage Account + Azure Functions + Azure SQL \u2014 serverless data ingestion and processing.",
+    "category": "data",
+    "icon": "GitMerge",
+    "resourceCount": 4,
+    "estimatedTime": "~6 minutes",
+    "policyBlocked": true,
+    "steps": [
+      {
+        "title": "Pipeline Name",
+        "description": "Name your data pipeline.",
+        "fields": [
+          {
+            "name": "pipelineName",
+            "label": "Pipeline name",
+            "type": "text",
+            "required": true,
+            "placeholder": "my-data-pipeline",
+            "helpText": "Used as the base name for all resources."
+          },
+          {
+            "name": "region",
+            "label": "Region",
+            "type": "select",
+            "required": true,
+            "options": [
+              {
+                "label": "Southeast Asia (Singapore)",
+                "value": "southeastasia"
+              },
+              {
+                "label": "East Asia (Hong Kong)",
+                "value": "eastasia"
+              },
+              {
+                "label": "Australia East (Sydney)",
+                "value": "australiaeast"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "title": "Storage",
+        "description": "Configure blob storage for raw pipeline data.",
+        "fields": [
+          {
+            "name": "storageTier",
+            "label": "Storage redundancy",
+            "type": "select",
+            "required": true,
+            "options": [
+              {
+                "label": "Locally Redundant (LRS)",
+                "value": "Standard_LRS"
+              },
+              {
+                "label": "Zone Redundant (ZRS)",
+                "value": "Standard_ZRS"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "title": "Database",
+        "description": "Configure the Azure SQL destination database.",
+        "fields": [
+          {
+            "name": "sqlAdminUser",
+            "label": "SQL admin username",
+            "type": "text",
+            "required": true,
+            "placeholder": "sqladmin"
+          },
+          {
+            "name": "sqlAdminPassword",
+            "label": "SQL admin password",
+            "type": "text",
+            "required": true,
+            "placeholder": "Enter a strong password"
+          }
+        ]
+      },
+      {
+        "title": "Review",
+        "description": "Review your data pipeline configuration before deploying.",
+        "fields": []
+      }
+    ]
+  },
+  {
+    "slug": "secure-api-backend",
+    "name": "Secure API Backend",
+    "description": "App Service + Key Vault + API Management + Log Analytics \u2014 a secure, observable API platform.",
+    "category": "compute",
+    "icon": "ShieldCheck",
+    "resourceCount": 5,
+    "estimatedTime": "~10 minutes",
+    "policyBlocked": true,
+    "steps": [
+      {
+        "title": "API Details",
+        "description": "Name your API and choose the management tier.",
+        "fields": [
+          {
+            "name": "apiName",
+            "label": "API name",
+            "type": "text",
+            "required": true,
+            "placeholder": "my-secure-api",
+            "helpText": "Used as the base name for all resources."
+          },
+          {
+            "name": "apimSku",
+            "label": "API Management tier",
+            "type": "select",
+            "required": true,
+            "helpText": "Developer tier is suitable for non-production workloads.",
+            "options": [
+              {
+                "label": "Developer (no SLA) \u2014 Testing",
+                "value": "Developer"
+              },
+              {
+                "label": "Standard (SLA) \u2014 Production",
+                "value": "Standard"
+              }
+            ]
+          },
+          {
+            "name": "region",
+            "label": "Region",
+            "type": "select",
+            "required": true,
+            "options": [
+              {
+                "label": "Southeast Asia (Singapore)",
+                "value": "southeastasia"
+              },
+              {
+                "label": "East Asia (Hong Kong)",
+                "value": "eastasia"
+              },
+              {
+                "label": "Australia East (Sydney)",
+                "value": "australiaeast"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "title": "Security",
+        "description": "Configure Key Vault for secrets and certificate management.",
+        "fields": [
+          {
+            "name": "kvSku",
+            "label": "Key Vault tier",
+            "type": "select",
+            "required": true,
+            "options": [
+              {
+                "label": "Standard",
+                "value": "standard"
+              },
+              {
+                "label": "Premium (HSM-backed)",
+                "value": "premium"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "title": "Observability",
+        "description": "Configure Log Analytics for monitoring and diagnostics.",
+        "fields": [
+          {
+            "name": "logRetentionDays",
+            "label": "Log retention (days)",
+            "type": "number",
+            "required": true,
+            "placeholder": "30",
+            "min": 7,
+            "max": 90,
+            "helpText": "How long to retain logs in the workspace."
+          }
+        ]
+      },
+      {
+        "title": "Review",
+        "description": "Review your secure API backend configuration before deploying.",
+        "fields": []
+      }
+    ]
+  }
 ]

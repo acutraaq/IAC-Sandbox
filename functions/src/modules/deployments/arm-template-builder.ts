@@ -85,7 +85,6 @@ const ALLOWED_APP_SERVICE_SKUS = new Set(["F1", "B1", "B2", "B3"]);
 
 export const POLICY_BLOCKED_TEMPLATE_SLUGS = new Set([
   "virtual-machine",
-  "full-stack-web-app",
   "microservices-platform",
   "data-pipeline",
   "secure-api-backend",
@@ -176,6 +175,10 @@ function buildKeyVault(
   tenantId: string
 ): ArmResource {
   const safeName = sanitizeKeyVaultName(name) || "sandbox-kv";
+  const rawSku = typeof config.kvSku === "string" ? config.kvSku
+    : typeof config.sku === "string" ? config.sku
+    : "standard";
+  const kvSkuName = rawSku === "premium" ? "premium" : "standard";
 
   return {
     type: "Microsoft.KeyVault/vaults",
@@ -183,7 +186,7 @@ function buildKeyVault(
     name: safeName,
     location,
     properties: {
-      sku: { family: "A", name: "standard" },
+      sku: { family: "A", name: kvSkuName },
       tenantId,
       enableSoftDelete: config.softDelete !== false,
       enablePurgeProtection: config.purgeProtection === true,
@@ -221,6 +224,52 @@ function buildPostgresServer(
       highAvailability: { mode: "Disabled" },
     },
   };
+}
+
+// ---------------------------------------------------------------------------
+// Azure SQL Server + database builder
+// ---------------------------------------------------------------------------
+
+function buildSqlServer(
+  serverName: string,
+  dbName: string,
+  location: string,
+  config: Record<string, unknown>
+): ArmResource[] {
+  const safeServer = sanitizeGenericName(serverName, 63) || "sandbox-sql";
+  const safeDb = sanitizeGenericName(dbName, 128) || "appdb";
+  const adminUser = typeof config.adminUser === "string" && config.adminUser.length > 0
+    ? config.adminUser
+    : "sandboxadmin";
+  const adminPassword = typeof config.adminPassword === "string" && config.adminPassword.length > 0
+    ? config.adminPassword
+    : generatePassword();
+  const dbSku = typeof config.dbSku === "string" ? config.dbSku : "Basic";
+
+  return [
+    {
+      type: "Microsoft.Sql/servers",
+      apiVersion: "2022-05-01-preview",
+      name: safeServer,
+      location,
+      properties: {
+        administratorLogin: adminUser,
+        administratorLoginPassword: adminPassword,
+        version: "12.0",
+      },
+    },
+    {
+      type: "Microsoft.Sql/servers/databases",
+      apiVersion: "2022-05-01-preview",
+      name: `${safeServer}/${safeDb}`,
+      location,
+      dependsOn: [`[resourceId('Microsoft.Sql/servers', '${safeServer}')]`],
+      sku: { name: dbSku },
+      properties: {
+        collation: "SQL_Latin1_General_CP1_CI_AS",
+      },
+    },
+  ];
 }
 
 // ---------------------------------------------------------------------------
@@ -575,6 +624,43 @@ function buildEventGridTopic(
 }
 
 // ---------------------------------------------------------------------------
+// Full-stack web app bundle: App Service + Azure SQL + Storage + Key Vault
+// ---------------------------------------------------------------------------
+
+function buildFullStackWebApp(
+  name: string,
+  location: string,
+  config: Record<string, unknown>,
+  tenantId: string
+): ArmResource[] {
+  // Keep the base short (≤35 chars) so derived names fit within Azure limits.
+  const baseName = sanitizeGenericName(name, 35) || "sandbox-app";
+
+  const appResources = buildWebApplication(baseName, location, config);
+
+  const sqlResources = buildSqlServer(
+    `${baseName}-sql`,
+    "appdb",
+    location,
+    {
+      adminUser: config.sqlAdminUser,
+      adminPassword: config.sqlAdminPassword,
+      dbSku: config.dbSku,
+    }
+  );
+
+  const storageResource = buildStorageAccount(baseName, location, {
+    redundancy: config.storageTier,
+  });
+
+  const kvResource = buildKeyVault(`${baseName}-kv`, location, {
+    kvSku: config.kvSku,
+  }, tenantId);
+
+  return [...appResources, ...sqlResources, storageResource, kvResource];
+}
+
+// ---------------------------------------------------------------------------
 // Template-mode dispatcher
 // ---------------------------------------------------------------------------
 
@@ -679,6 +765,13 @@ function buildTemplateResources(
           formValues
         ),
       ];
+    case "full-stack-web-app":
+      return buildFullStackWebApp(
+        typeof formValues.appName === "string" ? formValues.appName : "sandbox-app",
+        location,
+        formValues,
+        tenantId
+      );
     default:
       throw new Error(
         `Template slug "${slug}" has no ARM builder. ` +
@@ -738,6 +831,9 @@ function buildCustomResources(
         break;
       case "Microsoft.EventGrid/topics":
         armResources.push(buildEventGridTopic(resource.name, location, resource.config));
+        break;
+      case "Microsoft.Sql/servers":
+        armResources.push(...buildSqlServer(resource.name, "appdb", location, resource.config));
         break;
       default:
         throw new Error(
