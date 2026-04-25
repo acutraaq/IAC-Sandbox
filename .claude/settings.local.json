@@ -11,7 +11,20 @@
       "Bash(git config:*)",
       "Bash(git merge *)",
       "Bash(GIT_SSL_NO_VERIFY=true git push origin main)",
-      "Skill(commit-commands:commit)"
+      "Skill(commit-commands:commit)",
+      "Bash(git rm *)",
+      "Bash(git rebase *)",
+      "Bash(GIT_EDITOR=true git rebase --continue)",
+      "Bash(cat .git/rebase-merge/msgnum .git/rebase-merge/end)",
+      "Bash(cat .git/rebase-merge/git-rebase-todo)",
+      "Bash(grep -E \"^\\(\\\\+\\){1,3}[<>|=]{7}\")",
+      "Bash(python3 -c *)",
+      "Bash(echo \"exit: $?\")",
+      "Bash(GIT_SEQUENCE_EDITOR=true git rebase --continue)",
+      "Bash(git update-ref *)",
+      "Bash(rm -rf .git/rebase-merge)",
+      "Bash(git checkout *)",
+      "Bash(npm install *)"
     ]
   }
 }
