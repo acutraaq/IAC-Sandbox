@@ -20,6 +20,7 @@ function initials(name: string) {
 export function UserMenu({ user }: UserMenuProps) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement | null>(null);
+  const triggerRef = useRef<HTMLButtonElement | null>(null);
   const router = useRouter();
 
   useEffect(() => {
@@ -27,9 +28,19 @@ export function UserMenu({ user }: UserMenuProps) {
       if (!ref.current) return;
       if (!ref.current.contains(e.target as Node)) setOpen(false);
     }
+    function onKey(e: KeyboardEvent) {
+      if (e.key === "Escape" && open) {
+        setOpen(false);
+        triggerRef.current?.focus();
+      }
+    }
     document.addEventListener("mousedown", onDocClick);
-    return () => document.removeEventListener("mousedown", onDocClick);
-  }, []);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("mousedown", onDocClick);
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [open]);
 
   async function signOut() {
     await fetch("/api/auth/logout", { method: "POST" });
@@ -39,18 +50,17 @@ export function UserMenu({ user }: UserMenuProps) {
   return (
     <div ref={ref} className="relative">
       <button
+        ref={triggerRef}
         onClick={() => setOpen((o) => !o)}
         aria-label="Account menu"
         aria-expanded={open}
+        aria-haspopup="true"
         className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-white text-xs font-semibold select-none"
       >
         {initials(user.displayName)}
       </button>
       {open && (
-        <div
-          role="menu"
-          className="absolute right-0 mt-2 w-56 rounded-md border border-border bg-surface-elevated p-2 shadow-md"
-        >
+        <div className="absolute right-0 mt-2 w-56 rounded-md border border-border bg-surface-elevated p-2 shadow-md">
           <div className="px-2 py-2">
             <p className="text-sm font-medium text-text">{user.displayName}</p>
             <p className="text-xs text-text-muted">{user.upn}</p>

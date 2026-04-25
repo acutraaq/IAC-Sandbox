@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { IBM_Plex_Sans, IBM_Plex_Mono } from "next/font/google";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
+import { MainShell } from "@/components/layout/MainShell";
 import { ToastContainer } from "@/components/ui/Toast";
 import { getCurrentUser } from "@/lib/auth";
 import "./globals.css";
@@ -44,9 +45,7 @@ export default async function RootLayout({
           Skip to main content
         </a>
         <Navbar user={user} />
-        <main id="main-content" className="flex-1 pt-16">
-          {children}
-        </main>
+        <MainShell>{children}</MainShell>
         <Footer />
         <ToastContainer />
       </body>
