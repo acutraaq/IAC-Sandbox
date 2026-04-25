@@ -8,6 +8,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 **MANDATORY: Every session must start by reading this file in full before taking any action.** This is the single source of truth for project state, conventions, and what is live vs blocked. Do not rely on memory or prior-session assumptions — read this file, then act.
 
+> **If continuing from a prior session (especially on a new device), read [`docs/superpowers/HANDOFF.md`](docs/superpowers/HANDOFF.md) immediately after this file.** It captures the open PR state, what was done last, and what's next.
+
 Before starting any work, check `docs/superpowers/specs/` for any active (non-archived) specs that have been designed but not yet implemented.
 
 | Spec | Status | Summary |
