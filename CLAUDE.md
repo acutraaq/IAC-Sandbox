@@ -6,11 +6,13 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Session Context — Read This First
 
-Before starting any work, read the active specs in `docs/superpowers/specs/` to understand what has been designed but not yet implemented.
+**MANDATORY: Every session must start by reading this file in full before taking any action.** This is the single source of truth for project state, conventions, and what is live vs blocked. Do not rely on memory or prior-session assumptions — read this file, then act.
+
+Before starting any work, check `docs/superpowers/specs/` for any active (non-archived) specs that have been designed but not yet implemented.
 
 | Spec | Status | Summary |
 |------|--------|---------|
-| ~~`docs/superpowers/specs/2026-04-23-refactor-cleanup-design.md`~~ | **Complete** | 4-phase refactor: deps, cleanup, tests, observability |
+| ~~`docs/superpowers/archive/specs/2026-04-23-refactor-cleanup-design.md`~~ | **Complete — Archived** | 4-phase refactor: deps, cleanup, tests, observability |
 | ~~UI redesign~~ | **Complete** | Archived to `docs/superpowers/archive/` |
 | ~~EPF templates + status + request flow~~ | **Complete** | 4 EPF templates, 3-step timeline, /request page |
 | ~~UI sizing + Functions host fix~~ | **Complete** | Builder/review/modal sizing, West Europe removed, functions main path fixed |
@@ -26,7 +28,7 @@ Before starting any work, read the active specs in `docs/superpowers/specs/` to 
 
 **Sandbox IAC** is an Azure Infrastructure-as-Code deployment platform for EPF (Employees Provident Fund, Malaysia). It lets non-expert users configure and submit Azure infrastructure deployments through three flows:
 
-- **Template Flow** — Multi-step wizard using predefined templates (12 templates across 4 categories)
+- **Template Flow** — Multi-step wizard using predefined templates (16 templates across 6 categories)
 - **Custom Builder Flow** — Resource-by-resource configuration builder (auto-deploy)
 - **Custom Request Flow** — Resource picker at `/request` that generates a copy-paste request document to email the IAC team (no auto-deployment; manual provisioning after HOD approval)
 
@@ -205,7 +207,7 @@ Prisma and PostgreSQL have been removed. ARM is the source of truth for all depl
 │   │       └── arm-status.ts    # mapArmProvisioningState → DeploymentStatus
 │   ├── types/index.ts
 │   ├── data/
-│   │   ├── templates.json       # 12 templates; regions locked to MY/SEA/EA only
+│   │   ├── templates.json       # 16 templates across 6 categories; regions locked to MY/SEA/EA only
 │   │   └── resources.json       # NSG removed; used by Custom Builder + Request pages
 │   └── __tests__/
 │       ├── store/

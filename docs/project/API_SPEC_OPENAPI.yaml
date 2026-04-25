@@ -1,12 +1,18 @@
 openapi: 3.1.0
 info:
-  title: Sandbox Playground Backend API
-  version: 1.0.0
-  description: API contract for deployment submission intake.
+  title: IAC Sandbox API
+  version: 2.0.0
+  description: |
+    API contract for the IAC Sandbox deployment platform.
+    All routes are Next.js Route Handlers co-located under /api/.
+    Authentication: not yet implemented (SSO deferred — deployedBy hardcoded to demo@sandbox.local).
 servers:
-  - url: http://localhost:3001
+  - url: http://localhost:3000
+    description: Local dev (Next.js)
+  - url: https://epf-experimental-sandbox-playground-cvhdbjgdcqabdjau.southeastasia-01.azurewebsites.net
+    description: Production (Azure App Service)
 paths:
-  /healthz:
+  /api/healthz:
     get:
       summary: Liveness probe
       responses:
@@ -20,23 +26,14 @@ paths:
                   status:
                     type: string
                     example: ok
-  /readyz:
-    get:
-      summary: Readiness probe
-      responses:
-        '200':
-          description: Service is ready
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    example: ready
-  /deployments:
+  /api/deployments:
     post:
       summary: Submit a deployment configuration
+      description: |
+        Validates the payload against policy (returns 403 for blocked slugs),
+        generates a submissionId (UUID), derives resource group name,
+        and enqueues a message to the Azure Storage Queue for async ARM deployment.
+        Returns 201 immediately — ARM deployment is asynchronous.
       requestBody:
         required: true
         content:
@@ -45,41 +42,101 @@ paths:
               $ref: '#/components/schemas/DeploymentPayload'
       responses:
         '201':
-          description: Submission accepted
+          description: Submission accepted and enqueued
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/SubmitResponse'
         '400':
-          description: Validation error
+          description: Validation error (missing required fields or invalid payload)
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error:
+                  code: VALIDATION_ERROR
+                  message: Request validation failed
+                  details:
+                    - path: tags.Cost Center
+                      message: Required
+                requestId: req_abc123
+        '403':
+          description: Policy-blocked template slug
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error:
+                  code: FORBIDDEN
+                  message: Template virtual-machine is not available in this sandbox
+                requestId: req_abc123
         '500':
-          description: Internal server error
+          description: Internal server error (e.g. queue unavailable)
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
-  /deployments/{submissionId}:
+  /api/deployments/{submissionId}:
     get:
-      summary: Get deployment submission by ID
+      summary: Poll ARM deployment status by submission ID
+      description: |
+        Queries ARM directly for the deployment status.
+        Returns "accepted" if the ARM deployment does not yet exist (still queued).
+        Requires the ?rg= query parameter — the resource group name derived at submission time.
       parameters:
         - in: path
           name: submissionId
           required: true
           schema:
             type: string
+            format: uuid
+          example: 01JQH4NZ4F3RD2RN5C6X7A8B9K
+        - in: query
+          name: rg
+          required: true
+          schema:
+            type: string
+          description: Resource group name (returned in SubmitResponse.resourceGroup)
+          example: mystorage-rg
       responses:
         '200':
-          description: Submission found
+          description: Status retrieved
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/DeploymentSubmission'
-        '404':
-          description: Submission not found
+                $ref: '#/components/schemas/DeploymentStatus'
+        '400':
+          description: Missing required rg query parameter
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: ARM query error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /api/my-deployments:
+    get:
+      summary: List resource groups deployed by the current user
+      description: |
+        Lists ARM resource groups tagged deployedBy=demo@sandbox.local (hardcoded until SSO).
+        For each group that has an iac-submissionId tag, fetches ARM deployment status.
+        Results sorted by deployedAt descending.
+      responses:
+        '200':
+          description: List of deployed resource groups
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/MyDeploymentItem'
+        '500':
+          description: ARM query error
           content:
             application/json:
               schema:
@@ -87,38 +144,73 @@ paths:
 
 components:
   schemas:
+    Tags:
+      type: object
+      description: Required policy tags for all deployments
+      required:
+        - Cost Center
+        - Project ID
+        - Project Owner
+        - Expiry Date
+      properties:
+        Cost Center:
+          type: string
+          example: CC-001
+        Project ID:
+          type: string
+          example: PRJ-001
+        Project Owner:
+          type: string
+          format: email
+          example: owner@epf.gov.my
+        Expiry Date:
+          type: string
+          format: date
+          example: '2026-12-31'
+      additionalProperties: false
+
     DeploymentPayload:
       oneOf:
         - $ref: '#/components/schemas/TemplateDeploymentPayload'
         - $ref: '#/components/schemas/CustomDeploymentPayload'
+
     TemplateDeploymentPayload:
       type: object
-      required: [mode, template]
+      required: [mode, tags, template]
       properties:
         mode:
           type: string
           const: template
+        tags:
+          $ref: '#/components/schemas/Tags'
         template:
           type: object
           required: [slug, formValues]
           properties:
             slug:
               type: string
+              description: Template slug from templates.json (must be in DEPLOYABLE_SLUGS)
+              example: storage-account
             formValues:
               type: object
               additionalProperties: true
+              description: Template-specific form field values
+
     CustomDeploymentPayload:
       type: object
-      required: [mode, resources]
+      required: [mode, tags, resources]
       properties:
         mode:
           type: string
           const: custom
+        tags:
+          $ref: '#/components/schemas/Tags'
         resources:
           type: array
           minItems: 1
           items:
             $ref: '#/components/schemas/SelectedResource'
+
     SelectedResource:
       type: object
       required: [type, name, icon, config]
@@ -135,36 +227,69 @@ components:
         config:
           type: object
           additionalProperties: true
+
     SubmitResponse:
       type: object
-      required: [submissionId]
+      required: [submissionId, resourceGroup]
       properties:
         submissionId:
           type: string
-          example: 01JQH4NZ4F3RD2RN5C6X7A8B9K
-    DeploymentSubmission:
+          format: uuid
+          description: Used for status polling and ARM deployment name
+          example: 550e8400-e29b-41d4-a716-446655440000
+        resourceGroup:
+          type: string
+          description: Derived resource group name — required for status polling (?rg= param)
+          example: mystorage-rg
+
+    DeploymentStatus:
       type: object
-      required: [submissionId, mode, status, payload, createdAt, updatedAt]
+      required: [submissionId, status]
       properties:
         submissionId:
           type: string
-        mode:
-          type: string
-          enum: [template, custom]
+          format: uuid
         status:
           type: string
-          enum: [accepted, queued, running, succeeded, failed]
-        payload:
-          $ref: '#/components/schemas/DeploymentPayload'
-        createdAt:
+          enum: [accepted, running, succeeded, failed]
+          description: |
+            accepted — enqueued or ARM deployment not yet created
+            running — ARM deployment in progress
+            succeeded — ARM deployment completed successfully
+            failed — ARM deployment failed
+        errorMessage:
+          type: string
+          nullable: true
+          description: Present only when status is "failed"; includes ARM error code and message
+
+    MyDeploymentItem:
+      type: object
+      required: [resourceGroup, location, tags, status, submissionId, deployedAt]
+      properties:
+        resourceGroup:
+          type: string
+        location:
+          type: string
+          example: southeastasia
+        tags:
+          type: object
+          additionalProperties:
+            type: string
+        status:
+          type: string
+          enum: [accepted, running, succeeded, failed]
+        submissionId:
+          type: string
+          format: uuid
+          nullable: true
+        deployedAt:
           type: string
           format: date-time
-        updatedAt:
-          type: string
-          format: date-time
+          nullable: true
+
     ErrorResponse:
       type: object
-      required: [error]
+      required: [error, requestId]
       properties:
         error:
           type: object
@@ -187,3 +312,4 @@ components:
                     type: string
         requestId:
           type: string
+          description: Unique request ID for log correlation
