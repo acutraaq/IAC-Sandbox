@@ -75,10 +75,8 @@ describe("auth: SESSION_COOKIE_NAME", () => {
   });
 });
 
-import { vi as vi2 } from "vitest";
-
-vi2.mock("next/headers", () => ({
-  cookies: vi2.fn(),
+vi.mock("next/headers", () => ({
+  cookies: vi.fn(),
 }));
 
 describe("auth: getCurrentUser", () => {

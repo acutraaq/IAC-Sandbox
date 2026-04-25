@@ -66,7 +66,7 @@ export async function createSessionCookie(user: SessionUser): Promise<string> {
 export async function verifySessionCookie(value: string | undefined | null): Promise<SessionUser | null> {
   if (!value) return null;
   const dot = value.indexOf(".");
-  if (dot <= 0 || dot === value.length - 1) return null;
+  if (dot <= 0 || dot !== value.lastIndexOf(".") || dot === value.length - 1) return null;
   const payloadEncoded = value.slice(0, dot);
   const sigEncoded = value.slice(dot + 1);
   let payloadBytes: Uint8Array<ArrayBuffer>;
@@ -94,6 +94,9 @@ export async function verifySessionCookie(value: string | undefined | null): Pro
 
 // Test-only seam: sign an arbitrary payload (used to construct expired cookies in tests).
 export async function _signForTest(payloadJson: string): Promise<string> {
+  if (process.env.NODE_ENV !== "test") {
+    throw new Error("_signForTest must not be called outside of tests");
+  }
   return sign(payloadJson);
 }
 
