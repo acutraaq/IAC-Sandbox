@@ -66,6 +66,7 @@ jobs:
           AZURE_SUBSCRIPTION_ID: 00000000-0000-0000-0000-000000000000
           AZURE_TENANT_ID: 00000000-0000-0000-0000-000000000000
           AZURE_STORAGE_CONNECTION_STRING: DefaultEndpointsProtocol=https;AccountName=build;AccountKey=AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==;EndpointSuffix=core.windows.net
+          SESSION_SECRET: ci_build_dummy_secret_at_least_32_chars_long
 
       - name: Assemble and zip standalone release
         if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
