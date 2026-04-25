@@ -3,6 +3,7 @@ import { IBM_Plex_Sans, IBM_Plex_Mono } from "next/font/google";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { ToastContainer } from "@/components/ui/Toast";
+import { getCurrentUser } from "@/lib/auth";
 import "./globals.css";
 
 const ibmPlexSans = IBM_Plex_Sans({
@@ -23,11 +24,12 @@ export const metadata: Metadata = {
     "Deploy cloud resources in minutes. Pick a template or build your own configuration.",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const user = await getCurrentUser();
   return (
     <html
       lang="en"
@@ -41,7 +43,7 @@ export default function RootLayout({
         >
           Skip to main content
         </a>
-        <Navbar />
+        <Navbar user={user} />
         <main id="main-content" className="flex-1 pt-16">
           {children}
         </main>

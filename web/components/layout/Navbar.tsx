@@ -7,13 +7,18 @@ import { Menu, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Logo } from "@/components/ui/Logo";
 import { ThemeToggle } from "./ThemeToggle";
+import { UserMenu } from "./UserMenu";
 
 const navLinks = [
   { href: "/", label: "Home" },
   { href: "/templates", label: "Templates" },
 ];
 
-export function Navbar() {
+export interface NavbarProps {
+  user?: { upn: string; displayName: string } | null;
+}
+
+export function Navbar({ user }: NavbarProps = {}) {
   const pathname = usePathname();
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -25,6 +30,8 @@ export function Navbar() {
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
+
+  if (pathname === "/login") return null;
 
   return (
     <nav
@@ -75,12 +82,16 @@ export function Navbar() {
         {/* Right: toggle + avatar + mobile button */}
         <div className="flex items-center gap-3">
           <ThemeToggle />
-          <div
-            aria-hidden="true"
-            className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-white text-xs font-semibold select-none"
-          >
-            SB
-          </div>
+          {user ? (
+            <UserMenu user={user} />
+          ) : (
+            <div
+              aria-hidden="true"
+              className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-white text-xs font-semibold select-none"
+            >
+              SB
+            </div>
+          )}
           <button
             className="sm:hidden rounded-md p-1 text-text-muted hover:text-text"
             onClick={() => setMobileOpen((o) => !o)}
