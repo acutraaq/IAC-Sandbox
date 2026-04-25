@@ -259,9 +259,12 @@ $env:NODE_OPTIONS="--use-system-ca"; npm run dev   # Start dev server (localhost
 npm run build
 npm start
 npm run lint              # must pass with 0 errors
-npx vitest run            # run full test suite (preferred over npm run test:run)
+npx vitest run            # run full test suite — MUST run from web/ (not repo root)
 npx vitest run "SomeFile" # run a single test file by name
 npx tsc --noEmit          # must pass with 0 errors (npm run type-check does not exist)
+
+# Run from functions/ for functions tests
+npx vitest run            # MUST run from functions/ (not repo root)
 ```
 
 No docker-compose or local database needed.
