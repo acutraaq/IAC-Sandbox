@@ -1,6 +1,10 @@
-# Session Handoff
+# Session Handoff — 2026-04-25
 
-> **Read this immediately after `CLAUDE.md` if you are starting a new session.** Last updated 2026-04-25.
+> **Version:** 1.0.0 | **Last updated:** 2026-04-25 | **Status:** Active  
+> **Purpose:** Context for engineers starting a new session  
+> **Related docs:** [Project Index](../README.md) | [CLAUDE.md](../../CLAUDE.md) | [Complete Spec](../project/SPEC.md)  
+>
+> **Action:** Read this immediately after `CLAUDE.md` if you are starting a new session. Update this file at the end of each session with the current state.
 
 ## TL;DR
 

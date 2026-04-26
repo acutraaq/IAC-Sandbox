@@ -6,6 +6,12 @@ info:
     API contract for the IAC Sandbox deployment platform.
     All routes are Next.js Route Handlers co-located under /api/.
     Authentication: not yet implemented (SSO deferred — deployedBy hardcoded to demo@sandbox.local).
+
+    **Metadata:**
+    - Last updated: 2026-04-26
+    - Status: Active
+    - Owner: Backend team
+    - Related docs: [Complete Spec](SPEC.md) | [Glossary](../GLOSSARY.md) | [Project Index](../README.md)
 servers:
   - url: http://localhost:3000
     description: Local dev (Next.js)
