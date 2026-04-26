@@ -1,6 +1,9 @@
-# CLAUDE.md
+# CLAUDE.md — Project Conventions & Developer Guidance
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+> **Version:** 2.1.0 | **Last updated:** 2026-04-26 | **Status:** Active  
+> **Purpose:** Single source of truth for project conventions, tech stack, and development patterns  
+> **Owner:** All engineers | **Review cadence:** On every convention or pattern change  
+> **Related docs:** [Documentation Index](docs/README.md) | [Complete Spec](docs/project/SPEC.md) | [Glossary](docs/GLOSSARY.md) | [HANDOFF](docs/superpowers/HANDOFF.md)
 
 ---
 
