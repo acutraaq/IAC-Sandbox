@@ -1,8 +1,20 @@
 # Sandbox Azure Deployer — Complete Specification
 
-> **Version:** v2.0.0 | **Date:** 2026-04-22 | **Status:** Updated to reflect as-built architecture
+> **Version:** v2.0.0 | **Last updated:** 2026-04-22 | **Status:** Active  
+> **Owner:** Product + Architecture | **Review cadence:** Quarterly or on breaking changes  
+> **Related docs:** [Project Index](../README.md) | [API Spec](API_SPEC_OPENAPI.yaml) | [Glossary](../GLOSSARY.md) | [CLAUDE.md](../../CLAUDE.md)
 >
 > This is the single source of truth for the entire project. Sections marked **[v2]** were updated to match what was actually built. The original v1.2.0 plan (Fastify + PostgreSQL separate backend) was superseded — see ADR-016 through ADR-019 in Section 14 for the decisions that changed the architecture.
+
+---
+
+## Quick Navigation
+
+**By role:** [For Product Managers](../README.md#for-product-managers--business-stakeholders) | [For Engineers](../README.md#for-engineers--developers) | [For DevOps](../README.md#for-devops--platform-teams) | [For Security](../README.md#for-security--compliance)
+
+**In this document:** [Executive Summary](#1-executive-summary) | [Architecture](#7-frontend-architecture) | [API](#10-api-contract) | [ADRs](#14-architecture-decisions-adrs) | [Security](#21-security-controls) | [Release](#25-release-readiness)
+
+**Related:** [API Spec (OpenAPI)](API_SPEC_OPENAPI.yaml) | [Glossary](../GLOSSARY.md) | [Project Index](../README.md) | [CLAUDE.md](../../CLAUDE.md)
 
 ---
 
@@ -19,7 +31,7 @@
 9. [Data Model](#9-data-model)
 10. [API Contract](#10-api-contract)
 11. [Authentication and Identity](#11-authentication-and-identity)
-12. [Bicep Deployment Execution](#12-bicep-deployment-execution)
+12. [ARM Deployment Execution](#12-arm-deployment-execution-v2)
 13. [Proof Artifact Format](#13-proof-artifact-format)
 14. [Architecture Decisions (ADRs)](#14-architecture-decisions-adrs)
 15. [Frontend Implementation Backlog](#15-frontend-implementation-backlog)
@@ -367,6 +379,8 @@ Standard error response (ADR-007):
 ## 9. Data Model **[v2]**
 
 > No database. ARM is the source of truth. See ADR-018 and ADR-019.
+>
+> **Glossary:** [ARM](../GLOSSARY.md#arm--azure-resource-manager) | [Resource Group](../GLOSSARY.md#resource-group--rg) | [Submission](../GLOSSARY.md#submission) | [SubmissionId](../GLOSSARY.md#submissionid) | [Policy Tags](../GLOSSARY.md#policy-tags)
 
 ### ARM Resource Group Tags (per deployment)
 
@@ -395,6 +409,10 @@ Every resource group created by this system carries the following tags:
 ---
 
 ## 10. API Contract **[v2]**
+
+**Glossary:** [Deployment](../GLOSSARY.md#deployment) | [SubmissionId](../GLOSSARY.md#submissionid) | [Resource Group](../GLOSSARY.md#resource-group--rg) | [Status](../GLOSSARY.md#accepted-status)
+
+**See also:** [Full OpenAPI Specification](API_SPEC_OPENAPI.yaml) | [Authentication (Section 11)](#11-authentication-and-identity)
 
 ### Endpoints
 | Method | Path | Description |
@@ -547,6 +565,8 @@ ARM `provisioningState` → app status:
 ---
 
 ## 13. Proof Artifact Format
+
+**Glossary:** [Proof](../GLOSSARY.md#proof--proof-artifact) | [SubmissionId](../GLOSSARY.md#submissionid) | [HOD](../GLOSSARY.md#hod--head-of-department)
 
 Plain text, stable, copy-safe:
 

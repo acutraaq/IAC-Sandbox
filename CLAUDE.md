@@ -1,12 +1,17 @@
-# CLAUDE.md
+# CLAUDE.md — Project Conventions & Developer Guidance
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+> **Version:** 2.1.0 | **Last updated:** 2026-04-26 | **Status:** Active  
+> **Purpose:** Single source of truth for project conventions, tech stack, and development patterns  
+> **Owner:** All engineers | **Review cadence:** On every convention or pattern change  
+> **Related docs:** [Documentation Index](docs/README.md) | [Complete Spec](docs/project/SPEC.md) | [Glossary](docs/GLOSSARY.md) | [HANDOFF](docs/superpowers/HANDOFF.md)
 
 ---
 
 ## Session Context — Read This First
 
 **MANDATORY: Every session must start by reading this file in full before taking any action.** This is the single source of truth for project state, conventions, and what is live vs blocked. Do not rely on memory or prior-session assumptions — read this file, then act.
+
+> **If continuing from a prior session (especially on a new device), read [`docs/superpowers/HANDOFF.md`](docs/superpowers/HANDOFF.md) immediately after this file.** It captures the open PR state, what was done last, and what's next.
 
 Before starting any work, check `docs/superpowers/specs/` for any active (non-archived) specs that have been designed but not yet implemented.
 

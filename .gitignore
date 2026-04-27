@@ -22,9 +22,46 @@ npm-debug.log*
 .DS_Store
 Thumbs.db
 
-# Leftover build artifact directories from old architecture
-/frontend/
-/backend/
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Build outputs
+/web/.next/
+/web/out/
+/web/build/
+/functions/dist/
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# Logs
+*.log
+npm-debug.log*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Unrelated media files
+*.mkv
+*.mp4
+*.avi
+
+# Editor
+
+.idea/
+*.swp
+*.swo
+
+# Playwright MCP snapshots
+.playwright-mcp/
+
+# Git worktrees
+.worktrees/
 
 # Unrelated media files
 *.mkv
