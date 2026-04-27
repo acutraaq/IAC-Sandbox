@@ -23,14 +23,14 @@ beforeEach(() => {
 describe("LoginPage", () => {
   it("renders heading and Microsoft sign-in button", () => {
     render(<LoginPage />);
-    expect(screen.getByRole("heading", { name: /welcome back/i })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /continue with microsoft/i })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: /sandbox iac/i })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /sign in with microsoft/i })).toBeInTheDocument();
   });
 
   it("calls loginUser and navigates to next on click", async () => {
     const user = userEvent.setup();
     render(<LoginPage />);
-    await user.click(screen.getByRole("button", { name: /continue with microsoft/i }));
+    await user.click(screen.getByRole("button", { name: /sign in with microsoft/i }));
     await waitFor(() => {
       expect(loginUserMock).toHaveBeenCalledOnce();
       expect(replaceMock).toHaveBeenCalledWith("/templates");
