@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import { logoutUser } from "@/lib/api";
 
 export interface UserMenuProps {
   user: { upn: string; displayName: string };
@@ -43,7 +44,7 @@ export function UserMenu({ user }: UserMenuProps) {
   }, [open]);
 
   async function signOut() {
-    await fetch("/api/auth/logout", { method: "POST" });
+    await logoutUser();
     router.replace("/login");
   }
 

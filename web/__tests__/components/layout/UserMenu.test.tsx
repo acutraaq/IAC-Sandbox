@@ -4,13 +4,19 @@ import userEvent from "@testing-library/user-event";
 import { UserMenu } from "@/components/layout/UserMenu";
 
 const replaceMock = vi.fn();
+const { logoutUserMock } = vi.hoisted(() => ({ logoutUserMock: vi.fn<() => Promise<void>>() }));
+
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ replace: replaceMock }),
 }));
 
+vi.mock("@/lib/api", () => ({
+  logoutUser: logoutUserMock,
+}));
+
 beforeEach(() => {
   replaceMock.mockClear();
-  globalThis.fetch = vi.fn().mockResolvedValue({ ok: true } as Response);
+  logoutUserMock.mockResolvedValue(undefined);
 });
 
 describe("UserMenu", () => {
@@ -24,13 +30,13 @@ describe("UserMenu", () => {
     expect(screen.getByRole("button", { name: /sign out/i })).toBeInTheDocument();
   });
 
-  it("calls /api/auth/logout and redirects to /login on Sign out", async () => {
+  it("calls logoutUser and redirects to /login on Sign out", async () => {
     const user = userEvent.setup();
     render(<UserMenu user={{ upn: "demo@sandbox.local", displayName: "Demo User" }} />);
     await user.click(screen.getByLabelText(/account menu/i));
     await user.click(screen.getByRole("button", { name: /sign out/i }));
     await waitFor(() => {
-      expect(globalThis.fetch).toHaveBeenCalledWith("/api/auth/logout", expect.objectContaining({ method: "POST" }));
+      expect(logoutUserMock).toHaveBeenCalledOnce();
       expect(replaceMock).toHaveBeenCalledWith("/login");
     });
   });

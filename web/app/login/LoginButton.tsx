@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { loginUser } from "@/lib/api";
 
 function safeNext(raw: string | null): string {
   if (!raw) return "/";
@@ -18,8 +19,7 @@ export function LoginButton() {
   async function onClick() {
     setBusy(true);
     try {
-      const res = await fetch("/api/auth/login", { method: "POST" });
-      if (!res.ok) throw new Error("login failed");
+      await loginUser();
       router.replace(safeNext(params.get("next")));
     } finally {
       setBusy(false);

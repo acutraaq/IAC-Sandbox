@@ -4,14 +4,20 @@ import userEvent from "@testing-library/user-event";
 import LoginPage from "@/app/login/page";
 
 const replaceMock = vi.fn();
+const { loginUserMock } = vi.hoisted(() => ({ loginUserMock: vi.fn<() => Promise<void>>() }));
+
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ replace: replaceMock }),
   useSearchParams: () => new URLSearchParams("next=/templates"),
 }));
 
+vi.mock("@/lib/api", () => ({
+  loginUser: loginUserMock,
+}));
+
 beforeEach(() => {
   replaceMock.mockClear();
-  globalThis.fetch = vi.fn().mockResolvedValue({ ok: true } as Response);
+  loginUserMock.mockResolvedValue(undefined);
 });
 
 describe("LoginPage", () => {
@@ -21,12 +27,12 @@ describe("LoginPage", () => {
     expect(screen.getByRole("button", { name: /sign in with microsoft/i })).toBeInTheDocument();
   });
 
-  it("calls /api/auth/login and navigates to next on click", async () => {
+  it("calls loginUser and navigates to next on click", async () => {
     const user = userEvent.setup();
     render(<LoginPage />);
     await user.click(screen.getByRole("button", { name: /sign in with microsoft/i }));
     await waitFor(() => {
-      expect(globalThis.fetch).toHaveBeenCalledWith("/api/auth/login", expect.objectContaining({ method: "POST" }));
+      expect(loginUserMock).toHaveBeenCalledOnce();
       expect(replaceMock).toHaveBeenCalledWith("/templates");
     });
   });
