@@ -21,10 +21,11 @@ Before starting any work, check `docs/superpowers/specs/` for any active (non-ar
 | ~~UI redesign~~ | **Complete** | Archived to `docs/superpowers/archive/specs/` |
 | ~~EPF templates + status + request flow~~ | **Complete** | 4 EPF templates, 3-step timeline, /request page |
 | ~~UI sizing + Functions host fix~~ | **Complete** | Builder/review/modal sizing, West Europe removed, functions main path fixed |
+| `docs/superpowers/plans/2026-04-25-login-placeholder.md` | **Complete** | Login page placeholder + route gating via `proxy.ts`; one-file MSAL swap seam at `web/lib/auth.ts` |
 
 **What is live and working:** See Live Deployment section below.
 **What is designed but not built:** Nothing — all approved specs implemented.
-**What is blocked:** Microsoft SSO / MSAL (pending admin App Registration credentials).
+**What is blocked:** Microsoft SSO / MSAL — placeholder login is live; real SSO swap pending App Registration credentials.
 **What needs Azure config verification:** Function App RG creation — `AZURE_SUBSCRIPTION_ID` in Function App settings must be `1fed33d2-00fd-40a8-a5c1-c120aec1b902` and managed identity needs Contributor on sub-epf-sandbox-internal.
 
 ---
@@ -39,7 +40,7 @@ Before starting any work, check `docs/superpowers/specs/` for any active (non-ar
 
 Both Template and Custom Builder flows converge at a shared Review & Submit page, calling `POST /api/deployments`. After submission, a copyable plain-text proof artifact is generated for manual HOD approval. Deployment status is tracked via Azure ARM — ARM is the source of truth (no database).
 
-**Microsoft SSO (Entra ID / MSAL.js)** is a planned requirement but is currently blocked on admin providing App Registration credentials. Until then, `deployedBy` is hardcoded to `"demo@sandbox.local"`.
+**Microsoft SSO (Entra ID / MSAL.js)** is a planned requirement, blocked on admin providing App Registration credentials. A **placeholder login page** is live: visiting any protected route redirects to `/login`, where the "Sign in with Microsoft" button stubs a session cookie carrying `demo@sandbox.local`. When MSAL credentials arrive, the swap is a single-file change to `web/lib/auth.ts` (see Authentication section below).
 
 ---
 
@@ -62,6 +63,7 @@ Both Template and Custom Builder flows converge at a shared Review & Submit page
 | `AZURE_SUBSCRIPTION_ID` | Deployment target subscription (`1fed33d2-00fd-40a8-a5c1-c120aec1b902`) — sub-epf-sandbox-internal |
 | `AZURE_TENANT_ID` | Azure tenant ID (`3335e1a2-2058-4baf-b03b-031abf0fc821`) |
 | `AZURE_STORAGE_CONNECTION_STRING` | Storage account connection string for queue |
+| `SESSION_SECRET` | HMAC secret for the placeholder session cookie. ≥ 32 chars. Generate with `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"`. |
 
 **GitHub Secrets required:**
 | Secret | Used by |
@@ -84,6 +86,16 @@ Functions job:
 3. Deploy via `azure/functions-action@v1` using `AZURE_FUNCTIONAPP_PUBLISH_PROFILE`
 
 > `next.config.js` uses `output: 'standalone'`. Do not add `cp server.js .next/standalone/server.js` to the workflow — it would replace the correct standalone server with an incompatible one. `web/server.js` is for local `npm start` only.
+
+---
+
+## Authentication
+
+All routes are gated by `web/proxy.ts` (Next.js 16's renamed `middleware.ts`). Unauthenticated requests are redirected to `/login?next=<original-path>`. Public paths bypass the gate: `/login`, `/api/auth/*`, `/api/healthz`, Next.js internals, and static files.
+
+Identity comes from `getCurrentUser()` in `web/lib/auth.ts`. Today this reads an HMAC-signed session cookie (`iac_session`, Web Crypto SHA-256, 24 h TTL) and returns the placeholder user `{ upn: "demo@sandbox.local", displayName: "Demo User" }`. The cookie is created by `POST /api/auth/login` (clicked via the stub "Sign in with Microsoft" button) and cleared by `POST /api/auth/logout`.
+
+**MSAL swap:** When App Registration credentials arrive, replacing the contents of `web/lib/auth.ts` with an MSAL token-reading implementation enables real Entra ID SSO. All other code (proxy, layout, navbar user menu, route handlers) only depends on `getCurrentUser()` and does not change. `deployedBy` is still hardcoded to `demo@sandbox.local` in `functions/src/modules/deployments/bicep-executor.ts` and `web/app/api/my-deployments/route.ts`; that plumbing change ships together with the real SSO so the placeholder identity does not pollute ARM tags.
 
 ---
 
