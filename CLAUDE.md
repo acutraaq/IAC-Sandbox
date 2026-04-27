@@ -86,9 +86,11 @@ Functions job:
 
 ## Authentication
 
-All routes are gated by `web/proxy.ts` (Next.js 16's renamed `middleware.ts`). Unauthenticated requests are redirected to `/login?next=<original-path>`. Public paths bypass the gate: `/login`, `/api/auth/*`, `/api/healthz`, Next.js internals, and static files.
+All routes are gated by `web/proxy.ts` (Next.js 16's middleware convention). Unauthenticated requests are redirected to `/login?next=<original-path>`. Public paths bypass the gate: `/login`, `/api/auth/*`, `/api/healthz`, Next.js internals, and static files.
 
 Identity comes from `getCurrentUser()` in `web/lib/auth.ts`. Today this reads an HMAC-signed session cookie (`iac_session`, Web Crypto SHA-256, 24 h TTL) and returns the placeholder user `{ upn: "demo@sandbox.local", displayName: "Demo User" }`. The cookie is created by `POST /api/auth/login` (clicked via the stub "Sign in with Microsoft" button) and cleared by `POST /api/auth/logout`.
+
+The core cookie signing/verification logic lives in `web/lib/auth-core.ts`, which is Edge-safe and used by `proxy.ts` (avoids importing `next/headers` in the middleware layer).
 
 **MSAL swap:** When App Registration credentials arrive, replacing the contents of `web/lib/auth.ts` with an MSAL token-reading implementation enables real Entra ID SSO. All other code (proxy, layout, navbar user menu, route handlers) only depends on `getCurrentUser()` and does not change. `deployedBy` is still hardcoded to `demo@sandbox.local` in `functions/src/modules/deployments/bicep-executor.ts` and `web/app/api/my-deployments/route.ts`; that plumbing change ships together with the real SSO so the placeholder identity does not pollute ARM tags.
 

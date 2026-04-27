@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach } from "vitest";
 import { NextRequest } from "next/server";
-import { createSessionCookie } from "@/lib/auth";
+import { createSessionCookie } from "@/lib/auth-core";
 
 beforeEach(() => {
   process.env.SESSION_SECRET = "test_secret_at_least_32_chars_long_xxxxx";

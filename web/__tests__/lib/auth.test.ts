@@ -9,9 +9,13 @@ async function load() {
   return await import("@/lib/auth");
 }
 
-describe("auth: createSessionCookie / verifySessionCookie", () => {
+async function loadCore() {
+  return await import("@/lib/auth-core");
+}
+
+describe("auth-core: createSessionCookie / verifySessionCookie", () => {
   it("round-trips a valid user", async () => {
-    const { createSessionCookie, verifySessionCookie } = await load();
+    const { createSessionCookie, verifySessionCookie } = await loadCore();
     const value = await createSessionCookie({
       upn: "demo@sandbox.local",
       displayName: "Demo User",
@@ -22,7 +26,7 @@ describe("auth: createSessionCookie / verifySessionCookie", () => {
   });
 
   it("rejects a tampered payload", async () => {
-    const { createSessionCookie, verifySessionCookie } = await load();
+    const { createSessionCookie, verifySessionCookie } = await loadCore();
     const value = await createSessionCookie({
       upn: "demo@sandbox.local",
       displayName: "Demo User",
@@ -37,13 +41,13 @@ describe("auth: createSessionCookie / verifySessionCookie", () => {
   });
 
   it("rejects a malformed cookie (no dot)", async () => {
-    const { verifySessionCookie } = await load();
+    const { verifySessionCookie } = await loadCore();
     expect(await verifySessionCookie("not-a-cookie")).toBeNull();
   });
 
   it("rejects an expired cookie", async () => {
     process.env.SESSION_SECRET = "test_secret_at_least_32_chars_long_xxxxx";
-    const { _signForTest, verifySessionCookie } = await load() as typeof import("@/lib/auth") & {
+    const { _signForTest, verifySessionCookie } = await loadCore() as typeof import("@/lib/auth-core") & {
       _signForTest: (payloadJson: string) => Promise<string>;
     };
     const expired = JSON.stringify({
@@ -56,14 +60,14 @@ describe("auth: createSessionCookie / verifySessionCookie", () => {
   });
 
   it("rejects a cookie signed with a different secret", async () => {
-    const { createSessionCookie } = await load();
+    const { createSessionCookie } = await loadCore();
     const value = await createSessionCookie({
       upn: "demo@sandbox.local",
       displayName: "Demo User",
     });
     process.env.SESSION_SECRET = "different_secret_at_least_32_chars_yyyyy";
     vi.resetModules();
-    const { verifySessionCookie } = await import("@/lib/auth");
+    const { verifySessionCookie } = await import("@/lib/auth-core");
     expect(await verifySessionCookie(value)).toBeNull();
   });
 });
@@ -90,7 +94,7 @@ describe("auth: getCurrentUser", () => {
   });
 
   it("returns the session user when a valid cookie is present", async () => {
-    const { createSessionCookie } = await load();
+    const { createSessionCookie } = await loadCore();
     const value = await createSessionCookie({
       upn: "demo@sandbox.local",
       displayName: "Demo User",
