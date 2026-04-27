@@ -46,7 +46,7 @@ describe("LoginPage", () => {
     vi.resetModules();
     const Mod = await import("@/app/login/page");
     render(<Mod.default />);
-    await user.click(screen.getByRole("button", { name: /continue with microsoft/i }));
+    await user.click(screen.getByRole("button", { name: /sign in with microsoft/i }));
     await waitFor(() => expect(replaceMock).toHaveBeenCalledWith("/"));
   });
 });
