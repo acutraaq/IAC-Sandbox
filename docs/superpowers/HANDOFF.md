@@ -1,6 +1,6 @@
-# Session Handoff — 2026-04-25
+# Session Handoff — 2026-04-27
 
-> **Version:** 1.0.0 | **Last updated:** 2026-04-25 | **Status:** Active  
+> **Version:** 1.1.0 | **Last updated:** 2026-04-27 | **Status:** Active  
 > **Purpose:** Context for engineers starting a new session  
 > **Related docs:** [Project Index](../README.md) | [CLAUDE.md](../../CLAUDE.md) | [Complete Spec](../project/SPEC.md)  
 >
@@ -95,6 +95,8 @@ User chose three hardening areas at the start of the previous session: observabi
 ## Still blocked
 
 **Microsoft SSO (Entra ID / MSAL)** — admin has not provided App Registration credentials. Phase 1 placeholder gives a working sign-in flow today. Real SSO swap is a single-file change to `web/lib/auth.ts` once credentials arrive.
+
+**Cross-subscription ARM deployments** — managed identity has not been enabled on the Function App or App Service. The code is correct; an Azure admin must complete the 5-step setup checklist documented in the **Azure Infrastructure Setup** section of `CLAUDE.md`. After setup, verify with `GET /api/healthz/arm` → `{"status":"ok"}` (new endpoint added in `web/app/api/healthz/arm/route.ts`).
 
 ## Standing user preferences observed in the previous session
 
