@@ -52,18 +52,18 @@ export async function POST(request: Request) {
 
     const payload = parseResult.data;
 
+    const user = await getCurrentUser();
+    if (!user) {
+      const err = AppError.unauthorized();
+      return NextResponse.json(toErrorResponse(err, requestId), { status: err.statusCode });
+    }
+
     const policyViolation = validateDeploymentPolicy(payload);
     if (policyViolation) {
       const err = AppError.forbidden(
         `Deployment blocked by subscription policy. Not permitted: ${policyViolation.blocked.join(", ")}`
       );
       return NextResponse.json(toErrorResponse(err, requestId), { status: err.statusCode });
-    }
-
-    const user = await getCurrentUser();
-    if (!user) {
-      const err = AppError.forbidden("Authentication required");
-      return NextResponse.json(toErrorResponse(err, requestId), { status: 401 });
     }
 
     const submissionId = crypto.randomUUID();

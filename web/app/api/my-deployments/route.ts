@@ -11,8 +11,8 @@ export async function GET() {
   try {
     const user = await getCurrentUser();
     if (!user) {
-      const err = AppError.forbidden("Authentication required");
-      return NextResponse.json(toErrorResponse(err, requestId), { status: 401 });
+      const err = AppError.unauthorized();
+      return NextResponse.json(toErrorResponse(err, requestId), { status: err.statusCode });
     }
 
     const client = getArmClient();
