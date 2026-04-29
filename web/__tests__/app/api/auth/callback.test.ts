@@ -114,6 +114,26 @@ describe("GET /api/auth/callback", () => {
     expect(res.headers.get("location")).toMatch(/\/login/);
   });
 
+  it("clears the iac_auth_pending cookie on MSAL failure", async () => {
+    decodePendingStateMock.mockReturnValue({
+      state: "state-abc",
+      verifier: "v",
+      next: "/",
+    });
+    acquireTokenByCodeMock.mockRejectedValue(new Error("MSAL failure"));
+
+    const { GET } = await import("@/app/api/auth/callback/route");
+    const req = makeRequest(
+      "http://localhost:3000/api/auth/callback?code=code&state=state-abc",
+      { iac_auth_pending: "mock" }
+    );
+    const res = await GET(req);
+
+    const allCookies = res.headers.getSetCookie?.() ?? [res.headers.get("set-cookie") ?? ""];
+    const pendingClear = allCookies.find((c) => c.startsWith("iac_auth_pending="));
+    expect(pendingClear).toMatch(/Max-Age=0/i);
+  });
+
   it("passes the redirect URI derived from the request origin to acquireTokenByCode", async () => {
     decodePendingStateMock.mockReturnValue({
       state: "state-abc",
