@@ -1,37 +1,24 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
-import { loginUser } from "@/lib/api";
+import { useSearchParams } from "next/navigation";
 
-function safeNext(raw: string | null): string {
-  if (!raw) return "/";
-  if (!raw.startsWith("/")) return "/";
-  if (raw.startsWith("//") || raw.startsWith("/\\")) return "/";
+function safeNext(raw: string | null): string | null {
+  if (!raw || !raw.startsWith("/") || raw.startsWith("//") || raw.startsWith("/\\"))
+    return null;
   return raw;
 }
 
 export function LoginButton() {
-  const router = useRouter();
   const params = useSearchParams();
-  const [busy, setBusy] = useState(false);
-
-  async function onClick() {
-    setBusy(true);
-    try {
-      await loginUser();
-      router.replace(safeNext(params.get("next")));
-    } finally {
-      setBusy(false);
-    }
-  }
+  const next = safeNext(params.get("next"));
+  const href = next
+    ? `/api/auth/login?next=${encodeURIComponent(next)}`
+    : "/api/auth/login";
 
   return (
-    <button
-      onClick={onClick}
-      disabled={busy}
-      className="inline-flex w-full items-center justify-center gap-3 rounded-md bg-primary px-6 py-3 text-sm font-medium text-white transition-colors hover:bg-primary-hover disabled:opacity-60"
-      aria-busy={busy}
+    <a
+      href={href}
+      className="inline-flex w-full items-center justify-center gap-3 rounded-md bg-primary px-6 py-3 text-sm font-medium text-white transition-colors hover:bg-primary-hover"
     >
       <svg
         aria-hidden="true"
@@ -45,6 +32,6 @@ export function LoginButton() {
         <rect x="11" y="11" width="9" height="9" fill="#ffb900" />
       </svg>
       <span>Sign in with Microsoft</span>
-    </button>
+    </a>
   );
 }
