@@ -61,6 +61,7 @@ describe("executeBicepDeployment", () => {
         payload: VALID_STORAGE_PAYLOAD,
         location: "southeastasia",
         tags: TAGS,
+        deployedBy: "user@test.com",
       })
     ).rejects.toThrow();
 
@@ -70,7 +71,7 @@ describe("executeBicepDeployment", () => {
     expect(body.location).toBe("southeastasia");
     expect(body.tags).toMatchObject({
       ...TAGS,
-      deployedBy: "demo@sandbox.local",
+      deployedBy: "user@test.com",
       "iac-submissionId": "dep-1",
     });
   });
@@ -95,6 +96,7 @@ describe("executeBicepDeployment", () => {
         payload: VALID_STORAGE_PAYLOAD,
         location: "southeastasia",
         tags: TAGS,
+        deployedBy: "user@test.com",
       })
     ).rejects.toThrow();
 
@@ -104,7 +106,7 @@ describe("executeBicepDeployment", () => {
     for (const r of sent.properties.template.resources) {
       expect(r.tags).toMatchObject({
         ...TAGS,
-        deployedBy: "demo@sandbox.local",
+        deployedBy: "user@test.com",
         "iac-submissionId": "dep-xyz",
       });
     }
@@ -125,6 +127,7 @@ describe("executeBicepDeployment", () => {
         },
         location: "southeastasia",
         tags: TAGS,
+        deployedBy: "user@test.com",
       })
     ).rejects.toThrow(/blocked by subscription policy/);
 

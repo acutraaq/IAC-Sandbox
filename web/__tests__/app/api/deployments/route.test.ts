@@ -18,6 +18,13 @@ vi.mock("@azure/storage-queue", () => ({
   },
 }));
 
+vi.mock("@/lib/auth", () => ({
+  getCurrentUser: vi.fn().mockResolvedValue({ upn: "user@epf.gov.my", displayName: "Test User" }),
+}));
+
+import * as authModule from "@/lib/auth";
+const mockGetCurrentUser = vi.mocked(authModule.getCurrentUser);
+
 const validPayload = {
   mode: "template",
   tags: {
@@ -40,6 +47,7 @@ function makeRequest(body: unknown) {
 describe("POST /api/deployments", () => {
   beforeEach(() => {
     mockSendMessage.mockClear();
+    mockGetCurrentUser.mockClear();
   });
 
   it("returns 201 with submissionId and resourceGroup on valid payload", async () => {
@@ -91,5 +99,20 @@ describe("POST /api/deployments", () => {
     mockSendMessage.mockRejectedValueOnce(new Error("queue unavailable"));
     const res = await POST(makeRequest(validPayload));
     expect(res.status).toBe(500);
+  });
+
+  it("includes deployedBy from the current user in the queue message", async () => {
+    await POST(makeRequest(validPayload));
+    const [encoded] = mockSendMessage.mock.calls[0] as [string];
+    const decoded = JSON.parse(Buffer.from(encoded, "base64").toString()) as {
+      deployedBy: string;
+    };
+    expect(decoded.deployedBy).toBe("user@epf.gov.my");
+  });
+
+  it("returns 401 when getCurrentUser returns null", async () => {
+    mockGetCurrentUser.mockResolvedValueOnce(null);
+    const res = await POST(makeRequest(validPayload));
+    expect(res.status).toBe(401);
   });
 });

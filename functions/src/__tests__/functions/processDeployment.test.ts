@@ -49,6 +49,7 @@ const validMessage = {
     "Project Owner": "owner@test.com",
     "Expiry Date": "2026-12-31",
   },
+  deployedBy: "user@test.com",
 };
 
 describe("processDeployment handler", () => {

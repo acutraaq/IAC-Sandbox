@@ -11,6 +11,13 @@ vi.mock("@/lib/arm", () => ({
   }),
 }));
 
+vi.mock("@/lib/auth", () => ({
+  getCurrentUser: vi.fn().mockResolvedValue({ upn: "demo@sandbox.local", displayName: "Demo User" }),
+}));
+
+import * as authModule from "@/lib/auth";
+const mockGetCurrentUser = vi.mocked(authModule.getCurrentUser);
+
 async function* makeRgIterator(items: unknown[]) {
   for (const item of items) yield item;
 }
@@ -65,5 +72,11 @@ describe("GET /api/my-deployments", () => {
     mockRgList.mockImplementationOnce(() => { throw new Error("ARM error"); });
     const res = await GET();
     expect(res.status).toBe(500);
+  });
+
+  it("returns 401 when getCurrentUser returns null", async () => {
+    mockGetCurrentUser.mockResolvedValueOnce(null);
+    const res = await GET();
+    expect(res.status).toBe(401);
   });
 });

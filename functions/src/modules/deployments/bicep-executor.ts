@@ -11,6 +11,7 @@ export interface BicepExecutorOptions {
   payload: DeploymentPayload;
   location: string;
   tags: Record<string, string>;
+  deployedBy: string;
   log?: (msg: string) => void;
 }
 
@@ -156,7 +157,7 @@ export async function executeBicepDeployment(
   log?.(`[${id}] Building ARM template`);
   const fullTags = {
     ...opts.tags,
-    deployedBy: "demo@sandbox.local",
+    deployedBy: opts.deployedBy,
     "iac-submissionId": id,
   };
   const template = buildArmTemplate(opts.payload, {
