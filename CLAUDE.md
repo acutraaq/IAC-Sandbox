@@ -21,7 +21,9 @@ Before starting any work, check `docs/superpowers/specs/` for any active (non-ar
 | ~~UI redesign~~ | **Complete** | Archived to `docs/superpowers/archive/specs/` |
 | ~~EPF templates + status + request flow~~ | **Complete** | 4 EPF templates, 3-step timeline, /request page |
 | ~~UI sizing + Functions host fix~~ | **Complete** | Builder/review/modal sizing, West Europe removed, functions main path fixed |
-| `docs/superpowers/plans/2026-04-25-login-placeholder.md` | **Complete** | Login page placeholder + route gating via `proxy.ts`; one-file MSAL swap seam at `web/lib/auth.ts` |
+| `docs/superpowers/archive/plans/2026-04-25-login-placeholder.md` | **Complete — Archived** | Login page placeholder + route gating via `proxy.ts` |
+| `docs/superpowers/archive/plans/2026-04-29-msal-sso.md` | **Complete — Archived** | MSAL authorization code + PKCE flow, `deployedBy` wired end-to-end |
+| `docs/superpowers/plans/` | **Empty** | No active plans; all prior work archived |
 
 **What is live and working:** See Live Deployment section below.
 **What is designed but not built:** Nothing — all approved specs implemented.
@@ -165,7 +167,7 @@ Identity comes from `getCurrentUser()` in `web/lib/auth.ts`. Today this reads an
 
 The core cookie signing/verification logic lives in `web/lib/auth-core.ts`, which is Edge-safe and used by `proxy.ts` (avoids importing `next/headers` in the middleware layer).
 
-**MSAL swap:** When App Registration credentials arrive, replacing the contents of `web/lib/auth.ts` with an MSAL token-reading implementation enables real Entra ID SSO. All other code (proxy, layout, navbar user menu, route handlers) only depends on `getCurrentUser()` and does not change. `deployedBy` is still hardcoded to `demo@sandbox.local` in `functions/src/modules/deployments/bicep-executor.ts` and `web/app/api/my-deployments/route.ts`; that plumbing change ships together with the real SSO so the placeholder identity does not pollute ARM tags.
+**MSAL swap:** MSAL plumbing is fully implemented — authorization code + PKCE flow at `web/lib/msal.ts`, GET redirect login at `GET /api/auth/login`, and OAuth callback handler at `GET /api/auth/callback`. `deployedBy` is wired end-to-end: session → queue message → ARM tags via `getCurrentUser()` in both `web/app/api/deployments/route.ts` and `web/app/api/my-deployments/route.ts`, parsed in `functions/src/functions/processDeployment.ts`, and applied in `bicep-executor.ts`. Until admin provides App Registration credentials (`AZURE_AD_CLIENT_ID`, `AZURE_AD_CLIENT_SECRET`), the placeholder login stub (`demo@sandbox.local`) remains active via `POST /api/auth/login`.
 
 ---
 
@@ -276,7 +278,9 @@ Prisma and PostgreSQL have been removed. ARM is the source of truth for all depl
 │   │   ├── wizard/
 │   │   ├── builder/
 │   │   ├── request/  # RequestDocument — copy-paste request block
-│   │   └── review/   # ConfirmModal (3-step timeline + portal deep-link)
+│   │   ├── review/   # ReviewSection, ConfirmModal (3-step timeline + portal deep-link)
+│   │   ├── home/     # DeployedList, TemplateGrid (home page sections)
+│   │   └── stuff/    # DeployedTable (my-stuff page)
 │   ├── store/
 │   │   └── deploymentStore.ts   # mode: "template"|"custom"|"custom-request"; resetCustomRequest()
 │   ├── lib/
@@ -289,6 +293,8 @@ Prisma and PostgreSQL have been removed. ARM is the source of truth for all depl
 │   │   ├── report.ts
 │   │   └── deployments/
 │   │       ├── schema.ts        # Zod payload schemas + tagsSchema
+│   │       ├── schema.test.ts    # schema unit tests (co-located)
+│   │       ├── policy.ts        # DEPLOYABLE_SLUGS allow-list + POLICY_BLOCKED_TEMPLATE_SLUGS
 │   │       ├── policy.ts        # DEPLOYABLE_SLUGS allow-list + POLICY_BLOCKED_TEMPLATE_SLUGS
 │   │       ├── rg-name.ts       # deriveResourceGroupName / deriveLocation
 │   │       └── arm-status.ts    # mapArmProvisioningState → DeploymentStatus
@@ -311,7 +317,7 @@ Prisma and PostgreSQL have been removed. ARM is the source of truth for all depl
 │           ├── arm-template-builder.ts      # builders + PolicyBlockedTemplateError
 │           ├── bicep-executor.ts            # applies 6 tags to RG + all ARM resources
 │           ├── deployment.schema.ts
-│           └── rg-name.ts
+│           └── sanitize.ts                  # name sanitization helpers
 │       └── __tests__/
 │           ├── functions/processDeployment.test.ts
 │           └── modules/deployments/
@@ -330,12 +336,12 @@ Prisma and PostgreSQL have been removed. ARM is the source of truth for all depl
 │       ├── specs/               # Active design specs
 │       ├── plans/               # Active implementation plans
 │       └── archive/             # Completed plans + superseded specs
-├── workflows/                   # Claude Code agents + skills (source of truth)
-│   ├── agents/
-│   ├── skills/
-│   └── README.md
-└── scripts/
-    └── install-workflows.sh     # copies workflows/ into .claude/
+└── .claude/                     # Claude Code config (project scope, ships with repo)
+    ├── agents/                  # subagent definitions (Task tool spawns these)
+    ├── skills/                  # project skills
+    ├── hooks/                   # lifecycle scripts (secret-leak guard, session banner)
+    ├── settings.json            # permissions + hook wiring (committed)
+    └── settings.local.json      # personal permissions (gitignored)
 ```
 
 ---

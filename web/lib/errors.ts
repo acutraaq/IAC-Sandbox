@@ -40,6 +40,10 @@ export class AppError extends Error {
   static forbidden(message: string): AppError {
     return new AppError("FORBIDDEN", message, 403);
   }
+
+  static unauthorized(message = "Authentication required"): AppError {
+    return new AppError("UNAUTHORIZED", message, 401);
+  }
 }
 
 export function logError(endpoint: string, requestId: string, err: unknown): void {

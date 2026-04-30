@@ -5,6 +5,7 @@ import { AppError, toErrorResponse, logError } from "@/lib/errors";
 import { deploymentPayloadSchema } from "@/lib/deployments/schema";
 import { deriveResourceGroupName, deriveLocation } from "@/lib/deployments/rg-name";
 import { validateDeploymentPolicy } from "@/lib/deployments/policy";
+import { getCurrentUser } from "@/lib/auth";
 import type { DeploymentPayload } from "@/lib/deployments/schema";
 
 // Must match deploymentJobMessageSchema in functions/src/functions/processDeployment.ts
@@ -14,6 +15,7 @@ interface DeploymentJobMessage {
   location: string;
   payload: DeploymentPayload;
   tags: Record<string, string>;
+  deployedBy: string;
 }
 
 const QUEUE_NAME = "deployment-jobs";
@@ -50,6 +52,12 @@ export async function POST(request: Request) {
 
     const payload = parseResult.data;
 
+    const user = await getCurrentUser();
+    if (!user) {
+      const err = AppError.unauthorized();
+      return NextResponse.json(toErrorResponse(err, requestId), { status: err.statusCode });
+    }
+
     const policyViolation = validateDeploymentPolicy(payload);
     if (policyViolation) {
       const err = AppError.forbidden(
@@ -68,6 +76,7 @@ export async function POST(request: Request) {
       location,
       payload,
       tags: payload.tags,
+      deployedBy: user.upn,
     };
 
     await getQueueClient().sendMessage(

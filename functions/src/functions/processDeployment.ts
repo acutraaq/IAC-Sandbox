@@ -10,6 +10,7 @@ const deploymentJobMessageSchema = z.object({
   location: z.string().min(1),
   payload: deploymentPayloadSchema,
   tags: z.record(z.string(), z.string()),
+  deployedBy: z.string().min(1),
 });
 
 export async function processDeployment(
@@ -29,7 +30,7 @@ export async function processDeployment(
     // effectively dropped; poison queue is reserved for executor failures.
     return;
   }
-  const { submissionId, resourceGroupName, location, payload, tags } = parsed.data;
+  const { submissionId, resourceGroupName, location, payload, tags, deployedBy } = parsed.data;
 
   context.log(`Processing deployment ${submissionId} for RG ${resourceGroupName}`);
 
@@ -43,6 +44,7 @@ export async function processDeployment(
     payload,
     location,
     tags,
+    deployedBy,
     log: (msg) => context.log(msg),
   });
 

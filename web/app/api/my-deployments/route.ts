@@ -2,19 +2,24 @@ import { NextResponse } from "next/server";
 import { AppError, toErrorResponse, logError } from "@/lib/errors";
 import { getArmClient } from "@/lib/arm";
 import { mapArmProvisioningState } from "@/lib/deployments/arm-status";
+import { getCurrentUser } from "@/lib/auth";
 import type { MyDeploymentItem, DeploymentStatus } from "@/types";
-
-const DEPLOYED_BY = "demo@sandbox.local";
 
 export async function GET() {
   const requestId = crypto.randomUUID();
 
   try {
+    const user = await getCurrentUser();
+    if (!user) {
+      const err = AppError.unauthorized();
+      return NextResponse.json(toErrorResponse(err, requestId), { status: err.statusCode });
+    }
+
     const client = getArmClient();
     const items: MyDeploymentItem[] = [];
 
     const rgIterator = client.resourceGroups.list({
-      filter: `tagName eq 'deployedBy' and tagValue eq '${DEPLOYED_BY}'`,
+      filter: `tagName eq 'deployedBy' and tagValue eq '${user.upn}'`,
     });
 
     for await (const rg of rgIterator) {

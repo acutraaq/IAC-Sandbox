@@ -13,6 +13,7 @@
     "@azure/arm-resources": "^7.0.0",
     "@azure/functions": "^4.0.0",
     "@azure/identity": "^4.4.0",
+    "@azure/storage-blob": "^12.24.0",
     "zod": "^4.3.6"
   },
   "devDependencies": {

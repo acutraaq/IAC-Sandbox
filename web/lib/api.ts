@@ -74,11 +74,6 @@ export async function listMyDeployments(): Promise<MyDeploymentItem[]> {
   return parseErrorBody(response);
 }
 
-export async function loginUser(): Promise<void> {
-  const response = await fetch("/api/auth/login", { method: "POST" });
-  if (!response.ok) throw new Error("login failed");
-}
-
 export async function logoutUser(): Promise<void> {
   await fetch("/api/auth/logout", { method: "POST" });
 }
