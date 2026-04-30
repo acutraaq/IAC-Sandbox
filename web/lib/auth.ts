@@ -1,4 +1,3 @@
-import { cookies } from "next/headers";
 import {
   SESSION_COOKIE_NAME,
   verifySessionCookie,
@@ -16,7 +15,6 @@ export {
 };
 
 export async function getCurrentUser(): Promise<SessionUser | null> {
-  const store = await cookies();
-  const c = store.get(SESSION_COOKIE_NAME);
-  return verifySessionCookie(c?.value);
+  // SSO on hold — return a fixed identity so deployedBy is always populated
+  return { upn: "demo@sandbox.local", displayName: "Demo User" };
 }
