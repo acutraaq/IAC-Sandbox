@@ -146,7 +146,7 @@ export default function ReviewPage() {
 
   return (
     <PageTransition>
-    <div className="mx-auto max-w-2xl px-6 md:px-8 py-8 md:py-12">
+    <div className="mx-auto max-w-[clamp(42rem,60vw,56rem)] px-6 md:px-8 py-8 md:py-12">
       <Breadcrumb items={[{ label: "Home", href: "/" }, { label: "Review" }]} />
       <div className="mb-6">
         <Link
