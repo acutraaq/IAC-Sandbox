@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { AppError, toErrorResponse, logError, isArmError } from "@/lib/errors";
 import { getArmClient } from "@/lib/arm";
 import { mapArmProvisioningState } from "@/lib/deployments/arm-status";
+import { getFailureRecord } from "@/lib/deployments/failure-lookup";
 
 export async function GET(
   request: Request,
@@ -35,7 +36,13 @@ export async function GET(
       }
     } catch (armErr: unknown) {
       if (isArmError(armErr) && armErr.statusCode === 404) {
-        status = "accepted";
+        const failure = await getFailureRecord(submissionId);
+        if (failure) {
+          status = "failed";
+          errorMessage = failure.error;
+        } else {
+          status = "accepted";
+        }
       } else {
         throw armErr;
       }
