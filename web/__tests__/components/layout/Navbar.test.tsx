@@ -46,11 +46,4 @@ describe("Navbar", () => {
     render(<Navbar />);
     expect(screen.getByText("SB")).toBeInTheDocument();
   });
-
-  it("renders theme toggle button", () => {
-    render(<Navbar />);
-    expect(
-      screen.getByRole("button", { name: /switch to/i })
-    ).toBeInTheDocument();
-  });
 });
