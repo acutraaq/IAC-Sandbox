@@ -1,32 +1,14 @@
 @import "tailwindcss";
 
-/* ── Light theme (default) ── */
+/* ── Theme tokens ── */
 :root {
-  --color-bg: #edf1f7;
-  --color-surface: #f8fafd;
-  --color-surface-elevated: #ffffff;
-  --color-border: #d4dce8;
-  --color-border-strong: #b0c0d8;
-  --color-text: #1e3148;
-  --color-text-muted: #5a7290;
-  --color-primary: #1e3a5f;
-  --color-primary-hover: #163050;
-  --color-accent: #2b7fd4;
-  --color-accent-hover: #3a8ee3;
-  --color-error: #c0392b;
-  --color-success: #2e7d52;
-  --color-warning: #9a6110;
-}
-
-/* ── Dark theme ── */
-html[data-theme="dark"] {
-  --color-bg: #1a2535;
-  --color-surface: #243044;
-  --color-surface-elevated: #2e3d58;
-  --color-border: rgba(44, 127, 212, 0.18);
-  --color-border-strong: rgba(44, 127, 212, 0.35);
-  --color-text: #d8e4f0;
-  --color-text-muted: rgba(160, 190, 225, 0.75);
+  --color-bg: #22324a;
+  --color-surface: #2c4262;
+  --color-surface-elevated: #375577;
+  --color-border: rgba(44, 127, 212, 0.25);
+  --color-border-strong: rgba(44, 127, 212, 0.40);
+  --color-text: #e0eaf8;
+  --color-text-muted: rgba(175, 210, 245, 0.82);
   --color-primary: #2b7fd4;
   --color-primary-hover: #3a8ee3;
   --color-accent: #4a9be0;
