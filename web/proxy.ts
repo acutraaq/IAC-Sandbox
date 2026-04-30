@@ -1,25 +1,9 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import { SESSION_COOKIE_NAME, verifySessionCookie } from "@/lib/auth-core";
 
-export async function proxy(request: NextRequest) {
-  const path = request.nextUrl.pathname;
-
-  // Public paths
-  if (path === "/login" || path.startsWith("/api/auth/") || path === "/api/healthz") {
-    return NextResponse.next();
-  }
-
-  const cookie = request.cookies.get(SESSION_COOKIE_NAME)?.value;
-  const session = await verifySessionCookie(cookie);
-  if (session) {
-    return NextResponse.next();
-  }
-
-  const next = path + (request.nextUrl.search || "");
-  const loginUrl = new URL("/login", request.nextUrl);
-  loginUrl.searchParams.set("next", next);
-  return NextResponse.redirect(loginUrl);
+export async function proxy(_request: NextRequest) {
+  // SSO on hold — all routes are open
+  return NextResponse.next();
 }
 
 export const config = {
