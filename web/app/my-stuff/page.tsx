@@ -47,7 +47,7 @@ export default function MyDeploymentsPage() {
 
   return (
     <PageTransition>
-      <div className="mx-auto max-w-3xl px-6 py-8 md:px-8 md:py-12">
+      <div className="mx-auto max-w-[clamp(48rem,80vw,80rem)] px-6 py-8 md:px-8 md:py-12">
         <Breadcrumb
           items={[{ label: "Home", href: "/" }, { label: "My Deployments" }]}
         />
