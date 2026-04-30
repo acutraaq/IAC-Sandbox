@@ -259,7 +259,7 @@ Key invariants:
 - Templates: `TemplateGrid`, `FilterPills`, `TemplateCard`
 - Wizard: `Stepper`, `WizardStep`, `SummaryPanel`
 - Builder: `ResourceCatalog`, `ResourceDrawer`, `SelectedPanel`
-- Review: `ReviewSection`, `SubmitButton`, `ConfirmModal`
+- Review: `ReviewSection`, `ConfirmModal`
 
 ### Validation Design
 Centralized builder in `lib/schema.ts`:
@@ -348,7 +348,7 @@ functions/src/
     bicep-executor.ts
     arm-template-builder.ts
     deployment.schema.ts
-    rg-name.ts
+    sanitize.ts
 ```
 
 ### Validation and Error Format

@@ -22,7 +22,6 @@ The worker is an Azure Functions v4 app (`functions/`). It listens on the `deplo
 - `functions/src/modules/deployments/arm-template-builder.ts` — builds ARM template payload for each slug
 - `functions/src/modules/deployments/sanitize.ts` — `sanitizeStorageName`, `sanitizeKeyVaultName`, `sanitizeGenericName`
 - `functions/src/modules/deployments/deployment.schema.ts` — Zod message schema (must stay in sync with `web/lib/deployments/schema.ts`)
-- `functions/src/modules/deployments/rg-name.ts` — resource group name derivation
 - `functions/src/lib/env.ts` — Zod-validated env vars for the function app
 - `functions/src/__tests__/` — test files
 

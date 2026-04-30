@@ -18,8 +18,7 @@ Implements the custom resource builder and the shared review/submit flow: select
 
 ### Review + Submit (Phase 3d)
 - `web/app/review/page.tsx` — `/review` route; redirects to `/` if store is empty
-- `web/components/review/ReviewSection.tsx` — displays template payload or custom resources correctly for both modes
-- `web/components/review/SubmitButton.tsx` — calls `submitDeployment` from `lib/api.ts`, shows spinner during submission, disables while loading
+- `web/components/review/ReviewSection.tsx` — displays template payload or custom resources correctly for both modes; includes submit button that calls `submitDeployment` from `lib/api.ts`, shows spinner during submission, disables while loading
 - `web/components/review/ConfirmModal.tsx` — `role="dialog"`, `aria-modal`, Escape to close; shows 3-step status timeline (accepted → running → succeeded/failed) and copyable proof text from `generateReport`; on succeeded shows "View in Azure Portal" deep-link to resource group in `sub-epf-sandbox-internal`
 
 ## Acceptance Criteria

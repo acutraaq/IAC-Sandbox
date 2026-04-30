@@ -21,7 +21,7 @@ Always read `CLAUDE.md` in full at the start of every session before taking any 
 
 ## File Ownership
 - `.github/workflows/ci.yml` — single unified workflow: web (lint → type-check → test → build → deploy) + functions (type-check → test → build → deploy) jobs run in parallel after a `changes` job detects which paths changed
-- `web/next.config.ts` — Next.js config (`output: "standalone"` required for App Service deployment)
+- `web/next.config.js` — Next.js config (`output: "standalone"` required for App Service deployment)
 
 ## Deployment Approach (web)
 Next.js standalone output is built in CI, `public/` and `.next/static/` are copied in, an `oryx-manifest.toml` is written with `StartupCommand = "env -u HOSTNAME node server.js"` (strips Azure-injected HOSTNAME so Next.js binds to 0.0.0.0), then the standalone dir is zipped and deployed via `azure/webapps-deploy@v3`.

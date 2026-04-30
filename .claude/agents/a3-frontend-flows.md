@@ -24,7 +24,7 @@ Implement the three deployment flows and the shared review/submit page:
 - `web/components/wizard/` — Stepper, WizardStep, SummaryPanel
 - `web/components/builder/` — ResourceCatalog, ResourceDrawer, SelectedPanel
 - `web/components/request/` — RequestDocument (copy-paste request block)
-- `web/components/review/` — ReviewSection, SubmitButton, ConfirmModal (3-step timeline + portal deep-link)
+- `web/components/review/` — ReviewSection, ConfirmModal (3-step timeline + portal deep-link)
 
 ## Do NOT touch
 - `web/components/layout/` — owned by foundation work

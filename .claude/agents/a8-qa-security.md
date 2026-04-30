@@ -27,7 +27,7 @@ Run and enforce quality gates. You do not write feature code — you verify it.
 cd web
 npm run lint          # must exit 0 — zero errors
 npx tsc --noEmit      # must exit 0 — zero errors
-npx vitest run        # all tests must pass (170 tests across 25 files)
+npx vitest run        # all tests must pass (206 tests across 33 files)
 npm run build         # .next/ must be produced (standalone output)
 ```
 
