@@ -156,7 +156,7 @@ export function ConfirmModal({
 
   return (
     <Modal open={open} onClose={onClose} title="Deployment Submitted">
-      <div className="space-y-4">
+      <div className="mx-auto max-w-xl space-y-4">
         <p className="text-sm text-text-muted">
           Your deployment has been submitted. Copy the text below and share it
           with your approver for HOD sign-off.
