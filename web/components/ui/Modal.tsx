@@ -1,8 +1,13 @@
 "use client";
 
-import { useEffect, useRef, useCallback } from "react";
+import { useEffect, useRef, useCallback, useSyncExternalStore } from "react";
+import { createPortal } from "react-dom";
 import { X } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
+
+const subscribe = () => () => {};
+const getMounted = () => true;
+const getMountedServer = () => false;
 
 interface ModalProps {
   open: boolean;
@@ -14,6 +19,7 @@ interface ModalProps {
 export function Modal({ open, onClose, title, children }: ModalProps) {
   const dialogRef = useRef<HTMLDivElement>(null);
   const previousFocusRef = useRef<HTMLElement | null>(null);
+  const mounted = useSyncExternalStore(subscribe, getMounted, getMountedServer);
 
   const handleKeyDown = useCallback(
     (e: KeyboardEvent) => {
@@ -66,7 +72,9 @@ export function Modal({ open, onClose, title, children }: ModalProps) {
     };
   }, [open, handleKeyDown]);
 
-  return (
+  if (!mounted) return null;
+
+  return createPortal(
     <AnimatePresence>
       {open && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6">
@@ -105,6 +113,7 @@ export function Modal({ open, onClose, title, children }: ModalProps) {
           </motion.div>
         </div>
       )}
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body,
   );
 }
