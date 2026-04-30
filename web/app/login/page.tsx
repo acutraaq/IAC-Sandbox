@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { LoginButton } from "./LoginButton";
 
 export default function LoginPage() {
@@ -9,7 +10,9 @@ export default function LoginPage() {
           <p className="text-sm text-text-muted">Sign in to continue</p>
         </div>
         <div className="mt-8">
-          <LoginButton />
+          <Suspense>
+            <LoginButton />
+          </Suspense>
         </div>
         <p className="mt-6 text-center text-xs text-text-muted">
           EPF Internal · Sandbox
