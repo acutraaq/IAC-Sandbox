@@ -84,13 +84,10 @@ vi.mock("next/headers", () => ({
 }));
 
 describe("auth: getCurrentUser", () => {
-  it("returns null when no session cookie is present", async () => {
-    const { cookies } = await import("next/headers");
-    (cookies as unknown as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
-      get: () => undefined,
-    });
+  it("returns the fixed demo user when SSO is on hold (no cookie needed)", async () => {
     const { getCurrentUser } = await load();
-    expect(await getCurrentUser()).toBeNull();
+    const user = await getCurrentUser();
+    expect(user).toEqual({ upn: "demo@sandbox.local", displayName: "Demo User" });
   });
 
   it("returns the session user when a valid cookie is present", async () => {

@@ -1,6 +1,5 @@
 import { describe, it, expect, beforeEach } from "vitest";
 import { NextRequest } from "next/server";
-import { createSessionCookie } from "@/lib/auth-core";
 
 beforeEach(() => {
   process.env.SESSION_SECRET = "test_secret_at_least_32_chars_long_xxxxx";
@@ -13,41 +12,36 @@ function makeReq(url: string, cookies: Record<string, string> = {}) {
 }
 
 describe("proxy", () => {
-  it("redirects an unauthenticated user from /templates to /login?next=/templates", async () => {
+  it("passes through unauthenticated requests while SSO is on hold", async () => {
     const { proxy } = await import("@/proxy");
     const res = await proxy(makeReq("/templates"));
-    expect(res.status).toBe(307);
-    const loc = res.headers.get("location");
-    expect(loc).toMatch(/\/login\?next=%2Ftemplates$/);
-  });
-
-  it("preserves query string when redirecting", async () => {
-    const { proxy } = await import("@/proxy");
-    const res = await proxy(makeReq("/templates?cat=compute"));
-    const loc = res.headers.get("location")!;
-    expect(decodeURIComponent(loc)).toContain("next=/templates?cat=compute");
-  });
-
-  it("does NOT redirect when a valid session cookie is present", async () => {
-    const cookieValue = await createSessionCookie({
-      upn: "demo@sandbox.local",
-      displayName: "Demo User",
-    });
-    const { proxy } = await import("@/proxy");
-    const res = await proxy(makeReq("/templates", { iac_session: cookieValue }));
     expect(res.status).toBe(200);
     expect(res.headers.get("location")).toBeNull();
   });
 
-  it("does NOT redirect when path is /login", async () => {
+  it("passes through requests with query strings", async () => {
+    const { proxy } = await import("@/proxy");
+    const res = await proxy(makeReq("/templates?cat=compute"));
+    expect(res.status).toBe(200);
+    expect(res.headers.get("location")).toBeNull();
+  });
+
+  it("passes through requests with a valid session cookie", async () => {
+    const { proxy } = await import("@/proxy");
+    const res = await proxy(makeReq("/templates", { iac_session: "any.value" }));
+    expect(res.status).toBe(200);
+    expect(res.headers.get("location")).toBeNull();
+  });
+
+  it("passes through /login", async () => {
     const { proxy } = await import("@/proxy");
     const res = await proxy(makeReq("/login"));
     expect(res.status).toBe(200);
   });
 
-  it("redirects to /login when session cookie is invalid", async () => {
+  it("passes through requests with an invalid session cookie", async () => {
     const { proxy } = await import("@/proxy");
     const res = await proxy(makeReq("/", { iac_session: "garbage.value" }));
-    expect(res.status).toBe(307);
+    expect(res.status).toBe(200);
   });
 });
