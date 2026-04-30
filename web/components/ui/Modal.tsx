@@ -87,9 +87,9 @@ export function Modal({ open, onClose, title, children }: ModalProps) {
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 10 }}
             transition={{ duration: 0.15 }}
-            className="relative z-10 flex max-h-[calc(100dvh-2rem)] w-full max-w-lg flex-col rounded-xl border border-border bg-surface-elevated shadow-2xl sm:max-h-[calc(100dvh-3rem)]"
+            className="relative z-10 flex max-h-[calc(100dvh-2rem)] w-full max-w-[clamp(32rem,70vw,56rem)] flex-col rounded-xl border border-border bg-surface-elevated shadow-2xl sm:max-h-[calc(100dvh-3rem)]"
           >
-            <div className="flex items-center justify-between border-b border-border px-5 py-3 sm:px-6 sm:py-4">
+            <div className="flex shrink-0 items-center justify-between border-b border-border px-5 py-3 sm:px-6 sm:py-4">
               <h2 className="text-base font-semibold text-text sm:text-lg">{title}</h2>
               <button
                 onClick={onClose}
@@ -99,7 +99,7 @@ export function Modal({ open, onClose, title, children }: ModalProps) {
                 <X className="h-5 w-5" />
               </button>
             </div>
-            <div className="flex-1 overflow-y-auto px-5 py-4 sm:px-6 sm:py-5">
+            <div className="min-h-0 flex-1 overflow-y-auto px-5 py-4 sm:px-6 sm:py-5">
               {children}
             </div>
           </motion.div>
