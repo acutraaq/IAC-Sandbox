@@ -272,7 +272,7 @@ Prisma and PostgreSQL have been removed. ARM is the source of truth for all depl
 │   │       ├── my-deployments/      # GET list RGs by deployedBy tag
 │   │       └── healthz/
 │   ├── components/
-│   │   ├── layout/   # Navbar, Breadcrumb, Footer, PageTransition, ThemeToggle
+│   │   ├── layout/   # Navbar, Breadcrumb, Footer, PageTransition, UserMenu
 │   │   ├── ui/       # Button, Card, Badge, Modal, Toast
 │   │   ├── templates/
 │   │   ├── wizard/
