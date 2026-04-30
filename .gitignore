@@ -32,6 +32,9 @@ Thumbs.db
 *.swp
 *.swo
 
+# Kilo working dir (per-user tooling, not shared)
+.kilo/
+
 # Playwright MCP snapshots
 .playwright-mcp/
 
