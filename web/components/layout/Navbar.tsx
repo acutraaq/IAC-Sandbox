@@ -6,7 +6,6 @@ import { usePathname } from "next/navigation";
 import { Menu, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Logo } from "@/components/ui/Logo";
-import { ThemeToggle } from "./ThemeToggle";
 import { UserMenu } from "./UserMenu";
 
 const navLinks = [
@@ -81,7 +80,6 @@ export function Navbar({ user }: NavbarProps = {}) {
 
         {/* Right: toggle + avatar + mobile button */}
         <div className="flex items-center gap-3">
-          <ThemeToggle />
           {user ? (
             <UserMenu user={user} />
           ) : (
