@@ -23,12 +23,8 @@ export function TemplateCard({ template }: TemplateCardProps) {
   return (
     <Link
       href={`/templates/${template.slug}`}
-      className="group relative flex flex-col gap-4 overflow-hidden rounded-md border border-border bg-surface p-6 transition-all duration-200 hover:border-accent/25 hover:bg-surface-elevated hover:-translate-y-1 hover:shadow-lg hover:shadow-accent/10"
+      className="group flex flex-col gap-4 rounded-md border border-border bg-surface p-6 transition-[border-color,background-color,transform] duration-200 hover:border-accent/25 hover:bg-surface-elevated hover:-translate-y-0.5"
     >
-      <div
-        aria-hidden="true"
-        className="absolute bottom-0 left-0 top-0 w-0.5 origin-top scale-y-0 bg-accent transition-transform duration-200 group-hover:scale-y-100"
-      />
 
       <div className="flex items-start justify-between gap-3">
         <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-accent/10">
@@ -38,7 +34,7 @@ export function TemplateCard({ template }: TemplateCardProps) {
       </div>
 
       <div className="flex-1">
-        <h3 className="mb-1.5 font-display font-semibold text-text transition-colors group-hover:text-accent">
+        <h3 className="mb-1.5 font-sans font-semibold text-text transition-colors group-hover:text-accent">
           {template.name}
         </h3>
         <p className="line-clamp-2 text-sm leading-relaxed text-text-muted">

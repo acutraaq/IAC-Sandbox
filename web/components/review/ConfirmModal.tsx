@@ -163,7 +163,9 @@ export function ConfirmModal({
         </p>
 
         {deploymentStatus && (
-          <StatusTimeline status={deploymentStatus} error={deploymentError} />
+          <div aria-live="polite" aria-atomic="true">
+            <StatusTimeline status={deploymentStatus} error={deploymentError} />
+          </div>
         )}
 
         <div className="relative">
