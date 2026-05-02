@@ -47,25 +47,26 @@ const DEPLOYED_ITEMS = [
 
 export function DeployedTable() {
   return (
-    <div className="mt-6 overflow-x-auto rounded-xl border border-border bg-surface shadow-sm">
-      <table className="w-full text-left text-sm text-text-muted">
-        <thead className="border-b border-border bg-bg text-xs uppercase tracking-wider">
+    <div className="mt-6 overflow-x-auto rounded-xl border border-border bg-surface">
+      <table className="w-full text-left text-sm text-text-muted" aria-label="Your deployed resources">
+        <caption className="sr-only">Your deployed resources</caption>
+        <thead className="border-b border-border bg-bg">
           <tr>
-            <th scope="col" className="px-6 py-4 font-mono font-medium opacity-80">
+            <th scope="col" className="px-6 py-4 text-xs font-semibold uppercase tracking-wider text-text-muted">
               Name
             </th>
-            <th scope="col" className="px-6 py-4 font-mono font-medium opacity-80">
+            <th scope="col" className="px-6 py-4 text-xs font-semibold uppercase tracking-wider text-text-muted">
               What it is
             </th>
-            <th scope="col" className="px-6 py-4 font-mono font-medium opacity-80">
+            <th scope="col" className="px-6 py-4 text-xs font-semibold uppercase tracking-wider text-text-muted">
               Project
             </th>
-            <th scope="col" className="px-6 py-4 font-mono font-medium opacity-80">
+            <th scope="col" className="px-6 py-4 text-xs font-semibold uppercase tracking-wider text-text-muted">
               Ticket
             </th>
             <th
               scope="col"
-              className="px-6 py-4 text-right font-mono font-medium opacity-80"
+              className="px-6 py-4 text-right text-xs font-semibold uppercase tracking-wider text-text-muted"
             >
               Status
             </th>
@@ -77,14 +78,14 @@ export function DeployedTable() {
               key={item.id}
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.1 }}
+              transition={{ delay: Math.min(index * 0.05, 0.3) }}
               className="group transition-colors hover:bg-surface-elevated"
             >
               <td className="px-6 py-4">
                 <div className="flex items-center gap-4">
                   <div className="h-2 w-2 shrink-0 rounded-full bg-success" />
                   <div className="flex flex-col">
-                    <span className="font-display font-bold text-text group-hover:text-accent">
+                    <span className="font-sans font-bold text-text group-hover:text-accent">
                       {item.name}
                     </span>
                     <span className="text-xs text-text-muted opacity-75">

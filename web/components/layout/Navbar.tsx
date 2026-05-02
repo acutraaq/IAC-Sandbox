@@ -91,10 +91,11 @@ export function Navbar({ user }: NavbarProps = {}) {
             </div>
           )}
           <button
-            className="sm:hidden rounded-md p-1 text-text-muted hover:text-text"
+            className="sm:hidden flex min-h-[44px] min-w-[44px] items-center justify-center rounded-md text-text-muted hover:text-text"
             onClick={() => setMobileOpen((o) => !o)}
             aria-label={mobileOpen ? "Close menu" : "Open menu"}
             aria-expanded={mobileOpen}
+            aria-controls="mobile-nav"
           >
             {mobileOpen ? <X size={20} /> : <Menu size={20} />}
           </button>
@@ -105,6 +106,7 @@ export function Navbar({ user }: NavbarProps = {}) {
       <AnimatePresence initial={false}>
         {mobileOpen && (
           <motion.div
+            id="mobile-nav"
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}

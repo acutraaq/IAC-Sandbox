@@ -27,14 +27,14 @@ describe("UserMenu", () => {
     await user.click(screen.getByLabelText(/account menu/i));
     expect(screen.getByText("Demo User")).toBeInTheDocument();
     expect(screen.getByText("demo@sandbox.local")).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /sign out/i })).toBeInTheDocument();
+    expect(screen.getByRole("menuitem", { name: /sign out/i })).toBeInTheDocument();
   });
 
   it("calls logoutUser and redirects to /login on Sign out", async () => {
     const user = userEvent.setup();
     render(<UserMenu user={{ upn: "demo@sandbox.local", displayName: "Demo User" }} />);
     await user.click(screen.getByLabelText(/account menu/i));
-    await user.click(screen.getByRole("button", { name: /sign out/i }));
+    await user.click(screen.getByRole("menuitem", { name: /sign out/i }));
     await waitFor(() => {
       expect(logoutUserMock).toHaveBeenCalledOnce();
       expect(replaceMock).toHaveBeenCalledWith("/login");

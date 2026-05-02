@@ -178,41 +178,57 @@ export default function ReviewPage() {
           Required by subscription policy. All four tags must be provided.
         </p>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          {(["Cost Center", "Project ID", "Project Owner"] as const).map((field) => (
-            <div key={field}>
-              <label className="mb-1.5 block text-sm font-medium text-text-muted">
-                {field} <span className="text-error">*</span>
-              </label>
-              <input
-                type="text"
-                value={tags[field]}
-                onChange={(e) => {
-                  setTags((prev) => ({ ...prev, [field]: e.target.value }));
-                  if (tagErrors[field]) setTagErrors((prev) => ({ ...prev, [field]: undefined }));
-                }}
-                className="w-full rounded-lg border border-border bg-bg px-3 h-11 text-sm text-text placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-accent"
-                placeholder={field}
-              />
-              {tagErrors[field] && (
-                <p className="mt-1 text-xs text-error">{tagErrors[field]}</p>
-              )}
-            </div>
-          ))}
+          {(["Cost Center", "Project ID", "Project Owner"] as const).map((field) => {
+            const fieldId = `tag-${field.toLowerCase().replace(/\s+/g, "-")}`;
+            const errorId = `${fieldId}-error`;
+            return (
+              <div key={field}>
+                <label htmlFor={fieldId} className="mb-1.5 block text-sm font-medium text-text">
+                  {field}
+                  <span aria-hidden="true" className="ml-1 text-error">*</span>
+                  <span className="sr-only"> (required)</span>
+                </label>
+                <input
+                  id={fieldId}
+                  type="text"
+                  value={tags[field]}
+                  aria-required
+                  aria-invalid={!!tagErrors[field]}
+                  aria-describedby={tagErrors[field] ? errorId : undefined}
+                  onChange={(e) => {
+                    setTags((prev) => ({ ...prev, [field]: e.target.value }));
+                    if (tagErrors[field]) setTagErrors((prev) => ({ ...prev, [field]: undefined }));
+                  }}
+                  className={`w-full rounded-lg border bg-bg px-3 h-11 text-sm text-text placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-accent ${tagErrors[field] ? "border-error" : "border-border"}`}
+                  placeholder={field}
+                />
+                {tagErrors[field] && (
+                  <p id={errorId} role="alert" className="mt-1 text-xs text-error">{tagErrors[field]}</p>
+                )}
+              </div>
+            );
+          })}
           <div>
-            <label className="mb-1.5 block text-sm font-medium text-text-muted">
-              Expiry Date <span className="text-error">*</span>
+            <label htmlFor="tag-expiry-date" className="mb-1.5 block text-sm font-medium text-text">
+              Expiry Date
+              <span aria-hidden="true" className="ml-1 text-error">*</span>
+              <span className="sr-only"> (required)</span>
             </label>
             <input
+              id="tag-expiry-date"
               type="date"
               value={tags["Expiry Date"]}
+              aria-required
+              aria-invalid={!!tagErrors["Expiry Date"]}
+              aria-describedby={tagErrors["Expiry Date"] ? "tag-expiry-date-error" : undefined}
               onChange={(e) => {
                 setTags((prev) => ({ ...prev, "Expiry Date": e.target.value }));
                 if (tagErrors["Expiry Date"]) setTagErrors((prev) => ({ ...prev, "Expiry Date": undefined }));
               }}
-              className="w-full rounded-lg border border-border bg-bg px-3 h-11 text-sm text-text focus:outline-none focus:ring-2 focus:ring-accent"
+              className={`w-full rounded-lg border bg-bg px-3 h-11 text-sm text-text focus:outline-none focus:ring-2 focus:ring-accent ${tagErrors["Expiry Date"] ? "border-error" : "border-border"}`}
             />
             {tagErrors["Expiry Date"] && (
-              <p className="mt-1 text-xs text-error">{tagErrors["Expiry Date"]}</p>
+              <p id="tag-expiry-date-error" role="alert" className="mt-1 text-xs text-error">{tagErrors["Expiry Date"]}</p>
             )}
           </div>
         </div>

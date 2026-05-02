@@ -62,10 +62,10 @@ export function ResourceCatalog({
               <button
                 key={resource.type}
                 onClick={() => onSelect(resource)}
-                className={`group flex items-start gap-3 rounded-xl border p-4 text-left transition-all ${
+                className={`group flex items-start gap-3 rounded-xl border p-4 text-left transition-[border-color,background-color] ${
                   isAdded
                     ? "border-success/30 bg-success/5"
-                    : "border-border bg-surface hover:-translate-y-0.5 hover:border-accent/30 hover:shadow-md hover:shadow-accent/5"
+                    : "border-border bg-surface hover:border-accent/30 hover:bg-surface-elevated"
                 }`}
               >
                 <div

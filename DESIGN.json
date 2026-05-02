@@ -1,0 +1,300 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-05-01T00:00:00Z",
+  "title": "Design System: Sandbox IAC",
+  "extensions": {
+    "colorMeta": {
+      "azure-foundation": {
+        "role": "neutral",
+        "displayName": "Azure Foundation",
+        "canonical": "oklch(0.22 0.04 232)",
+        "tonalRamp": [
+          "oklch(0.13 0.03 232)",
+          "oklch(0.20 0.04 232)",
+          "oklch(0.28 0.04 232)",
+          "oklch(0.37 0.05 232)",
+          "oklch(0.48 0.05 232)",
+          "oklch(0.62 0.04 232)",
+          "oklch(0.77 0.03 232)",
+          "oklch(0.92 0.01 232)"
+        ]
+      },
+      "azure-surface": {
+        "role": "neutral",
+        "displayName": "Azure Surface",
+        "canonical": "oklch(0.28 0.05 232)",
+        "tonalRamp": [
+          "oklch(0.15 0.03 232)",
+          "oklch(0.22 0.04 232)",
+          "oklch(0.30 0.05 232)",
+          "oklch(0.39 0.06 232)",
+          "oklch(0.50 0.05 232)",
+          "oklch(0.64 0.04 232)",
+          "oklch(0.78 0.03 232)",
+          "oklch(0.92 0.01 232)"
+        ]
+      },
+      "azure-elevated": {
+        "role": "neutral",
+        "displayName": "Azure Elevated",
+        "canonical": "oklch(0.35 0.06 232)",
+        "tonalRamp": [
+          "oklch(0.16 0.03 232)",
+          "oklch(0.24 0.04 232)",
+          "oklch(0.33 0.06 232)",
+          "oklch(0.42 0.06 232)",
+          "oklch(0.52 0.06 232)",
+          "oklch(0.65 0.05 232)",
+          "oklch(0.79 0.03 232)",
+          "oklch(0.93 0.01 232)"
+        ]
+      },
+      "clarity-blue": {
+        "role": "primary",
+        "displayName": "Clarity Blue",
+        "canonical": "oklch(0.52 0.16 255)",
+        "tonalRamp": [
+          "oklch(0.22 0.08 255)",
+          "oklch(0.32 0.12 255)",
+          "oklch(0.42 0.15 255)",
+          "oklch(0.52 0.16 255)",
+          "oklch(0.62 0.15 255)",
+          "oklch(0.73 0.11 255)",
+          "oklch(0.84 0.07 255)",
+          "oklch(0.93 0.03 255)"
+        ]
+      },
+      "sky-accent": {
+        "role": "primary",
+        "displayName": "Sky Accent",
+        "canonical": "oklch(0.63 0.14 255)",
+        "tonalRamp": [
+          "oklch(0.25 0.08 255)",
+          "oklch(0.35 0.10 255)",
+          "oklch(0.45 0.13 255)",
+          "oklch(0.55 0.14 255)",
+          "oklch(0.63 0.14 255)",
+          "oklch(0.73 0.11 255)",
+          "oklch(0.83 0.07 255)",
+          "oklch(0.93 0.03 255)"
+        ]
+      },
+      "frost-text": {
+        "role": "neutral",
+        "displayName": "Frost Text",
+        "canonical": "oklch(0.93 0.02 240)",
+        "tonalRamp": [
+          "oklch(0.20 0.02 240)",
+          "oklch(0.32 0.02 240)",
+          "oklch(0.44 0.02 240)",
+          "oklch(0.56 0.02 240)",
+          "oklch(0.68 0.02 240)",
+          "oklch(0.78 0.02 240)",
+          "oklch(0.86 0.02 240)",
+          "oklch(0.93 0.02 240)"
+        ]
+      },
+      "error-red": {
+        "role": "semantic",
+        "displayName": "Error Red",
+        "canonical": "oklch(0.54 0.22 27)",
+        "tonalRamp": [
+          "oklch(0.22 0.10 27)",
+          "oklch(0.32 0.16 27)",
+          "oklch(0.42 0.20 27)",
+          "oklch(0.52 0.22 27)",
+          "oklch(0.54 0.22 27)",
+          "oklch(0.66 0.18 27)",
+          "oklch(0.78 0.12 27)",
+          "oklch(0.90 0.05 27)"
+        ]
+      },
+      "success-green": {
+        "role": "semantic",
+        "displayName": "Success Green",
+        "canonical": "oklch(0.68 0.20 143)",
+        "tonalRamp": [
+          "oklch(0.22 0.08 143)",
+          "oklch(0.32 0.12 143)",
+          "oklch(0.42 0.16 143)",
+          "oklch(0.52 0.19 143)",
+          "oklch(0.62 0.20 143)",
+          "oklch(0.68 0.20 143)",
+          "oklch(0.78 0.14 143)",
+          "oklch(0.90 0.06 143)"
+        ]
+      },
+      "warning-amber": {
+        "role": "semantic",
+        "displayName": "Warning Amber",
+        "canonical": "oklch(0.76 0.18 72)",
+        "tonalRamp": [
+          "oklch(0.22 0.08 72)",
+          "oklch(0.34 0.12 72)",
+          "oklch(0.46 0.16 72)",
+          "oklch(0.58 0.18 72)",
+          "oklch(0.68 0.18 72)",
+          "oklch(0.76 0.18 72)",
+          "oklch(0.84 0.13 72)",
+          "oklch(0.93 0.06 72)"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "display": { "displayName": "Display", "purpose": "Page titles only. Used once per page at most." },
+      "headline": { "displayName": "Headline", "purpose": "Section headings within multi-step flows and wizard step titles." },
+      "title": { "displayName": "Title", "purpose": "Card headings, modal titles, form group labels." },
+      "body": { "displayName": "Body", "purpose": "All descriptive text, wizard content, field descriptions. Max 65ch." },
+      "label": { "displayName": "Label", "purpose": "Section category headers and taxonomy labels only. Always uppercase." },
+      "mono": { "displayName": "Mono", "purpose": "Machine-generated strings only: submission IDs, resource group names, ARM tags, proof artifact text." }
+    },
+    "shadows": [
+      {
+        "name": "structural",
+        "value": "0 25px 50px -12px rgba(0, 0, 0, 0.25)",
+        "purpose": "Modals only. Signals complete escape from the page layer."
+      },
+      {
+        "name": "floating",
+        "value": "0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1)",
+        "purpose": "Toasts and dropdown menus. Ephemeral floating UI."
+      }
+    ],
+    "motion": [
+      {
+        "name": "ease-out-expo",
+        "value": "cubic-bezier(0.22, 1, 0.36, 1)",
+        "purpose": "Page entry animations (420ms) and mobile menu animations. Exponential ease-out; no bounce."
+      },
+      {
+        "name": "ease-out-standard",
+        "value": "ease-out",
+        "purpose": "Component state transitions: color, background, border (150ms). Hover, focus, active."
+      },
+      {
+        "name": "page-entry",
+        "value": "420ms cubic-bezier(0.22, 1, 0.36, 1)",
+        "purpose": "Staggered fade-up on route entry. Each zone delayed 80ms from the previous."
+      },
+      {
+        "name": "component-state",
+        "value": "150ms ease-out",
+        "purpose": "All component hover/focus transitions."
+      }
+    ],
+    "breakpoints": [
+      { "name": "sm", "value": "640px", "purpose": "Mobile menu collapses to hamburger below this point." },
+      { "name": "md", "value": "768px", "purpose": "Layout padding expands from px-6 to px-8." },
+      { "name": "lg", "value": "1024px", "purpose": "Max content width cap at max-w-7xl." }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Main call-to-action. Used for Deploy, Browse Templates, and step advancement in wizards.",
+      "html": "<button class=\"ds-btn-primary\">Deploy</button>",
+      "css": ".ds-btn-primary { display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 44px; padding: 0 24px; background-color: #4a9be0; color: #ffffff; border: none; border-radius: 9999px; font-family: 'IBM Plex Sans', system-ui, sans-serif; font-size: 0.875rem; font-weight: 500; cursor: pointer; transition: background-color 150ms ease-out; text-decoration: none; white-space: nowrap; } .ds-btn-primary:hover { background-color: #5aaef0; } .ds-btn-primary:focus-visible { outline: 2px solid #4a9be0; outline-offset: 2px; } .ds-btn-primary:disabled { opacity: 0.5; pointer-events: none; }"
+    },
+    {
+      "name": "Secondary Button",
+      "kind": "button",
+      "refersTo": "button-secondary",
+      "description": "Alternative action. Transparent fill with a subtle border. Same pill shape as primary.",
+      "html": "<button class=\"ds-btn-secondary\">Browse Templates</button>",
+      "css": ".ds-btn-secondary { display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 44px; padding: 0 24px; background-color: transparent; color: #e0eaf8; border: 1px solid rgba(44, 127, 212, 0.25); border-radius: 9999px; font-family: 'IBM Plex Sans', system-ui, sans-serif; font-size: 0.875rem; font-weight: 500; cursor: pointer; transition: background-color 150ms ease-out; text-decoration: none; white-space: nowrap; } .ds-btn-secondary:hover { background-color: #375577; } .ds-btn-secondary:focus-visible { outline: 2px solid #4a9be0; outline-offset: 2px; } .ds-btn-secondary:disabled { opacity: 0.5; pointer-events: none; }"
+    },
+    {
+      "name": "Ghost Button",
+      "kind": "button",
+      "refersTo": "button-ghost",
+      "description": "Tertiary action. Muted text at rest; only activates visually on interaction.",
+      "html": "<button class=\"ds-btn-ghost\">Request Custom Setup</button>",
+      "css": ".ds-btn-ghost { display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 44px; padding: 0 24px; background-color: transparent; color: rgba(175, 210, 245, 0.82); border: none; border-radius: 9999px; font-family: 'IBM Plex Sans', system-ui, sans-serif; font-size: 0.875rem; font-weight: 500; cursor: pointer; transition: background-color 150ms ease-out, color 150ms ease-out; text-decoration: none; white-space: nowrap; } .ds-btn-ghost:hover { background-color: #375577; color: #e0eaf8; } .ds-btn-ghost:focus-visible { outline: 2px solid #4a9be0; outline-offset: 2px; } .ds-btn-ghost:disabled { opacity: 0.5; pointer-events: none; }"
+    },
+    {
+      "name": "Card",
+      "kind": "card",
+      "refersTo": "card",
+      "description": "Standard content container. Used for templates, resources, and information groupings.",
+      "html": "<div class=\"ds-card\"><div class=\"ds-card-title\">Storage Account</div><p class=\"ds-card-body\">Provision a Blob storage account in Southeast Asia with EPF policy tags applied automatically.</p></div>",
+      "css": ".ds-card { background-color: #2c4262; border: 1px solid rgba(44, 127, 212, 0.25); border-radius: 6px; padding: 24px; transition: background-color 150ms ease-out, border-color 150ms ease-out; } .ds-card-title { font-family: 'IBM Plex Sans', system-ui, sans-serif; font-size: 1rem; font-weight: 600; color: #e0eaf8; margin: 0 0 8px 0; } .ds-card-body { font-family: 'IBM Plex Sans', system-ui, sans-serif; font-size: 0.875rem; font-weight: 400; color: rgba(175, 210, 245, 0.82); line-height: 1.6; margin: 0; }"
+    },
+    {
+      "name": "Badges",
+      "kind": "chip",
+      "refersTo": "card",
+      "description": "Status indicators. Tinted semantic colors at 15% opacity. Used for deployment status, region labels, and resource type tags.",
+      "html": "<div style=\"display:flex;gap:8px;flex-wrap:wrap\"><span class=\"ds-badge ds-badge-accent\">Southeast Asia</span><span class=\"ds-badge ds-badge-success\">Succeeded</span><span class=\"ds-badge ds-badge-warning\">Expires soon</span><span class=\"ds-badge ds-badge-error\">Policy blocked</span><span class=\"ds-badge ds-badge-default\">Storage</span></div>",
+      "css": ".ds-badge { display: inline-flex; align-items: center; border-radius: 9999px; padding: 2px 10px; font-family: 'IBM Plex Sans', system-ui, sans-serif; font-size: 0.75rem; font-weight: 500; white-space: nowrap; } .ds-badge-default { background-color: #375577; color: #e0eaf8; } .ds-badge-accent { background-color: rgba(74, 155, 224, 0.15); color: #4a9be0; } .ds-badge-success { background-color: rgba(34, 197, 94, 0.15); color: #22c55e; } .ds-badge-warning { background-color: rgba(245, 158, 11, 0.15); color: #f59e0b; } .ds-badge-error { background-color: rgba(239, 68, 68, 0.15); color: #ef4444; }"
+    },
+    {
+      "name": "Navigation Bar",
+      "kind": "nav",
+      "refersTo": "button-ghost",
+      "description": "Fixed top navigation. Logo + wordmark left, nav links center-right, user avatar right.",
+      "html": "<nav class=\"ds-navbar\"><div class=\"ds-nav-logo\"><svg width=\"32\" height=\"32\" viewBox=\"0 0 32 32\" fill=\"none\"><rect x=\"0.75\" y=\"0.75\" width=\"30.5\" height=\"30.5\" rx=\"4\" stroke=\"#4a9be0\" stroke-width=\"1.5\"/><circle cx=\"8\" cy=\"8\" r=\"2\" fill=\"#4a9be0\"/><circle cx=\"16\" cy=\"8\" r=\"2\" fill=\"#4a9be0\"/><circle cx=\"24\" cy=\"8\" r=\"2\" fill=\"#4a9be0\"/><circle cx=\"8\" cy=\"16\" r=\"2\" fill=\"#4a9be0\"/><circle cx=\"16\" cy=\"16\" r=\"2\" fill=\"#4a9be0\"/><circle cx=\"24\" cy=\"16\" r=\"2\" fill=\"#4a9be0\"/><circle cx=\"8\" cy=\"24\" r=\"2\" fill=\"#4a9be0\"/><circle cx=\"16\" cy=\"24\" r=\"2\" fill=\"#4a9be0\"/><circle cx=\"24\" cy=\"24\" r=\"2\" fill=\"#4a9be0\"/></svg><span class=\"ds-nav-wordmark\">Sandbox</span></div><div class=\"ds-nav-links\"><a class=\"ds-nav-link ds-nav-link-active\" href=\"#\">Home</a><a class=\"ds-nav-link\" href=\"#\">Templates</a></div></nav>",
+      "css": ".ds-navbar { display: flex; align-items: center; justify-content: space-between; height: 64px; padding: 0 32px; background-color: #2c4262; border-bottom: 1px solid rgba(44, 127, 212, 0.25); width: 100%; box-sizing: border-box; } .ds-nav-logo { display: flex; align-items: center; gap: 10px; } .ds-nav-wordmark { font-family: 'IBM Plex Sans', system-ui, sans-serif; font-size: 1rem; font-weight: 600; color: #e0eaf8; text-decoration: none; } .ds-nav-links { display: flex; align-items: center; gap: 32px; } .ds-nav-link { position: relative; font-family: 'IBM Plex Sans', system-ui, sans-serif; font-size: 0.875rem; font-weight: 500; color: rgba(175, 210, 245, 0.82); text-decoration: none; transition: color 150ms ease-out; padding-bottom: 4px; } .ds-nav-link:hover { color: #e0eaf8; } .ds-nav-link-active { color: #e0eaf8; } .ds-nav-link-active::after { content: ''; position: absolute; bottom: -2px; left: 0; right: 0; height: 2px; background-color: #2b7fd4; border-radius: 1px; }"
+    },
+    {
+      "name": "Toast Notification",
+      "kind": "custom",
+      "refersTo": "card",
+      "description": "Ephemeral feedback. Bottom-right, 5s auto-dismiss. Three semantic variants.",
+      "html": "<div style=\"display:flex;flex-direction:column;gap:12px\"><div class=\"ds-toast\"><svg class=\"ds-toast-icon ds-toast-icon-success\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"><path d=\"M22 11.08V12a10 10 0 1 1-5.93-9.14\"/><polyline points=\"22,4 12,14.01 9,11.01\"/></svg><span class=\"ds-toast-text\">Deployment submitted successfully.</span><button class=\"ds-toast-dismiss\" aria-label=\"Dismiss\"><svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" width=\"16\" height=\"16\"><line x1=\"18\" y1=\"6\" x2=\"6\" y2=\"18\"/><line x1=\"6\" y1=\"6\" x2=\"18\" y2=\"18\"/></svg></button></div><div class=\"ds-toast\"><svg class=\"ds-toast-icon ds-toast-icon-error\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"><circle cx=\"12\" cy=\"12\" r=\"10\"/><line x1=\"15\" y1=\"9\" x2=\"9\" y2=\"15\"/><line x1=\"9\" y1=\"9\" x2=\"15\" y2=\"15\"/></svg><span class=\"ds-toast-text\">Deployment failed. Check ARM status.</span><button class=\"ds-toast-dismiss\" aria-label=\"Dismiss\"><svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" width=\"16\" height=\"16\"><line x1=\"18\" y1=\"6\" x2=\"6\" y2=\"18\"/><line x1=\"6\" y1=\"6\" x2=\"18\" y2=\"18\"/></svg></button></div></div>",
+      "css": ".ds-toast { display: flex; align-items: center; gap: 12px; border-radius: 12px; border: 1px solid rgba(44, 127, 212, 0.25); background-color: #375577; padding: 12px 16px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -4px rgba(0,0,0,0.1); max-width: 360px; } .ds-toast-icon { width: 20px; height: 20px; flex-shrink: 0; } .ds-toast-icon-success { color: #22c55e; } .ds-toast-icon-error { color: #ef4444; } .ds-toast-icon-warning { color: #f59e0b; } .ds-toast-text { font-family: 'IBM Plex Sans', system-ui, sans-serif; font-size: 0.875rem; font-weight: 400; color: #e0eaf8; flex: 1; line-height: 1.5; } .ds-toast-dismiss { display: flex; align-items: center; justify-content: center; background: none; border: none; cursor: pointer; padding: 2px; border-radius: 4px; color: rgba(175, 210, 245, 0.82); transition: color 150ms ease-out; margin-left: 8px; } .ds-toast-dismiss:hover { color: #e0eaf8; }"
+    },
+    {
+      "name": "Proof Artifact Block",
+      "kind": "custom",
+      "refersTo": "card",
+      "description": "Monospaced deployment proof shown in ConfirmModal. The only surface where IBM Plex Mono dominates. Copyable as plain text for HOD approval email.",
+      "html": "<div class=\"ds-proof\"><div class=\"ds-proof-header\"><span class=\"ds-proof-title\">SANDBOX DEPLOYMENT PROOF</span><button class=\"ds-proof-copy\" aria-label=\"Copy proof\"><svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" width=\"16\" height=\"16\"><rect x=\"9\" y=\"9\" width=\"13\" height=\"13\" rx=\"2\"/><path d=\"M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1\"/></svg></button></div><pre class=\"ds-proof-body\">Submission ID : a1b2c3d4-e5f6-7890\nSubmitted By  : Amirul Haziq (amirul@epf.gov.my)\nDate/Time     : 1 May 2026, 10:34 AM\nMode          : Template\nTarget RG     : rg-storage-account-a1b2c3\nStatus        : accepted</pre></div>",
+      "css": ".ds-proof { background-color: #22324a; border: 1px solid rgba(44, 127, 212, 0.25); border-radius: 6px; overflow: hidden; } .ds-proof-header { display: flex; align-items: center; justify-content: space-between; padding: 10px 16px; border-bottom: 1px solid rgba(44, 127, 212, 0.25); background-color: #2c4262; } .ds-proof-title { font-family: 'IBM Plex Mono', monospace; font-size: 0.75rem; font-weight: 500; color: rgba(175, 210, 245, 0.82); letter-spacing: 0.05em; } .ds-proof-copy { display: flex; align-items: center; background: none; border: none; cursor: pointer; padding: 4px; border-radius: 4px; color: rgba(175, 210, 245, 0.82); transition: color 150ms ease-out; } .ds-proof-copy:hover { color: #4a9be0; } .ds-proof-body { font-family: 'IBM Plex Mono', monospace; font-size: 0.8125rem; font-weight: 400; color: #e0eaf8; line-height: 1.7; padding: 16px; margin: 0; white-space: pre-wrap; overflow-x: auto; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Structured Guide",
+    "overview": "Sandbox IAC is an internal tool for non-technical EPF staff who need to provision Azure infrastructure without understanding it. The interface plays the role of a knowledgeable colleague who has pre-arranged the process: questions are asked in the right order, options are scoped to what is relevant for this step, and feedback is honest and immediate. The experience reduces cognitive load by sequencing complexity, not hiding it.\n\nThe system is dark. Not because tools look cool dark, but because the physical scene demands it: a project manager in a modern office environment opening this tool alongside Azure Portal and their planning software. Dark surfaces reduce eye strain, align with developer-adjacent tooling expectations, and let the UI recede so that the user's decisions occupy the visual foreground.\n\nThe aesthetic is deliberately restrained. IBM Plex Sans and IBM Plex Mono establish technical credibility without coldness. The azure-blue palette anchors the tool in the Azure ecosystem without mimicking it. Tonal surface layering communicates depth without shadows. The sky-accent blue appears only where the interface is asking for action.",
+    "keyCharacteristics": [
+      "Tonal depth over shadow hierarchy: three surface layers, no card shadows",
+      "Pill-shaped interactive affordances: buttons and badges are round; containers are not",
+      "IBM Plex Mono reserved exclusively for machine-generated strings",
+      "Staggered fade-up animations on page entry; state transitions only on components",
+      "Subtle 48px grid background pattern reinforces the infrastructure register"
+    ],
+    "rules": [
+      { "name": "The Clarity Rule", "body": "Sky Accent (#4a9be0) appears only on interactive and navigational elements. It is never used decoratively. Its presence means 'something you can do.'", "section": "colors" },
+      { "name": "The Tonal Grid Rule", "body": "There are exactly three surface layers: Foundation, Surface, Elevated. No surface sits on more than one layer. Nested cards are forbidden.", "section": "colors" },
+      { "name": "The Weight Hierarchy Rule", "body": "Every typographic level must differ from its neighbor by at least one font-weight step AND at least 1.25x in size. Flat hierarchies — same size, different color — are prohibited.", "section": "typography" },
+      { "name": "The Mono Boundary Rule", "body": "IBM Plex Mono is reserved for machine-generated strings. It never appears in headings, body copy, labels, or button text.", "section": "typography" },
+      { "name": "The Tonal Depth Rule", "body": "Depth lives in surface color, not shadows. If you are reaching for a box-shadow on a card or section container, use the next tonal surface layer instead.", "section": "elevation" },
+      { "name": "The Shadow Exception Rule", "body": "Shadows are permitted only on elements that physically float above the page: modals, toasts, dropdown menus, popovers. Every other surface is flat at rest.", "section": "elevation" }
+    ],
+    "dos": [
+      "Do use tonal layering (Foundation to Surface to Elevated) to communicate containment and depth.",
+      "Do use border-radius 9999px exclusively for interactive pill elements: buttons and badges.",
+      "Do use IBM Plex Mono for all machine-generated strings: submission IDs, resource group names, ARM tags, proof artifact content.",
+      "Do write Label-level text in uppercase with 0.075em letter-spacing for genuine taxonomy.",
+      "Do keep body copy under 65 characters per line.",
+      "Do use semantic badge colors at 15% opacity background with full-opacity text.",
+      "Do animate with ease-out exponential curves (cubic-bezier(0.22, 1, 0.36, 1)). State transitions are 150ms. Page entry animations are 420ms.",
+      "Do scope shadows to floating UI only: modals and toasts."
+    ],
+    "donts": [
+      "Don't use border-left or border-right greater than 1px as a colored stripe on cards or list items.",
+      "Don't use background-clip: text with a gradient. All text is a single solid color.",
+      "Don't use glassmorphism decoratively. backdrop-blur appears only on the scrolled navbar.",
+      "Don't invent a fourth surface layer. Foundation, Surface, and Elevated are the complete vocabulary.",
+      "Don't apply box-shadows to cards or section containers.",
+      "Don't use sharp corners or fully square buttons. The pill shape is the deliberate affordance signal.",
+      "Don't use IBM Plex Mono for UI copy, headings, or labels.",
+      "Don't build screens that feel like a boxy SharePoint intranet.",
+      "Don't build screens that feel like AWS Console — overwhelming options, dense navigation.",
+      "Don't use flashy SaaS patterns: gradient fills, glassmorphism cards, or hero metrics.",
+      "Don't use neon accents, cyberpunk color treatments, or glowing dark-mode aesthetics.",
+      "Don't build identical card grids: same-sized cards with icon + heading + body text, repeated endlessly."
+    ]
+  }
+}

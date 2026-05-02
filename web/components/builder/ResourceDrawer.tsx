@@ -99,7 +99,7 @@ export function ResourceDrawer({
             initial={{ x: "100%" }}
             animate={{ x: 0 }}
             exit={{ x: "100%" }}
-            transition={{ type: "spring", damping: 30, stiffness: 300 }}
+            transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
             className="fixed right-0 top-0 z-50 flex h-full w-full max-w-md flex-col border-l border-border bg-surface-elevated shadow-2xl"
           >
             <DrawerContent
@@ -154,7 +154,7 @@ function DrawerContent({
         <button
           onClick={onClose}
           aria-label="Close panel"
-          className="rounded-lg p-1.5 text-text-muted hover:bg-surface hover:text-text"
+          className="flex min-h-[44px] min-w-[44px] items-center justify-center rounded-lg text-text-muted hover:bg-surface hover:text-text"
         >
           <X className="h-5 w-5" />
         </button>
@@ -265,7 +265,7 @@ function DrawerContent({
                           checked={watch(field.name) as boolean | undefined ?? false}
                         />
                         <div className="h-6 w-11 rounded-full border border-border bg-surface transition-colors peer-checked:border-accent peer-checked:bg-accent peer-focus-visible:ring-2 peer-focus-visible:ring-accent peer-focus-visible:ring-offset-1 peer-focus-visible:ring-offset-surface-elevated" />
-                        <div className="absolute left-0.5 top-0.5 h-5 w-5 rounded-full bg-text-muted transition-transform peer-checked:translate-x-5 peer-checked:bg-white" />
+                        <div className="absolute left-0.5 top-0.5 h-5 w-5 rounded-full bg-text-muted transition-transform peer-checked:translate-x-5 peer-checked:bg-text" />
                       </div>
                       <div>
                         <span className="text-sm font-medium text-text">{field.label}</span>

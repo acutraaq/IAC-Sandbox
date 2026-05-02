@@ -50,7 +50,7 @@ export function SelectedPanel({ resources, onRemove }: SelectedPanelProps) {
                 <button
                   onClick={() => onRemove(r.type)}
                   aria-label={`Remove ${r.name}`}
-                  className="rounded p-1 text-text-muted hover:text-error"
+                  className="flex min-h-[44px] min-w-[44px] items-center justify-center rounded text-text-muted hover:text-error"
                 >
                   <X className="h-4 w-4" />
                 </button>

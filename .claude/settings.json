@@ -22,7 +22,8 @@
       "Bash(git check-ignore *)",
       "Bash(where gh *)",
       "Bash(winget list *)",
-      "Bash(GIT_SSL_NO_VERIFY=true git pull origin main)"
+      "Bash(GIT_SSL_NO_VERIFY=true git pull origin main)",
+      "Bash(npx impeccable *)"
     ]
   },
   "hooks": {
