@@ -1,6 +1,9 @@
 ---
 name: phase-qa
 description: Quality gate phase (Phase 4): lint, tests, build, smoke checklist, and security review for IAC Sandbox
+archived: true
+archived_date: 2026-05-02
+reason: All phases complete and shipped. Archived to prevent accidental re-execution.
 ---
 
 # Phase: QA + Release Gates (Phase 4)

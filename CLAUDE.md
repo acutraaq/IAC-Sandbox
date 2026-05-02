@@ -1,6 +1,6 @@
 # CLAUDE.md — Project Conventions & Developer Guidance
 
-> **Version:** 2.2.0 | **Last updated:** 2026-04-27 | **Status:** Active  
+> **Version:** 2.3.0 | **Last updated:** 2026-05-02 | **Status:** Active  
 > **Purpose:** Single source of truth for project conventions, tech stack, and development patterns  
 > **Owner:** All engineers | **Review cadence:** On every convention or pattern change  
 > **Related docs:** [Documentation Index](docs/README.md) | [Complete Spec](docs/project/SPEC.md) | [Glossary](docs/GLOSSARY.md) | [HANDOFF](docs/superpowers/HANDOFF.md)
@@ -25,10 +25,10 @@ Before starting any work, check `docs/superpowers/specs/` for any active (non-ar
 | `docs/superpowers/archive/plans/2026-04-29-msal-sso.md` | **Complete — Archived** | MSAL authorization code + PKCE flow, `deployedBy` wired end-to-end |
 | `docs/superpowers/plans/` | **Empty** | No active plans; all prior work archived |
 
-**What is live and working:** See Live Deployment section below.
-**What is designed but not built:** Nothing — all approved specs implemented.
-**What is blocked:** Microsoft SSO / MSAL — placeholder login is live; real SSO swap pending App Registration credentials.
-**What needs admin action:** Managed identity not yet enabled on Function App or App Service — cross-subscription ARM deployments will fail until an admin completes the setup checklist in the **Azure Infrastructure Setup** section below. Verify with `GET /api/healthz/arm` → `{"status":"ok"}`.
+**What is live and working:** See Live Deployment section below.  
+**What is designed but not built:** Nothing — all approved specs implemented.  
+**What is blocked:** Microsoft SSO / MSAL — placeholder login is live; real SSO swap pending App Registration credentials.  
+**What needs admin action:** Managed identity not yet enabled on Function App or App Service — cross-subscription ARM deployments will fail until an admin completes the setup checklist in `.claude/rules/azure-infra.md`. Verify with `GET /api/healthz/arm` → `{"status":"ok"}`.
 
 ---
 
@@ -60,6 +60,7 @@ Both Template and Custom Builder flows converge at a shared Review & Submit page
 | User-deployed resource groups (ARM target) | — | sub-epf-sandbox-internal (`1fed33d2-00fd-40a8-a5c1-c120aec1b902`) |
 
 **App Service env vars (required):**
+
 | Variable | Purpose |
 |----------|---------|
 | `AZURE_SUBSCRIPTION_ID` | Deployment target subscription (`1fed33d2-00fd-40a8-a5c1-c120aec1b902`) — sub-epf-sandbox-internal |
@@ -68,94 +69,14 @@ Both Template and Custom Builder flows converge at a shared Review & Submit page
 | `SESSION_SECRET` | HMAC secret for the placeholder session cookie. ≥ 32 chars. Generate with `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"`. |
 
 **GitHub Secrets required:**
+
 | Secret | Used by |
 |--------|---------|
 | `AZUREAPPSERVICE_PUBLISHPROFILE_7331FFE3C5B34C84A639B5C17E1CA22E` | Web App deployment |
 | `AZURE_FUNCTIONAPP_PUBLISH_PROFILE` | Function App deployment (download from Azure Portal → `epf-sandbox-functions` → Get publish profile) |
 
-**CI/CD deploy approach (`ci.yml` — single workflow, two parallel jobs):**
-
-Both `web` and `functions` jobs live in `.github/workflows/ci.yml`. A `changes` job runs first using `dorny/paths-filter@v3` to detect which paths changed — each job only runs when its relevant files are modified.
-
-Web job:
-1. `npm ci` → lint → type-check → test → `npm run build` (with dummy env vars)
-2. Assemble standalone: copy `public/` and `.next/static/` into the standalone dir, write `oryx-manifest.toml` with `StartupCommand = "env -u HOSTNAME node server.js"` (strips the Azure-injected `HOSTNAME` env var so Next.js binds to `0.0.0.0`)
-3. Zip → `release.zip` → deploy via `azure/webapps-deploy@v3`
-
-Functions job:
-1. `npm ci` → type-check → test → `npm run build`
-2. `npm prune --omit=dev` → zip `dist/ host.json package.json node_modules`
-3. Deploy via `azure/functions-action@v1` using `AZURE_FUNCTIONAPP_PUBLISH_PROFILE`
-
-> `next.config.js` uses `output: 'standalone'`. Do not add `cp server.js .next/standalone/server.js` to the workflow — it would replace the correct standalone server with an incompatible one. `web/server.js` is for local `npm start` only.
-
----
-
-## Azure Infrastructure Setup
-
-**Status: Pending admin action.** The code is correct. The Function App and App Service use `DefaultAzureCredential()` which resolves to Managed Identity in Azure. The managed identities have not been enabled or granted cross-subscription access yet.
-
-### Admin checklist (one-time, Azure Portal)
-
-**Step 1 — Enable System-Assigned Managed Identity on the Function App**
-
-Portal path: `epf-sandbox-functions` → Identity → System assigned → Status **On** → Save  
-Note the **Object (principal) ID** shown after saving.
-
-**Step 2 — Enable System-Assigned Managed Identity on the App Service**
-
-Portal path: `epf-experimental-sandbox-playground` → Identity → System assigned → Status **On** → Save  
-Note the **Object (principal) ID** shown after saving.
-
-**Step 3 — Grant Function App MI: Contributor on sub-epf-sandbox-internal**
-
-Portal path: Subscriptions → `sub-epf-sandbox-internal` (`1fed33d2-00fd-40a8-a5c1-c120aec1b902`) → Access control (IAM) → Add role assignment
-
-| Field | Value |
-|-------|-------|
-| Role | **Contributor** |
-| Assign access to | Managed identity |
-| Member | `epf-sandbox-functions` (Object ID from step 1) |
-
-Required so the Function App can create resource groups and deploy ARM resources in the internal sub.
-
-**Step 4 — Grant App Service MI: Reader on sub-epf-sandbox-internal**
-
-Same IAM blade, same subscription:
-
-| Field | Value |
-|-------|-------|
-| Role | **Reader** |
-| Assign access to | Managed identity |
-| Member | `epf-experimental-sandbox-playground` (Object ID from step 2) |
-
-Required so the web app can list resource groups by tag and read ARM deployment status for the polling and My Stuff pages.
-
-**Step 5 — Verify Function App Application Settings**
-
-Portal path: `epf-sandbox-functions` → Configuration → Application settings
-
-| Setting name | Required value |
-|---|---|
-| `AZURE_SUBSCRIPTION_ID` | `1fed33d2-00fd-40a8-a5c1-c120aec1b902` |
-| `AZURE_TENANT_ID` | `3335e1a2-2058-4baf-b03b-031abf0fc821` |
-| `DEPLOYMENT_QUEUE` | Full Azure Storage connection string for `coeiacsandbox8bfc` (same value as `AZURE_STORAGE_CONNECTION_STRING` on the App Service) |
-
-Click **Save** after any changes; allow the Function App to restart.
-
-### Verification (after admin completes steps above)
-
-```sh
-# Should return {"status":"ok"} — confirms App Service MI can reach sub-epf-sandbox-internal
-curl https://epf-experimental-sandbox-playground-cvhdbjgdcqabdjau.southeastasia-01.azurewebsites.net/api/healthz/arm
-```
-
-If the response is `{"status":"error",...}`:
-- Token error → managed identity not enabled or credential chain failure
-- ARM 403 → Reader role not yet assigned on sub-epf-sandbox-internal
-- ARM 404 → subscription ID mismatch in App Service env vars
-
-After that passes, submit a test template deployment (e.g., Storage Account) and confirm a resource group appears in sub-epf-sandbox-internal with all 6 ARM tags.
+> CI/CD workflow details (standalone assembly, oryx config, zip steps): see `.claude/rules/cicd.md` — auto-loads when editing `.github/`.  
+> Managed identity setup checklist: see `.claude/rules/azure-infra.md` — auto-loads when editing `functions/src/`.
 
 ---
 
@@ -194,40 +115,6 @@ The core cookie signing/verification logic lives in `web/lib/auth-core.ts`, whic
 
 ---
 
-## Template Catalog
-
-16 templates across 6 categories. All region options are locked to:
-- Asia Pacific (Southeast Asia)
-- Asia Pacific (East Asia)
-- Asia Pacific (Australia East)
-
-| Category | Slug | Resource Type |
-|----------|------|---------------|
-| compute | `web-application` | `Microsoft.Web/serverfarms` + `Microsoft.Web/sites` |
-| compute | `virtual-machine` | `Microsoft.Compute/virtualMachines` — policy-blocked, shows lock UI |
-| compute | `container-app` | `Microsoft.App/managedEnvironments` + `Microsoft.App/containerApps` |
-| compute | `full-stack-web-app` | App Service + Azure SQL + Storage + Key Vault (6 resources) |
-| compute | `microservices-platform` | Container Apps + Service Bus — policy-blocked |
-| data | `database` | `Microsoft.DBforPostgreSQL/flexibleServers` |
-| data | `storage-account` | `Microsoft.Storage/storageAccounts` |
-| data | `data-pipeline` | policy-blocked |
-| security | `key-vault` | `Microsoft.KeyVault/vaults` |
-| security | `secure-api-backend` | policy-blocked |
-| network | `virtual-network` | `Microsoft.Network/virtualNetworks` |
-| network | `landing-zone` | VNet + Key Vault + Log Analytics (conditional) |
-| automation | `approval-workflow` | `Microsoft.Logic/workflows` (HTTP trigger) |
-| automation | `scheduled-automation` | `Microsoft.Logic/workflows` (recurrence trigger) |
-| integration | `message-queue` | `Microsoft.ServiceBus/namespaces` |
-| integration | `event-broadcaster` | `Microsoft.EventGrid/topics` |
-
-Policy-blocked slugs (enforced server-side at `POST /api/deployments` → 403):
-- `virtual-machine`, `microservices-platform`, `data-pipeline`, `secure-api-backend`
-
-Deployable slugs (allow-list in `web/lib/deployments/policy.ts`):
-- `web-application`, `database`, `storage-account`, `key-vault`, `virtual-network`, `container-app`, `landing-zone`, `full-stack-web-app`, `approval-workflow`, `scheduled-automation`, `message-queue`, `event-broadcaster`
-
----
-
 ## Tech Stack
 
 ### Web App (`web/`)
@@ -249,6 +136,8 @@ Deployable slugs (allow-list in `web/lib/deployments/policy.ts`):
 
 ### No database
 Prisma and PostgreSQL have been removed. ARM is the source of truth for all deployment state.
+
+> NPM dependency lists: see `.claude/rules/dependencies.md` — auto-loads when editing `package.json`.
 
 ---
 
@@ -293,14 +182,13 @@ Prisma and PostgreSQL have been removed. ARM is the source of truth for all depl
 │   │   ├── report.ts
 │   │   └── deployments/
 │   │       ├── schema.ts        # Zod payload schemas + tagsSchema
-│   │       ├── schema.test.ts    # schema unit tests (co-located)
-│   │       ├── policy.ts        # DEPLOYABLE_SLUGS allow-list + POLICY_BLOCKED_TEMPLATE_SLUGS
+│   │       ├── schema.test.ts   # schema unit tests (co-located)
 │   │       ├── policy.ts        # DEPLOYABLE_SLUGS allow-list + POLICY_BLOCKED_TEMPLATE_SLUGS
 │   │       ├── rg-name.ts       # deriveResourceGroupName / deriveLocation
 │   │       └── arm-status.ts    # mapArmProvisioningState → DeploymentStatus
 │   ├── types/index.ts
 │   ├── data/
-│   │   ├── templates.json       # 16 templates across 6 categories; regions locked to MY/SEA/EA only
+│   │   ├── templates.json       # 16 templates across 6 categories; regions locked to SEA/EA/AUE only
 │   │   └── resources.json       # NSG removed; used by Custom Builder + Request pages
 │   └── __tests__/
 │       ├── store/
@@ -335,10 +223,11 @@ Prisma and PostgreSQL have been removed. ARM is the source of truth for all depl
 │   └── superpowers/
 │       ├── specs/               # Active design specs
 │       ├── plans/               # Active implementation plans
-│       └── archive/             # Completed plans + superseded specs
+│       └── archive/             # Completed plans + superseded specs + retired skills
 └── .claude/                     # Claude Code config (project scope, ships with repo)
     ├── agents/                  # subagent definitions (Task tool spawns these)
     ├── skills/                  # project skills
+    ├── rules/                   # path-scoped instruction files (auto-load by glob)
     ├── hooks/                   # lifecycle scripts (secret-leak guard, session banner)
     ├── settings.json            # permissions + hook wiring (committed)
     └── settings.local.json      # personal permissions (gitignored)
@@ -380,57 +269,6 @@ No docker-compose or local database needed.
 | Errors | `AppError` + `toErrorResponse()` from `web/lib/errors.ts`; use `AppError.forbidden()` for policy blocks |
 | Schema sync | `functions/src/modules/deployments/deployment.schema.ts` must match `web/lib/deployments/schema.ts` — edit both together |
 | Policy check | `DEPLOYABLE_SLUGS` in `web/lib/deployments/policy.ts` — add new slugs here when adding templates |
-
----
-
-## Design System
-
-> Font: IBM Plex Sans + IBM Plex Mono. Dark-only — single `:root` token set, no theme toggle.
-
-### Color Tokens
-| Token | Value | Usage |
-|-------|-------|-------|
-| `--color-bg` | `#22324a` | Page background |
-| `--color-surface` | `#2c4262` | Card backgrounds |
-| `--color-surface-elevated` | `#375577` | Modals, popovers |
-| `--color-border` | `rgba(44, 127, 212, 0.25)` | Borders |
-| `--color-border-strong` | `rgba(44, 127, 212, 0.40)` | Strong borders |
-| `--color-text` | `#e0eaf8` | Primary text |
-| `--color-text-muted` | `rgba(175, 210, 245, 0.82)` | Secondary text |
-| `--color-primary` | `#2b7fd4` | Buttons, active states |
-| `--color-primary-hover` | `#3a8ee3` | Primary hover |
-| `--color-accent` | `#4a9be0` | Links, highlights (Azure blue) |
-| `--color-accent-hover` | `#5aaef0` | Accent hover |
-| `--color-error` | `#ef4444` | Errors |
-| `--color-success` | `#22c55e` | Success |
-| `--color-warning` | `#f59e0b` | Warnings |
-
----
-
-## Proof Artifact Format
-
-```
-SANDBOX DEPLOYMENT PROOF
-========================
-Submission ID : <submissionId>
-Submitted By  : <name> (<email>)
-Tenant        : <tenantId>
-Date/Time     : <locale-formatted, en-MY>
-Mode          : Template | Custom
-Target Sub    : <subscription>
-Target RG     : <resource-group>
-Status        : accepted | running | succeeded | failed
-
-Selection:
-- Template: <slug/name>
-  Form Values:
-    <key>: <value>
-or
-- Resource 1: <type> — <name>
-  Config: <key>: <value>
-
-Note: Manual HOD approval is required outside this system.
-```
 
 ---
 
@@ -491,26 +329,6 @@ npx tsc --noEmit     # 0 errors
 npx vitest run       # all pass
 ```
 
-
----
-
-## NPM Dependencies
-
-### `web/` — Production
-- `next` (v16), `react`, `react-dom` (v19)
-- `@azure/storage-queue`, `@azure/arm-resources`, `@azure/identity`
-- `zustand`, `react-hook-form`, `@hookform/resolvers`, `zod`
-- `lucide-react` (fonts: IBM Plex Sans + IBM Plex Mono via `next/font/google`)
-
-### `web/` — Development
-- `typescript`, `@types/react`, `@types/react-dom`, `@types/node`
-- `tailwindcss` (v4), `eslint`, `eslint-config-next`
-- `vitest`, `@testing-library/react`, `@testing-library/jest-dom`, `@testing-library/user-event`
-- `msw`, `jsdom`
-
-### `functions/` — Production
-- `@azure/functions` (v4), `@azure/arm-resources`, `@azure/identity`, `zod`
-
 ---
 
 ## Gotchas
@@ -523,3 +341,7 @@ npx vitest run       # all pass
 - When adding a new deployable template slug, update BOTH `web/lib/deployments/policy.ts` (DEPLOYABLE_SLUGS) AND `web/lib/deployments/rg-name.ts` (primary field map)
 - `functions/package.json` `main` must be `dist/functions/*.js` — tsconfig `rootDir: ./src` strips the `src/` prefix, so compiled output is at `dist/functions/`, not `dist/src/functions/`. Getting this wrong causes "Function host is not running"
 - Function App Azure settings: `AZURE_SUBSCRIPTION_ID` must point to `sub-epf-sandbox-internal` (`1fed33d2-00fd-40a8-a5c1-c120aec1b902`), not the cloud sub. Managed identity needs Contributor on that subscription.
+
+> Template catalog (16 templates, policy-blocked slugs, region lock): see `.claude/rules/templates.md` — auto-loads when editing templates/data/deployments files.  
+> Design tokens and color values: see `.claude/rules/design-system.md` — auto-loads when editing any `web/` file.  
+> Proof artifact exact format: see `.claude/rules/proof-format.md` — auto-loads when editing review components or `report.ts`.

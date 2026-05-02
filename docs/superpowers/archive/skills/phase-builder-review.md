@@ -1,6 +1,9 @@
 ---
 name: phase-builder-review
 description: Custom builder + review/submit flow (Phases 3c–3d): ResourceCatalog, ResourceDrawer, SelectedPanel, ReviewSection, SubmitButton, ConfirmModal, proof artifact
+archived: true
+archived_date: 2026-05-02
+reason: All phases complete and shipped. Archived to prevent accidental re-execution.
 ---
 
 # Phase: Builder + Review/Submit (Phases 3c–3d)
