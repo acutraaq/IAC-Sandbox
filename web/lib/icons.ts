@@ -16,6 +16,9 @@ import {
   Layers,
   GitMerge,
   ShieldCheck,
+  Zap,
+  MessageSquare,
+  Radio,
   type LucideIcon,
 } from "lucide-react";
 
@@ -37,6 +40,9 @@ const iconMap: Record<string, LucideIcon> = {
   Layers,
   GitMerge,
   ShieldCheck,
+  Zap,
+  MessageSquare,
+  Radio,
 };
 
 export function getIcon(name: string): LucideIcon {
