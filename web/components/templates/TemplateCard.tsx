@@ -25,7 +25,6 @@ export function TemplateCard({ template }: TemplateCardProps) {
       href={`/templates/${template.slug}`}
       className="group flex flex-col gap-4 rounded-md border border-border bg-surface p-6 transition-[border-color,background-color,transform] duration-200 hover:border-accent/25 hover:bg-surface-elevated hover:-translate-y-0.5"
     >
-
       <div className="flex items-start justify-between gap-3">
         <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-accent/10">
           <DynamicIcon name={template.icon} className="h-5 w-5 text-accent" />
@@ -42,7 +41,7 @@ export function TemplateCard({ template }: TemplateCardProps) {
         </p>
       </div>
 
-      <div className="flex items-center gap-5 font-mono text-[11px] text-text-muted">
+      <div className="flex items-center gap-5 text-[11px] text-text-muted">
         <span className="flex items-center gap-1.5">
           <Layers className="h-3.5 w-3.5" aria-hidden="true" />
           {template.resourceCount}&nbsp;

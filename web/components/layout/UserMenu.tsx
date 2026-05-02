@@ -78,7 +78,7 @@ export function UserMenu({ user }: UserMenuProps) {
           role="menu"
           aria-label="Account options"
           onKeyDown={handleMenuKeyDown}
-          className="absolute right-0 mt-2 w-56 rounded-md border border-border bg-surface-elevated p-2 shadow-md"
+          className="absolute right-0 mt-2 w-56 rounded-md border border-border bg-surface-elevated p-2 shadow-lg"
         >
           <div className="px-2 py-2" role="presentation">
             <p className="text-sm font-medium text-text">{user.displayName}</p>
