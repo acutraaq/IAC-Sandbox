@@ -23,7 +23,7 @@ Before starting any work, check `docs/superpowers/specs/` for any active (non-ar
 | ~~UI sizing + Functions host fix~~ | **Complete** | Builder/review/modal sizing, West Europe removed, functions main path fixed |
 | `docs/superpowers/archive/plans/2026-04-25-login-placeholder.md` | **Complete — Archived** | Login page placeholder + route gating via `proxy.ts` |
 | `docs/superpowers/archive/plans/2026-04-29-msal-sso.md` | **Complete — Archived** | MSAL authorization code + PKCE flow, `deployedBy` wired end-to-end |
-| `docs/superpowers/plans/` | **Empty** | No active plans; all prior work archived |
+| `docs/superpowers/plans/2026-04-30-dark-only-theme.md` | **Active** | Dark-only theme implementation |
 
 **What is live and working:** See Live Deployment section below.
 **What is designed but not built:** Nothing — all approved specs implemented.
@@ -196,7 +196,7 @@ The core cookie signing/verification logic lives in `web/lib/auth-core.ts`, whic
 
 ## Template Catalog
 
-16 templates across 6 categories. All region options are locked to:
+16 templates across 7 categories (compute, data, network, security, automation, integration, landing-zone). All region options are locked to:
 - Asia Pacific (Southeast Asia)
 - Asia Pacific (East Asia)
 - Asia Pacific (Australia East)
@@ -214,7 +214,7 @@ The core cookie signing/verification logic lives in `web/lib/auth-core.ts`, whic
 | security | `key-vault` | `Microsoft.KeyVault/vaults` |
 | security | `secure-api-backend` | policy-blocked |
 | network | `virtual-network` | `Microsoft.Network/virtualNetworks` |
-| network | `landing-zone` | VNet + Key Vault + Log Analytics (conditional) |
+| landing-zone | `landing-zone` | VNet + Key Vault + Log Analytics (conditional) |
 | automation | `approval-workflow` | `Microsoft.Logic/workflows` (HTTP trigger) |
 | automation | `scheduled-automation` | `Microsoft.Logic/workflows` (recurrence trigger) |
 | integration | `message-queue` | `Microsoft.ServiceBus/namespaces` |
@@ -295,7 +295,6 @@ Prisma and PostgreSQL have been removed. ARM is the source of truth for all depl
 │   │       ├── schema.ts        # Zod payload schemas + tagsSchema
 │   │       ├── schema.test.ts    # schema unit tests (co-located)
 │   │       ├── policy.ts        # DEPLOYABLE_SLUGS allow-list + POLICY_BLOCKED_TEMPLATE_SLUGS
-│   │       ├── policy.ts        # DEPLOYABLE_SLUGS allow-list + POLICY_BLOCKED_TEMPLATE_SLUGS
 │   │       ├── rg-name.ts       # deriveResourceGroupName / deriveLocation
 │   │       └── arm-status.ts    # mapArmProvisioningState → DeploymentStatus
 │   ├── types/index.ts
@@ -311,7 +310,8 @@ Prisma and PostgreSQL have been removed. ARM is the source of truth for all depl
 │
 ├── functions/
 │   └── src/
-│       ├── functions/processDeployment.ts   # exported handler; errors thrown for retry
+│       ├── functions/processDeployment.ts        # exported handler; errors thrown for retry
+│       ├── functions/processPoisonDeployment.ts  # poison-queue dead-letter handler
 │       ├── lib/env.ts
 │       └── modules/deployments/
 │           ├── arm-template-builder.ts      # builders + PolicyBlockedTemplateError
