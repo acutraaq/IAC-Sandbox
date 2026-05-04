@@ -86,7 +86,10 @@
       "WebFetch(domain:github.com)",
       "Bash(claude plugin *)",
       "Bash(GIT_SSL_NO_VERIFY=true claude plugin marketplace add https://github.com/JuliusBrussee/caveman.git)",
-      "Bash(git mv *)"
+      "Bash(git mv *)",
+      "Bash(node -e \"const t=require\\('./web/data/templates.json'\\); console.log\\('templates:', t.length, t.map\\(x=>x.slug\\)\\)\")",
+      "Bash(node -e \"const r=require\\('./web/data/resources.json'\\); console.log\\('resources:', r.length, r.map\\(x=>x.type\\)\\)\")",
+      "Bash(node -e \"const t=require\\('./web/data/templates.json'\\); const cats=[...new Set\\(t.map\\(x=>x.category\\)\\)]; console.log\\('categories:', cats\\)\")"
     ]
   },
   "hooks": {
