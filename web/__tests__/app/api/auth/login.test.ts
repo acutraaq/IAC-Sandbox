@@ -53,7 +53,7 @@ describe("GET /api/auth/login", () => {
     await GET(req);
     expect(buildAuthCodeUrlMock).toHaveBeenCalledWith(
       expect.objectContaining({
-        redirectUri: "http://localhost:3000/api/auth/callback",
+        redirectUri: "http://localhost:3000/api/auth/callback/azure-ad",
       })
     );
   });
