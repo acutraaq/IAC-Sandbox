@@ -46,7 +46,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
   }
 
   try {
-    const redirectUri = `${url.origin}/api/auth/callback`;
+    const redirectUri = `${url.origin}/api/auth/callback/azure-ad`;
     const result = await acquireTokenByCode({
       code,
       codeVerifier: pending.verifier,

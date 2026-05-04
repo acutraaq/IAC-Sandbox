@@ -91,7 +91,12 @@
       "Bash(node -e \"const r=require\\('./web/data/resources.json'\\); console.log\\('resources:', r.length, r.map\\(x=>x.type\\)\\)\")",
       "Bash(node -e \"const t=require\\('./web/data/templates.json'\\); const cats=[...new Set\\(t.map\\(x=>x.category\\)\\)]; console.log\\('categories:', cats\\)\")",
       "Bash(git fetch *)",
-      "Bash(GIT_SSL_NO_VERIFY=true git log origin/main..HEAD --oneline)"
+      "Bash(GIT_SSL_NO_VERIFY=true git log origin/main..HEAD --oneline)",
+      "Bash(git checkout *)",
+      "Bash(GIT_SSL_NO_VERIFY=true git push -u origin feature/formal-proof-labels)",
+      "Bash(winpty gh pr create --title 'fix\\(report\\): use formal field labels in proof artifact' --body ' *)",
+      "Bash(GIT_SSL_NO_VERIFY=true git fetch origin main)",
+      "Bash(git rm *)"
     ]
   },
   "hooks": {

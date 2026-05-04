@@ -22,7 +22,7 @@ function makeRequest(url: string, cookies: Record<string, string> = {}) {
   return req;
 }
 
-describe("GET /api/auth/callback", () => {
+describe("GET /api/auth/callback/azure-ad", () => {
   it("creates a session cookie and redirects to the stored next path on success", async () => {
     decodePendingStateMock.mockReturnValue({
       state: "state-abc",
@@ -33,9 +33,9 @@ describe("GET /api/auth/callback", () => {
       account: { username: "user@epf.gov.my", name: "Test User" },
     });
 
-    const { GET } = await import("@/app/api/auth/callback/route");
+    const { GET } = await import("@/app/api/auth/callback/azure-ad/route");
     const req = makeRequest(
-      "http://localhost:3000/api/auth/callback?code=auth-code-123&state=state-abc",
+      "http://localhost:3000/api/auth/callback/azure-ad?code=auth-code-123&state=state-abc",
       { iac_auth_pending: "mock-pending-value" }
     );
     const res = await GET(req);
@@ -58,9 +58,9 @@ describe("GET /api/auth/callback", () => {
       account: { username: "user@epf.gov.my", name: "Test User" },
     });
 
-    const { GET } = await import("@/app/api/auth/callback/route");
+    const { GET } = await import("@/app/api/auth/callback/azure-ad/route");
     const req = makeRequest(
-      "http://localhost:3000/api/auth/callback?code=auth-code&state=state-abc",
+      "http://localhost:3000/api/auth/callback/azure-ad?code=auth-code&state=state-abc",
       { iac_auth_pending: "mock" }
     );
     const res = await GET(req);
@@ -72,9 +72,9 @@ describe("GET /api/auth/callback", () => {
 
   it("redirects to /login when the state cookie is missing", async () => {
     decodePendingStateMock.mockReturnValue(null);
-    const { GET } = await import("@/app/api/auth/callback/route");
+    const { GET } = await import("@/app/api/auth/callback/azure-ad/route");
     const req = makeRequest(
-      "http://localhost:3000/api/auth/callback?code=auth-code&state=state-abc"
+      "http://localhost:3000/api/auth/callback/azure-ad?code=auth-code&state=state-abc"
     );
     const res = await GET(req);
     expect(res.status).toBe(302);
@@ -87,9 +87,9 @@ describe("GET /api/auth/callback", () => {
       verifier: "v",
       next: "/",
     });
-    const { GET } = await import("@/app/api/auth/callback/route");
+    const { GET } = await import("@/app/api/auth/callback/azure-ad/route");
     const req = makeRequest(
-      "http://localhost:3000/api/auth/callback?code=auth-code&state=different-state",
+      "http://localhost:3000/api/auth/callback/azure-ad?code=auth-code&state=different-state",
       { iac_auth_pending: "mock" }
     );
     const res = await GET(req);
@@ -104,9 +104,9 @@ describe("GET /api/auth/callback", () => {
       next: "/",
     });
     acquireTokenByCodeMock.mockRejectedValue(new Error("MSAL failure"));
-    const { GET } = await import("@/app/api/auth/callback/route");
+    const { GET } = await import("@/app/api/auth/callback/azure-ad/route");
     const req = makeRequest(
-      "http://localhost:3000/api/auth/callback?code=auth-code&state=state-abc",
+      "http://localhost:3000/api/auth/callback/azure-ad?code=auth-code&state=state-abc",
       { iac_auth_pending: "mock" }
     );
     const res = await GET(req);
@@ -122,9 +122,9 @@ describe("GET /api/auth/callback", () => {
     });
     acquireTokenByCodeMock.mockRejectedValue(new Error("MSAL failure"));
 
-    const { GET } = await import("@/app/api/auth/callback/route");
+    const { GET } = await import("@/app/api/auth/callback/azure-ad/route");
     const req = makeRequest(
-      "http://localhost:3000/api/auth/callback?code=code&state=state-abc",
+      "http://localhost:3000/api/auth/callback/azure-ad?code=code&state=state-abc",
       { iac_auth_pending: "mock" }
     );
     const res = await GET(req);
@@ -144,15 +144,15 @@ describe("GET /api/auth/callback", () => {
       account: { username: "user@epf.gov.my", name: "Test User" },
     });
 
-    const { GET } = await import("@/app/api/auth/callback/route");
+    const { GET } = await import("@/app/api/auth/callback/azure-ad/route");
     const req = makeRequest(
-      "http://localhost:3000/api/auth/callback?code=auth-code&state=state-abc",
+      "http://localhost:3000/api/auth/callback/azure-ad?code=auth-code&state=state-abc",
       { iac_auth_pending: "mock" }
     );
     await GET(req);
     expect(acquireTokenByCodeMock).toHaveBeenCalledWith(
       expect.objectContaining({
-        redirectUri: "http://localhost:3000/api/auth/callback",
+        redirectUri: "http://localhost:3000/api/auth/callback/azure-ad",
         code: "auth-code",
         codeVerifier: "verifier-xyz",
       })
