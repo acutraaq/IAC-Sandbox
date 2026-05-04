@@ -27,7 +27,7 @@ Metadata key-value pairs attached to Azure resources or resource groups for trac
 - `Project ID` (policy-required)
 - `Project Owner` (policy-required)
 - `Expiry Date` (policy-required)
-- `deployedBy` (app-set; hardcoded to `demo@sandbox.local` until SSO)
+- `deployedBy` (app-set; sourced from session via `getCurrentUser()` — placeholder identity `demo@sandbox.local` until App Registration credentials are provided)
 - `iac-submissionId` (app-set; for status back-lookup)
 
 See also: [ARM Resource Group Tags (SPEC.md Section 9)](project/SPEC.md#arm-resource-group-tags-per-deployment)
@@ -69,7 +69,7 @@ A template slug that is permitted for deployment. Maintained in the allow-list `
 See also: [Template Catalog (CLAUDE.md)](../CLAUDE.md#template-catalog)
 
 ### **DeployedBy Tag**
-ARM tag identifying the user who submitted the deployment. Currently hardcoded to `demo@sandbox.local` until Microsoft SSO is configured.
+ARM tag identifying the user who submitted the deployment. Value comes from the session via `getCurrentUser()` — wired end-to-end through API → queue message → ARM tags. Resolves to the placeholder `demo@sandbox.local` until App Registration credentials enable real Entra ID sign-in.
 
 ---
 

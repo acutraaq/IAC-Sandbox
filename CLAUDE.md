@@ -1,6 +1,6 @@
 # CLAUDE.md — Project Conventions & Developer Guidance
 
-> **Version:** 2.2.0 | **Last updated:** 2026-04-27 | **Status:** Active  
+> **Version:** 2.3.0 | **Last updated:** 2026-05-04 | **Status:** Active  
 > **Purpose:** Single source of truth for project conventions, tech stack, and development patterns  
 > **Owner:** All engineers | **Review cadence:** On every convention or pattern change  
 > **Related docs:** [Documentation Index](docs/README.md) | [Complete Spec](docs/project/SPEC.md) | [Glossary](docs/GLOSSARY.md) | [HANDOFF](docs/superpowers/HANDOFF.md)
@@ -15,15 +15,7 @@
 
 Before starting any work, check `docs/superpowers/specs/` for any active (non-archived) specs that have been designed but not yet implemented.
 
-| Spec | Status | Summary |
-|------|--------|---------|
-| ~~`docs/superpowers/archive/specs/2026-04-23-refactor-cleanup-design.md`~~ | **Complete — Archived** | 4-phase refactor: deps, cleanup, tests, observability |
-| ~~UI redesign~~ | **Complete** | Archived to `docs/superpowers/archive/specs/` |
-| ~~EPF templates + status + request flow~~ | **Complete** | 4 EPF templates, 3-step timeline, /request page |
-| ~~UI sizing + Functions host fix~~ | **Complete** | Builder/review/modal sizing, West Europe removed, functions main path fixed |
-| `docs/superpowers/archive/plans/2026-04-25-login-placeholder.md` | **Complete — Archived** | Login page placeholder + route gating via `proxy.ts` |
-| `docs/superpowers/archive/plans/2026-04-29-msal-sso.md` | **Complete — Archived** | MSAL authorization code + PKCE flow, `deployedBy` wired end-to-end |
-| `docs/superpowers/plans/2026-04-30-dark-only-theme.md` | **Active** | Dark-only theme implementation |
+No active specs or plans. All approved work is implemented; completed designs live under `docs/superpowers/archive/`.
 
 **What is live and working:** See Live Deployment section below.
 **What is designed but not built:** Nothing — all approved specs implemented.
@@ -36,7 +28,7 @@ Before starting any work, check `docs/superpowers/specs/` for any active (non-ar
 
 **Sandbox IAC** is an Azure Infrastructure-as-Code deployment platform for EPF (Employees Provident Fund, Malaysia). It lets non-expert users configure and submit Azure infrastructure deployments through three flows:
 
-- **Template Flow** — Multi-step wizard using predefined templates (16 templates across 6 categories)
+- **Template Flow** — Multi-step wizard using predefined templates (16 templates across 7 categories)
 - **Custom Builder Flow** — Resource-by-resource configuration builder (auto-deploy)
 - **Custom Request Flow** — Resource picker at `/request` that generates a copy-paste request document to email the IAC team (no auto-deployment; manual provisioning after HOD approval)
 

@@ -207,7 +207,7 @@ Pill shape (`border-radius: 9999px`), 12px font, 500 weight. Five variants using
 - **Active link:** Frost Text, 2px Clarity Blue underline at `bottom: -2px`, animated via Framer Motion `layoutId` for smooth route transitions.
 - **Inactive links:** Muted Text at rest, Frost Text on hover. No background highlight.
 - **Logo:** SVG 3x3 dot grid in a 4px-radius Sky Accent-stroked box. Paired with "Sandbox" wordmark at Title weight.
-- **Mobile:** Animated height collapse, same Azure Surface background, border-top border.
+- **Mobile:** Animated height collapse, same Azure Surface background, `1px solid rgba(44, 127, 212, 0.25)` border-top.
 
 ### Modals
 - **Shape:** 12px radius (`rounded-xl`). Larger than cards — signals floating, elevated context.
