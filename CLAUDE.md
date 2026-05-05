@@ -1,6 +1,6 @@
 # CLAUDE.md — Project Conventions & Developer Guidance
 
-> **Version:** 2.3.0 | **Last updated:** 2026-05-02 | **Status:** Active  
+> **Version:** 2.3.0 | **Last updated:** 2026-05-04 | **Status:** Active  
 > **Purpose:** Single source of truth for project conventions, tech stack, and development patterns  
 > **Owner:** All engineers | **Review cadence:** On every convention or pattern change  
 > **Related docs:** [Documentation Index](docs/README.md) | [Complete Spec](docs/project/SPEC.md) | [Glossary](docs/GLOSSARY.md) | [HANDOFF](docs/superpowers/HANDOFF.md)
@@ -15,15 +15,7 @@
 
 Before starting any work, check `docs/superpowers/specs/` for any active (non-archived) specs that have been designed but not yet implemented.
 
-| Spec | Status | Summary |
-|------|--------|---------|
-| ~~`docs/superpowers/archive/specs/2026-04-23-refactor-cleanup-design.md`~~ | **Complete — Archived** | 4-phase refactor: deps, cleanup, tests, observability |
-| ~~UI redesign~~ | **Complete** | Archived to `docs/superpowers/archive/specs/` |
-| ~~EPF templates + status + request flow~~ | **Complete** | 4 EPF templates, 3-step timeline, /request page |
-| ~~UI sizing + Functions host fix~~ | **Complete** | Builder/review/modal sizing, West Europe removed, functions main path fixed |
-| `docs/superpowers/archive/plans/2026-04-25-login-placeholder.md` | **Complete — Archived** | Login page placeholder + route gating via `proxy.ts` |
-| `docs/superpowers/archive/plans/2026-04-29-msal-sso.md` | **Complete — Archived** | MSAL authorization code + PKCE flow, `deployedBy` wired end-to-end |
-| `docs/superpowers/plans/` | **Empty** | No active plans; all prior work archived |
+No active specs or plans. All approved work is implemented; completed designs live under `docs/superpowers/archive/`.
 
 **What is live and working:** See Live Deployment section below.  
 **What is designed but not built:** Nothing — all approved specs implemented.  
@@ -36,7 +28,7 @@ Before starting any work, check `docs/superpowers/specs/` for any active (non-ar
 
 **Sandbox IAC** is an Azure Infrastructure-as-Code deployment platform for EPF (Employees Provident Fund, Malaysia). It lets non-expert users configure and submit Azure infrastructure deployments through three flows:
 
-- **Template Flow** — Multi-step wizard using predefined templates (16 templates across 6 categories)
+- **Template Flow** — Multi-step wizard using predefined templates (16 templates across 7 categories)
 - **Custom Builder Flow** — Resource-by-resource configuration builder (auto-deploy)
 - **Custom Request Flow** — Resource picker at `/request` that generates a copy-paste request document to email the IAC team (no auto-deployment; manual provisioning after HOD approval)
 
@@ -115,6 +107,40 @@ The core cookie signing/verification logic lives in `web/lib/auth-core.ts`, whic
 
 ---
 
+## Template Catalog
+
+16 templates across 7 categories (compute, data, network, security, automation, integration, landing-zone). All region options are locked to:
+- Asia Pacific (Southeast Asia)
+- Asia Pacific (East Asia)
+- Asia Pacific (Australia East)
+
+| Category | Slug | Resource Type |
+|----------|------|---------------|
+| compute | `web-application` | `Microsoft.Web/serverfarms` + `Microsoft.Web/sites` |
+| compute | `virtual-machine` | `Microsoft.Compute/virtualMachines` — policy-blocked, shows lock UI |
+| compute | `container-app` | `Microsoft.App/managedEnvironments` + `Microsoft.App/containerApps` |
+| compute | `full-stack-web-app` | App Service + Azure SQL + Storage + Key Vault (6 resources) |
+| compute | `microservices-platform` | Container Apps + Service Bus — policy-blocked |
+| data | `database` | `Microsoft.DBforPostgreSQL/flexibleServers` |
+| data | `storage-account` | `Microsoft.Storage/storageAccounts` |
+| data | `data-pipeline` | policy-blocked |
+| security | `key-vault` | `Microsoft.KeyVault/vaults` |
+| security | `secure-api-backend` | policy-blocked |
+| network | `virtual-network` | `Microsoft.Network/virtualNetworks` |
+| landing-zone | `landing-zone` | VNet + Key Vault + Log Analytics (conditional) |
+| automation | `approval-workflow` | `Microsoft.Logic/workflows` (HTTP trigger) |
+| automation | `scheduled-automation` | `Microsoft.Logic/workflows` (recurrence trigger) |
+| integration | `message-queue` | `Microsoft.ServiceBus/namespaces` |
+| integration | `event-broadcaster` | `Microsoft.EventGrid/topics` |
+
+Policy-blocked slugs (enforced server-side at `POST /api/deployments` → 403):
+- `virtual-machine`, `microservices-platform`, `data-pipeline`, `secure-api-backend`
+
+Deployable slugs (allow-list in `web/lib/deployments/policy.ts`):
+- `web-application`, `database`, `storage-account`, `key-vault`, `virtual-network`, `container-app`, `landing-zone`, `full-stack-web-app`, `approval-workflow`, `scheduled-automation`, `message-queue`, `event-broadcaster`
+
+---
+
 ## Tech Stack
 
 ### Web App (`web/`)
@@ -182,7 +208,7 @@ Prisma and PostgreSQL have been removed. ARM is the source of truth for all depl
 │   │   ├── report.ts
 │   │   └── deployments/
 │   │       ├── schema.ts        # Zod payload schemas + tagsSchema
-│   │       ├── schema.test.ts   # schema unit tests (co-located)
+│   │       ├── schema.test.ts    # schema unit tests (co-located)
 │   │       ├── policy.ts        # DEPLOYABLE_SLUGS allow-list + POLICY_BLOCKED_TEMPLATE_SLUGS
 │   │       ├── rg-name.ts       # deriveResourceGroupName / deriveLocation
 │   │       └── arm-status.ts    # mapArmProvisioningState → DeploymentStatus
@@ -199,7 +225,8 @@ Prisma and PostgreSQL have been removed. ARM is the source of truth for all depl
 │
 ├── functions/
 │   └── src/
-│       ├── functions/processDeployment.ts   # exported handler; errors thrown for retry
+│       ├── functions/processDeployment.ts        # exported handler; errors thrown for retry
+│       ├── functions/processPoisonDeployment.ts  # poison-queue dead-letter handler
 │       ├── lib/env.ts
 │       └── modules/deployments/
 │           ├── arm-template-builder.ts      # builders + PolicyBlockedTemplateError

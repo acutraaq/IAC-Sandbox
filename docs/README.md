@@ -25,7 +25,7 @@ Welcome to the IAC Sandbox documentation. This index helps you find the right do
 - **[CLAUDE.md — Infrastructure Section](../CLAUDE.md#architecture)** — Architecture, Azure resources, CI/CD
 - **[SPEC.md — Section 8 (Backend)](project/SPEC.md#8-backend-architecture-v2)** — API routes, Azure Functions, networking
 - **[API Specification](project/API_SPEC_OPENAPI.yaml)** — Health checks, deployment status endpoints
-- **[GitHub Actions Workflow](.github/workflows/ci.yml)** — CI/CD configuration for web and Functions
+- **[GitHub Actions Workflow](../.github/workflows/ci.yml)** — CI/CD configuration for web and Functions
 
 ### **For Security & Compliance**
 - **[Security Controls (SPEC.md)](project/SPEC.md#21-security-controls)** — Auth, CORS, rate limiting, secrets
@@ -66,7 +66,7 @@ docs/
 **Purpose:** Complete specification and architectural reference.  
 **Contains:** Requirements, user journeys, architecture, API contract, data model, ADRs, implementation backlogs, risk matrix.  
 **Audience:** Product, engineering, DevOps.  
-**Status:** Active; versioned (currently v2.0.0).  
+**Status:** Active; versioned (see metadata block in `SPEC.md`).  
 **Note:** Sections marked `[v2]` reflect the as-built architecture (v1.2.0 plan was superseded; see ADRs 016–019).
 
 ### docs/project/API_SPEC_OPENAPI.yaml

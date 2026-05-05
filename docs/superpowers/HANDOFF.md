@@ -1,6 +1,6 @@
-# Session Handoff — 2026-04-29
+# Session Handoff — 2026-05-04
 
-> **Version:** 1.2.0 | **Last updated:** 2026-04-29 | **Status:** Active  
+> **Version:** 1.3.0 | **Last updated:** 2026-05-04 | **Status:** Active  
 > **Purpose:** Context for engineers starting a new session  
 > **Related docs:** [Project Index](../README.md) | [CLAUDE.md](../../CLAUDE.md) | [Complete Spec](../project/SPEC.md)  
 >
@@ -8,17 +8,17 @@
 
 ## TL;DR
 
-Login placeholder (PR #6) was merged. **MSAL SSO plumbing is fully implemented** — authorization code + PKCE flow, callback handler, `deployedBy` wired through the pipeline end-to-end. The app runs with the placeholder `demo@sandbox.local` identity until admin provides App Registration credentials. All 11 project sync issues found during the 2026-04-29 audit have been fixed.
+Login placeholder (PR #6) was merged. **MSAL SSO plumbing is fully implemented** — authorization code + PKCE flow, callback handler, `deployedBy` wired through the pipeline end-to-end. The app runs with the placeholder `demo@sandbox.local` identity until admin provides App Registration credentials. Dark-only theme is shipped (single `:root` token block, no theme toggle).
 
-## What was done in the last session (2026-04-29)
+## What was done in the last session (2026-05-04)
 
-Project audit identified 17 discrepancies across docs, agents, skills, and config files. All resolved:
+Doc-audit pass against the live codebase. Fixes:
 
-- **MSAL SSO plan archived** — moved `2026-04-29-msal-sso.md` and `2026-04-25-login-placeholder.md` to `archive/plans/`
-- **File path fixes** — `next.config.ts` → `next.config.js` in A7 agent + workflows README; `rg-name.ts` → `sanitize.ts` in CLAUDE.md + A5 agent
-- **Missing directory created** — `docs/superpowers/specs/` now exists with README
-- **Agent docs updated** — A2 (auth) no longer DEFERRED; A3 (flows) removed SubmitButton reference; A1 README path fixed
-- **HANDOFF.md refreshed** — reflects MSAL SSO completion state
+- **Dark-only plan archived** — `2026-04-30-dark-only-theme.md` moved to `archive/plans/`; tokens already live in `web/app/globals.css`, `ThemeToggle` removed
+- **CLAUDE.md** — bumped to 2.3.0; status table replaced with a short note (archive holds completed work); template-count typo fixed (16 templates / **7** categories, not 6)
+- **GLOSSARY.md** — `deployedBy` no longer described as "hardcoded"; reflects session-sourced value via `getCurrentUser()`
+- **docs/README.md** — fixed broken relative link to `.github/workflows/ci.yml`; dropped hardcoded SPEC version
+- **DESIGN.md** — fixed mobile nav "border-top border" typo
 
 ## Current State
 
@@ -33,12 +33,12 @@ Project audit identified 17 discrepancies across docs, agents, skills, and confi
 - **Cross-subscription ARM deployments** — managed identity not yet enabled on Function App or App Service. Admin must complete the 5-step setup in CLAUDE.md → Azure Infrastructure Setup.
 
 ### What's next
-- **Phase 2 (Error UX)** — surface ARM operation errors in review modal + my-stuff page. Plan at `docs/superpowers/archive/plans/2026-04-25-login-placeholder.md` (section "Phase 2").
-- **Phase 3 (a11y audit)** — run lighthouse/axe-core audit on all UI surfaces, fix high/medium findings.
+- **Error UX** — surface ARM operation errors in review modal + my-stuff page. (Needs its own plan in `docs/superpowers/plans/`; outline previously lived in the archived login-placeholder plan, "Phase 2" section.)
+- **a11y audit** — run lighthouse/axe-core audit on all UI surfaces, fix high/medium findings.
 
 ## Standing user preferences
-- Use `.kilo/plans/` for plan tracking; `.kilo/agents/` and `.kilo/commands/` for Kilo-specific agents/commands
 - `.claude/` is the source of truth for Claude Code agents/skills/hooks (ships with `git clone`; no copy step)
+- Active design specs live in `docs/superpowers/specs/`; active plans in `docs/superpowers/plans/`; completed work moves to `docs/superpowers/archive/`
 - Git worktrees under `.worktrees/` for isolated feature work
 - TypeScript strict mode, no `any`, Zod at API boundaries
 - Run tests from `web/` or `functions/` subdirectories (NOT from repo root)

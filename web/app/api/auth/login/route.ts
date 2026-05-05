@@ -17,7 +17,7 @@ function safeNext(raw: string | null): string {
 export async function GET(request: NextRequest): Promise<NextResponse> {
   const url = request.nextUrl;
   const next = safeNext(url.searchParams.get("next"));
-  const redirectUri = `${url.origin}/api/auth/callback`;
+  const redirectUri = `${url.origin}/api/auth/callback/azure-ad`;
 
   const state = crypto.randomBytes(16).toString("base64url");
   const { verifier, challenge } = generatePkce();

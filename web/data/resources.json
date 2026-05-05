@@ -264,5 +264,90 @@
         "helpText": "Enable if your app needs to be reachable from outside your organization's network."
       }
     ]
+  },
+  {
+    "type": "Microsoft.Logic/workflows",
+    "name": "Automation Workflow",
+    "description": "A visual workflow that automates processes by connecting services. Triggered by an HTTP call — no code required.",
+    "category": "automation",
+    "icon": "Zap",
+    "fields": [
+      {
+        "name": "region",
+        "label": "Where should it run?",
+        "type": "select",
+        "required": true,
+        "helpText": "Choose a location close to the services it will connect.",
+        "options": [
+          { "label": "Southeast Asia (Singapore)", "value": "southeastasia" },
+          { "label": "East Asia (Hong Kong)", "value": "eastasia" },
+          { "label": "Australia East (Sydney)", "value": "australiaeast" }
+        ]
+      }
+    ]
+  },
+  {
+    "type": "Microsoft.ServiceBus/namespaces",
+    "name": "Message Queue",
+    "description": "A reliable message broker that decouples services — send messages from one system and process them in another at any pace.",
+    "category": "integration",
+    "icon": "MessageSquare",
+    "fields": [
+      {
+        "name": "region",
+        "label": "Where should it run?",
+        "type": "select",
+        "required": true,
+        "helpText": "Choose a location close to the services sending and receiving messages.",
+        "options": [
+          { "label": "Southeast Asia (Singapore)", "value": "southeastasia" },
+          { "label": "East Asia (Hong Kong)", "value": "eastasia" },
+          { "label": "Australia East (Sydney)", "value": "australiaeast" }
+        ]
+      },
+      {
+        "name": "tier",
+        "label": "Which tier do you need?",
+        "type": "select",
+        "required": true,
+        "helpText": "Standard adds topics and subscriptions for fan-out messaging.",
+        "options": [
+          { "label": "Basic — Simple point-to-point queues", "value": "Basic" },
+          { "label": "Standard — Topics and subscriptions", "value": "Standard" }
+        ]
+      }
+    ]
+  },
+  {
+    "type": "Microsoft.EventGrid/topics",
+    "name": "Event Broadcaster",
+    "description": "Publish events from your application and let multiple subscribers react to them independently in real time.",
+    "category": "integration",
+    "icon": "Radio",
+    "fields": [
+      {
+        "name": "region",
+        "label": "Where should it run?",
+        "type": "select",
+        "required": true,
+        "helpText": "Choose a location close to the services publishing events.",
+        "options": [
+          { "label": "Southeast Asia (Singapore)", "value": "southeastasia" },
+          { "label": "East Asia (Hong Kong)", "value": "eastasia" },
+          { "label": "Australia East (Sydney)", "value": "australiaeast" }
+        ]
+      },
+      {
+        "name": "inputSchema",
+        "label": "Which event schema should publishers use?",
+        "type": "select",
+        "required": true,
+        "helpText": "CloudEvents is the open standard — prefer it for new systems.",
+        "options": [
+          { "label": "CloudEvents 1.0 (recommended)", "value": "CloudEventSchemaV1_0" },
+          { "label": "Event Grid Schema (legacy)", "value": "EventGridSchema" }
+        ]
+      }
+    ]
   }
 ]

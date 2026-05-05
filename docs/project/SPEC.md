@@ -1,10 +1,10 @@
 # Sandbox Azure Deployer — Complete Specification
 
-> **Version:** v2.0.0 | **Last updated:** 2026-04-22 | **Status:** Active  
+> **Version:** v2.3.0 | **Last updated:** 2026-05-04 | **Status:** Active  
 > **Owner:** Product + Architecture | **Review cadence:** Quarterly or on breaking changes  
 > **Related docs:** [Project Index](../README.md) | [API Spec](API_SPEC_OPENAPI.yaml) | [Glossary](../GLOSSARY.md) | [CLAUDE.md](../../CLAUDE.md)
 >
-> This is the single source of truth for the entire project. Sections marked **[v2]** were updated to match what was actually built. The original v1.2.0 plan (Fastify + PostgreSQL separate backend) was superseded — see ADR-016 through ADR-019 in Section 14 for the decisions that changed the architecture.
+> This is the single source of truth for the entire project. Sections marked **[v2]** were updated in v2.0 to match what was actually built (Fastify + PostgreSQL superseded by Next.js API routes + ARM). Sections marked **[v2.3]** reflect the v2.3.0 additions: Custom Request Flow (ADR-020), dark-only theme (ADR-021), 16-template catalog, placeholder login with MSAL plumbing, and updated project structure. The original v1.2.0 plan was superseded — see ADR-016 through ADR-021 in Section 14.
 
 ---
 
@@ -50,16 +50,19 @@
 
 ## 1. Executive Summary **[v2]**
 
-Build a secure web application where authenticated users (Microsoft SSO) can deploy Azure resources in two ways:
+Build a secure web application where authenticated users (Microsoft SSO) can deploy Azure resources in three ways:
 
-1. Choose a predefined template, or
-2. Build a deployment resource-by-resource.
+1. **Template Flow** — Choose a predefined template and complete a multi-step wizard.
+2. **Custom Builder Flow** — Build a deployment resource-by-resource (auto-deploy).
+3. **Custom Request Flow** — Pick resources at `/request` to generate a copy-paste request document for the IAC team. No auto-deployment; manual provisioning follows HOD approval.
 
-When users submit:
+Template and Custom Builder flows converge at a shared Review & Submit page:
 - API validates the payload and enqueues a deployment job.
 - Azure Function picks up the job and executes the ARM deployment.
 - ARM is the source of truth for deployment status — no database.
 - Frontend polls ARM (via API route) and shows a proof popup for manual HOD approval.
+
+Custom Request Flow produces a copyable plain-text document only. No queue message is sent.
 
 Approval workflow is manual and out of scope.
 
@@ -77,14 +80,16 @@ Approval workflow is manual and out of scope.
 Reduce friction for non-expert cloud users to request/deploy Azure infrastructure safely and quickly.
 
 ### In Scope
-- Microsoft Entra ID SSO login.
+- Microsoft Entra ID SSO login (placeholder active; real SSO pending credentials).
 - Authenticated access to deployment flows.
-- Template flow and custom flow.
-- Review and submit.
+- Template flow, Custom Builder flow, and Custom Request flow.
+- Review and submit (Template + Custom Builder).
+- Custom Request document generation (no auto-deploy).
 - Backend deployment intake API.
-- Backend Bicep trigger pipeline.
+- Backend ARM execution pipeline (Azure Functions).
 - Status tracking (`accepted` / `running` / `succeeded` / `failed`).
 - Copyable proof modal for HOD evidence.
+- "My Stuff" page listing user's deployed resource groups from ARM.
 
 ### Out of Scope
 - In-app approval routing/approval state machine.
@@ -136,6 +141,14 @@ Reduce friction for non-expert cloud users to request/deploy Azure infrastructur
 6. User submits deployment.
 7. User sees success toast + confirmation modal with copyable report.
 
+### Journey C: Custom Request Flow
+1. User lands on home page (`/`) and selects "Request Custom Setup".
+2. User opens `/request` page.
+3. User picks one or more resource types and fills in details.
+4. User sees a formatted request document (copyable plain text).
+5. User copies and emails the document to the IAC team for manual provisioning after HOD approval.
+6. No deployment is triggered; no queue message is sent.
+
 ---
 
 ## 5. Functional Requirements
@@ -150,15 +163,15 @@ Reduce friction for non-expert cloud users to request/deploy Azure infrastructur
 ### Frontend Routing
 | ID | Requirement |
 |----|-------------|
-| FR-1 | Routes: `/` (home), `/templates` (catalog), `/templates/[slug]` (wizard), `/builder` (custom), `/review` (shared), `/login` (SSO entry) |
+| FR-1 | Routes: `/` (home), `/templates` (catalog), `/templates/[slug]` (wizard), `/builder` (custom builder), `/request` (custom request — no deploy), `/review` (shared submit), `/my-stuff` (user's deployments), `/login` (SSO entry) |
 | FR-2 | Home page: two clear CTAs (templates vs. builder), motion/ambient visuals |
-| FR-3 | Template catalog: load from `data/templates.json`, category filter pills (all, compute, network, data, security, landing-zone), card with icon/name/description/count |
+| FR-3 | Template catalog: load from `data/templates.json`, category filter pills (all, compute, data, network, security, automation, integration, landing-zone), card with icon/name/description/count; policy-blocked templates show lock UI |
 | FR-4 | Template wizard: resolve slug, set mode, stepper with text/number/select/toggle fields, per-step validation, back/next/review navigation, summary panel |
 | FR-5 | Custom builder: load from `data/resources.json`, search + category filter, drawer form with dynamic fields, add/remove resources, duplicate prevention, continue to review |
-| FR-6 | Zustand store (`store/deploymentStore.ts`): mode, template, wizard state, resources, submissionId, summary, reset. Selecting new template resets wizard. |
-| FR-7 | Review page: guard against empty state (redirect to `/`), render template or resource summary, submit with loading state, success toast + modal, error toast |
+| FR-6 | Zustand store (`store/deploymentStore.ts`): mode (`'template'`/`'custom'`/`'custom-request'`), template, wizard state, resources, submissionId, summary, reset. Selecting new template resets wizard. `resetCustomRequest()` for request mode. |
+| FR-7 | Review page: guard against empty state (redirect to `/`), render template or resource summary, submit with loading state, success toast + ConfirmModal with 3-step timeline + "View in Azure Portal" deep-link, error toast |
 | FR-8 | Report generation: header, reference ID, locale date/time (`en-MY`), mode details, config values. Copyable via clipboard API. |
-| FR-9 | Theme: light/dark via `data-theme` on `<html>`, persist in localStorage, CSS variable tokens, UI primitives (Button, Card, Badge, Modal, Toast) |
+| FR-9 | Theme: dark-only; no toggle; CSS variable design tokens; UI primitives (Button, Card, Badge, Modal, Toast) |
 | FR-10 | Accessibility: labeled controls, dialog semantics, form error association, keyboard support (Escape, Enter/Space), reduced motion |
 
 ### Submission and Deployment
@@ -218,16 +231,18 @@ Reduce friction for non-expert cloud users to request/deploy Azure infrastructur
 | Route | Type | Description |
 |-------|------|-------------|
 | `/` | Client component | Landing + funnel (Framer Motion animations) |
-| `/login` | Client component | SSO entry point (recommended) |
+| `/login` | Client component | SSO entry point (placeholder stub active) |
 | `/templates` | Server component | Loads templates data, renders `TemplateGrid` (client) |
-| `/templates/[slug]` | Server + client | `generateStaticParams` from slugs; `TemplatePageClient` handles wizard |
+| `/templates/[slug]` | Server + client | `generateStaticParams` from slugs; `TemplateWizardClient` handles wizard |
 | `/builder` | Client component | Search/filter/select resources, configuration drawer |
+| `/request` | Client component | Resource picker → copyable request document; no auto-deploy |
 | `/review` | Client component | Guard, submit, success/error feedback |
+| `/my-stuff` | Client component | Lists user's deployed resource groups (ARM tag query) |
 
 ### State Model **[v2]**
 ```ts
 interface DeploymentState {
-  mode: 'template' | 'custom' | null
+  mode: 'template' | 'custom' | 'custom-request' | null
   selectedTemplate: { slug: string; name: string; steps: TemplateStep[] } | null
   wizardState: {
     currentStep: number
@@ -244,22 +259,26 @@ interface DeploymentState {
 ```
 
 Key invariants:
-- `mode` must be set before `/review` can render.
+- `mode` must be set before `/review` can render (`'template'` or `'custom'` only — `'custom-request'` never reaches `/review`).
 - Selecting a new template resets wizard state.
 - `selectedResources` must not contain duplicate resource `type` values.
 - `deployedResourceGroup` is set on submission and used by the polling loop to query ARM.
+- `resetCustomRequest()` clears request mode state.
 
 ### Component Architecture
 
-**Layout:** `RootLayout` → `PageShell` → `Nav` + `ThemeToggle`
+**Layout:** `RootLayout` → `Navbar`, `Breadcrumb`, `Footer`, `PageTransition`, `UserMenu`
 
 **UI Primitives:** `Button`, `Card`, `Badge`, `Modal`, `Toast`
 
 **Feature Components:**
 - Templates: `TemplateGrid`, `FilterPills`, `TemplateCard`
-- Wizard: `Stepper`, `WizardStep`, `SummaryPanel`
+- Wizard: `Stepper`, `WizardStep`, `SummaryPanel` (inside `TemplateWizardClient`)
 - Builder: `ResourceCatalog`, `ResourceDrawer`, `SelectedPanel`
-- Review: `ReviewSection`, `ConfirmModal`
+- Request: `RequestDocument` (copyable request block)
+- Review: `ReviewSection`, `ConfirmModal` (3-step timeline + portal deep-link)
+- Home: `DeployedList`, `TemplateGrid`
+- My Stuff: `DeployedTable`
 
 ### Validation Design
 Centralized builder in `lib/schema.ts`:
@@ -269,13 +288,13 @@ Centralized builder in `lib/schema.ts`:
 
 ### Styling and Theming
 - Semantic design tokens in CSS variables (`--color-bg`, `--color-surface`, etc.)
-- Dark by default; light theme overrides on `html[data-theme='light']`
-- Theme persisted in `localStorage` key `sandbox-theme`
+- Dark-only — single `:root` token set; no theme toggle, no localStorage persistence
 - Token-based Tailwind classes only (no hardcoded colors)
+- Font: IBM Plex Sans + IBM Plex Mono
 
 ### Data Sources
-- `data/templates.json` — 8 templates with slug, metadata, category, icon, resource count, step schemas
-- `data/resources.json` — 8 resource types with Azure type, metadata, category, icon, config schema
+- `data/templates.json` — 16 templates across 7 categories (compute, data, network, security, automation, integration, landing-zone). 4 slugs are policy-blocked and show lock UI; 12 are deployable.
+- `data/resources.json` — 7 resource types with Azure type, metadata, category, icon, config schema (NSG removed)
 
 ### Type Contracts
 `types/index.ts`:
@@ -284,9 +303,7 @@ Centralized builder in `lib/schema.ts`:
 - `DeploymentPayload`, `SubmitResponse`
 
 ### Frontend Environment
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `NEXT_PUBLIC_API_URL` | `http://localhost:3001` | Backend API base URL |
+No `NEXT_PUBLIC_*` env vars required. API routes are co-located inside Next.js — no external backend URL needed. See Section 8 for server-side env vars.
 
 ---
 
@@ -324,31 +341,44 @@ Centralized builder in `lib/schema.ts`:
 ```
 web/app/api/
   deployments/
-    route.ts           # POST only — generate ID, enqueue
+    route.ts           # POST only — validate policy (403 if blocked), generate ID, enqueue
     [submissionId]/
       route.ts         # GET ?rg=<rgName> — ARM status
   my-deployments/
     route.ts           # GET — list RGs by deployedBy tag
+  auth/
+    login/route.ts     # POST (placeholder stub) + GET (MSAL redirect, inactive)
+    logout/route.ts    # POST — clear session cookie
+    callback/route.ts  # GET — MSAL OAuth callback (inactive)
   healthz/
-    route.ts
+    route.ts           # GET /api/healthz — liveness
+    arm/route.ts       # GET /api/healthz/arm — verify MI can reach sub-epf-sandbox-internal
 
 web/lib/
   arm.ts               # getArmClient() factory
+  auth.ts              # getCurrentUser() — returns demo@sandbox.local until MSAL swap
+  auth-core.ts         # Edge-safe cookie sign/verify (used by proxy.ts middleware)
+  msal.ts              # MSAL authorization code + PKCE (inactive until credentials arrive)
   server-env.ts        # Zod env validation
-  errors.ts
+  display.ts           # displayFieldValue(field, value) — canonical field rendering
+  errors.ts            # AppError + toErrorResponse(); AppError.forbidden()
+  report.ts            # Proof artifact generation
   deployments/
-    schema.ts          # Zod payload schemas
-    rg-name.ts
+    schema.ts          # Zod payload schemas + tagsSchema
+    policy.ts          # DEPLOYABLE_SLUGS allow-list + POLICY_BLOCKED_TEMPLATE_SLUGS
+    rg-name.ts         # deriveResourceGroupName / deriveLocation
     arm-status.ts      # mapArmProvisioningState → DeploymentStatus
+    failure-lookup.ts  # ARM failure detail extraction
 
 functions/src/
-  functions/processDeployment.ts
+  functions/processDeployment.ts         # queue-triggered handler; errors thrown for retry
+  functions/processPoisonDeployment.ts   # poison-queue dead-letter handler
   lib/env.ts
   modules/deployments/
-    bicep-executor.ts
-    arm-template-builder.ts
-    deployment.schema.ts
-    sanitize.ts
+    bicep-executor.ts          # applies 6 tags to RG + all ARM resources
+    arm-template-builder.ts    # builders per resource type + PolicyBlockedTemplateError
+    deployment.schema.ts       # must stay in sync with web/lib/deployments/schema.ts
+    sanitize.ts                # name sanitization helpers
 ```
 
 ### Validation and Error Format
@@ -367,12 +397,15 @@ Standard error response (ADR-007):
 ```
 
 ### Environment Variables
-| Variable | Service | Description |
-|----------|---------|-------------|
-| `AZURE_SUBSCRIPTION_ID` | web + functions | Subscription for ARM operations |
-| `AZURE_TENANT_ID` | web + functions | Azure AD tenant ID |
-| `AZURE_STORAGE_CONNECTION_STRING` | web | Queue connection string |
-| `DEPLOYMENT_QUEUE` | functions | Queue connection (Azure Functions binding) |
+| Variable | Service | Required | Description |
+|----------|---------|----------|-------------|
+| `AZURE_SUBSCRIPTION_ID` | web + functions | Yes | Target subscription (`sub-epf-sandbox-internal`) for ARM operations |
+| `AZURE_TENANT_ID` | web + functions | Yes | Azure AD tenant ID |
+| `AZURE_STORAGE_CONNECTION_STRING` | web | Yes | Storage account connection string for queue dispatch |
+| `SESSION_SECRET` | web | Yes | HMAC secret for placeholder session cookie (≥ 32 chars) |
+| `DEPLOYMENT_QUEUE` | functions | Yes | Full storage connection string (Azure Functions queue binding) |
+| `AZURE_AD_CLIENT_ID` | web | Optional | MSAL App Registration client ID — activates real SSO when set |
+| `AZURE_AD_CLIENT_SECRET` | web | Optional | MSAL App Registration client secret — activates real SSO when set |
 
 ---
 
@@ -501,23 +534,36 @@ Both modes require `tags` (policy-required):
 
 ## 11. Authentication and Identity
 
-### Entra Configuration (minimum)
+### Current State: Placeholder Login (Live)
+All routes are gated by `web/proxy.ts` (Next.js middleware). Unauthenticated requests redirect to `/login?next=<original-path>`. Public paths bypass: `/login`, `/api/auth/*`, `/api/healthz` (and sub-paths), Next.js internals, static files.
+
+`getCurrentUser()` in `web/lib/auth.ts` returns the fixed identity `{ upn: "demo@sandbox.local", displayName: "Demo User" }` — this value is used as `deployedBy` in ARM tags, queue messages, and "My Stuff" queries.
+
+Session cookie mechanics:
+- Cookie name: `iac_session`
+- Algorithm: HMAC SHA-256 (Web Crypto, Edge-safe — implemented in `web/lib/auth-core.ts`)
+- TTL: 24 hours
+- Created by `POST /api/auth/login` (clicked via stub "Sign in with Microsoft" button)
+- Cleared by `POST /api/auth/logout`
+
+### MSAL Swap (Planned — Blocked on Credentials)
+MSAL plumbing is fully implemented and inactive:
+- `web/lib/msal.ts` — authorization code + PKCE flow
+- `GET /api/auth/login` — MSAL redirect
+- `GET /api/auth/callback` — OAuth callback, sets real session
+- When `AZURE_AD_CLIENT_ID` + `AZURE_AD_CLIENT_SECRET` env vars are set, the MSAL path activates
+- Swap is a single-file change to `web/lib/auth.ts` (`getCurrentUser()` reads JWT claims instead of returning fixed identity)
+
+### Entra Configuration (when credentials arrive)
 - App registration for frontend (SPA, redirect URIs configured)
-- App registration for backend API audience
-- Allowed tenant strategy (single-tenant for internal tool)
+- Single-tenant strategy (internal tool)
+- `getCurrentUser()` will return `{ upn, displayName }` from JWT `preferred_username` / `name` claims
 
-### Token Handling
-- Frontend acquires access token for the backend API scope via MSAL
-- Every request to a protected endpoint includes `Authorization: Bearer <token>`
-- Backend validates: signature (JWKS), issuer, audience (`ENTRA_CLIENT_ID`), tenant (`ENTRA_TENANT_ID`), expiration
-- Invalid or missing token → `401 UNAUTHORIZED`
-
-### Identity Persistence
-JWT claims stored on every submission for audit trail:
-- `oid` → `user_id`
-- `name` → `user_name`
-- `preferred_username` → `user_email`
-- `tid` → `tenant_id`
+### Identity Propagation (both placeholder and MSAL)
+`getCurrentUser()` result flows through:
+- `web/app/api/deployments/route.ts` → `deployedBy` in queue message
+- `web/app/api/my-deployments/route.ts` → ARM tag filter
+- `functions/src/modules/deployments/bicep-executor.ts` → ARM `deployedBy` tag on RG + every resource
 
 ---
 
@@ -526,13 +572,13 @@ JWT claims stored on every submission for audit trail:
 > Original v1.2.0 specified Azure CLI (`az deployment group create`). This was superseded by ARM SDK + Azure Functions — see ADR-017.
 
 ### Execution Path
-1. `POST /api/deployments` validates payload, generates `submissionId` (UUID), derives resource group name, enqueues JSON message to `deployment-jobs` queue. Returns `{ submissionId, resourceGroup }`.
+1. `POST /api/deployments` checks `POLICY_BLOCKED_TEMPLATE_SLUGS` — returns `403 FORBIDDEN` if slug is blocked. Otherwise validates payload, checks `DEPLOYABLE_SLUGS` allow-list, generates `submissionId` (UUID), derives resource group name, enqueues JSON message to `deployment-jobs` queue. Returns `{ submissionId, resourceGroup }`.
 2. Azure Function picks up queue message (triggered by `deployment-jobs`).
 3. Function builds ARM template from payload using `arm-template-builder.ts`.
-4. Function validates template against subscription policy (`COE-Allowed-Resources`).
-5. Function creates/updates resource group with policy tags + `deployedBy` + `iac-submissionId` (idempotent).
-6. Function calls `client.deployments.beginCreateOrUpdateAndWait(rg, submissionId, ...)` — ARM deployment name = `submissionId`.
-7. On success: ARM `provisioningState` = `Succeeded`. On failure: ARM records error details in deployment operations.
+4. Function creates/updates resource group with policy tags + `deployedBy` + `iac-submissionId` (idempotent).
+5. Function calls `client.deployments.beginCreateOrUpdateAndWait(rg, submissionId, ...)` — ARM deployment name = `submissionId`.
+6. On success: ARM `provisioningState` = `Succeeded`. On failure: ARM records error details in deployment operations.
+7. Errors are thrown (not caught) so the Functions runtime retries. After max retries, message moves to the poison queue — handled by `processPoisonDeployment.ts`.
 
 ### ARM Template Building
 All resource types are built in-process via `arm-template-builder.ts`:
@@ -598,10 +644,10 @@ Note: Manual HOD approval is required outside this system.
 
 ## 14. Architecture Decisions (ADRs)
 
-### ADR-001: Next.js 16 static-export frontend
-- **Status:** Accepted
-- **Decision:** Keep frontend as static export (`output: 'export'`).
-- **Consequences:** Simple hosting/CDN, API must be external, auth is client-centric.
+### ADR-001: Next.js 16 standalone frontend
+- **Status:** Accepted (updated: `output: 'standalone'`, not static export)
+- **Decision:** Next.js 16 App Router with `output: 'standalone'`. Runs as a server process (`node server.js`). Required because API routes use managed identity which needs server execution.
+- **Consequences:** Must run via `next start` or the standalone server; cannot be CDN-served as static files. Azure App Service deployment uses the standalone bundle + `oryx-manifest.toml` startup command.
 
 ### ADR-002: Microsoft SSO mandatory for deployment actions
 - **Status:** Accepted
@@ -624,9 +670,9 @@ Note: Manual HOD approval is required outside this system.
 - **Consequences:** Requires managed identity RBAC, parameter mapping layer, failure parsing.
 
 ### ADR-006: PostgreSQL for persistence
-- **Status:** Accepted
-- **Decision:** Use PostgreSQL for submissions and event history.
-- **Consequences:** Migration/versioning needed, readiness checks must include DB, retention policy required.
+- **Status:** Superseded by ADR-019
+- **Decision:** (Original) Use PostgreSQL for submissions and event history.
+- **Consequences:** Superseded — no database. See ADR-019.
 
 ### ADR-007: Error response standardization
 - **Status:** Accepted
@@ -659,9 +705,9 @@ Note: Manual HOD approval is required outside this system.
 - **Consequences:** Predictable releases, strict CI enforcement.
 
 ### ADR-013: Backend tech stack
-- **Status:** Accepted
-- **Decision:** Fastify + TypeScript + Zod + Prisma + PostgreSQL. App runs with `tsx` (no Docker for the app). PostgreSQL started locally via Docker Compose.
-- **Consequences:** Strong type safety and runtime validation, Prisma migration discipline needed. Docker Compose used only for the database — one command to start it.
+- **Status:** Superseded by ADR-016 and ADR-019
+- **Decision:** (Original) Fastify + TypeScript + Zod + Prisma + PostgreSQL.
+- **Consequences:** Superseded — backend is Next.js API routes + Azure Functions; no Fastify, no Prisma, no PostgreSQL, no Docker Compose. See ADR-016 and ADR-019.
 
 ### ADR-014: Idempotency behavior
 - **Status:** Proposed (v1.1)
@@ -697,9 +743,23 @@ Note: Manual HOD approval is required outside this system.
 - **Rationale:** The only data stored was submission metadata and status — both now live in ARM. Eliminating the DB removes: migrations, connection string management, Prisma client generation in CI, readiness check dependency, and local Docker setup.
 - **Consequences:** No deployment history if resource group is deleted. "My Stuff" listing is derived entirely from ARM tag queries (`deployedBy` tag). Submission payload is not durably stored (queue message is transient).
 
+### ADR-020: Custom Request Flow (no auto-deploy) **[v2.3]**
+- **Status:** Accepted
+- **Decision:** Add a third flow at `/request` that generates a copyable plain-text request document for the IAC team. No queue message is sent, no deployment is triggered.
+- **Rationale:** Non-expert requesters need a guided way to describe what they want and submit it for manual provisioning after HOD approval, without triggering automated deployment.
+- **Consequences:** `mode: 'custom-request'` added to Zustand store. `resetCustomRequest()` action added. `/request` route never reaches `/review`. `RequestDocument` component handles document generation.
+
+### ADR-021: Dark-only theme **[v2.3]**
+- **Status:** Accepted
+- **Decision:** Remove light/dark theme toggle. Single `:root` CSS variable token set, dark-only. No `localStorage` persistence.
+- **Rationale:** Reduces UI complexity and inconsistency. Internal tool — no user preference requirement. Dark palette matches Azure Portal aesthetics.
+- **Consequences:** No `data-theme` switching, no `ThemeToggle` component, no `sandbox-theme` localStorage key.
+
 ---
 
 ## 15. Frontend Implementation Backlog
+
+> **Note:** Sections 15–16 are historical planning artifacts from the initial delivery phase. All sprints are complete. The implemented state is documented in Sections 7–12 and CLAUDE.md. Retained for traceability only.
 
 ### Sprint 0 — Foundation
 | Story | Priority | Acceptance Criteria |
@@ -754,6 +814,8 @@ Note: Manual HOD approval is required outside this system.
 ---
 
 ## 16. Backend Implementation Backlog
+
+> **Note:** Historical planning artifact. All sprints complete. Retained for traceability. Sprint B1–B4 references to Fastify/PostgreSQL/Docker are superseded by ADR-016/ADR-019.
 
 ### Sprint B1 — Service Foundation
 | Story | Priority | Acceptance Criteria |
@@ -958,10 +1020,10 @@ Each PR must include:
 ## 21. Security Controls
 
 ### Authentication and Authorization
-- Microsoft Entra ID SSO mandatory
-- JWT token validation (signature, issuer, audience, tenant, expiration)
-- Bearer token required on all protected endpoints
-- User identity captured and stored on every submission for audit
+- All routes gated by Next.js middleware (`proxy.ts`); unauthenticated requests redirect to `/login`
+- **Current:** HMAC-signed session cookie (`iac_session`, 24h TTL); placeholder identity `demo@sandbox.local`
+- **Planned:** Microsoft Entra ID SSO via MSAL (blocked on App Registration credentials); JWT validation (signature, issuer, audience, tenant, expiration) activates when `AZURE_AD_CLIENT_ID` is set
+- User identity propagated to ARM tags on every deployment for audit trail
 
 ### Network and API Security
 - HTTPS everywhere
@@ -985,13 +1047,14 @@ Each PR must include:
 ## 22. Observability and Operations
 
 ### Logging
-- JSON structured logs (pino)
-- Every request logs: `timestamp`, `level`, `requestId`, `route`, `statusCode`, `latencyMs`
-- Submission routes additionally log: `submissionId`, `mode`
+- Structured logs via `console.log`/`console.error` (Next.js runtime collects these; no separate pino dependency)
+- Backend routes include `requestId` and `submissionId` in log entries
+- Function App logs include `submissionId` and ARM deployment state transitions
 - Never log `Authorization` headers or credentials
 
 ### Probes
 - **Liveness:** `GET /api/healthz` — returns 200 if process is alive
+- **ARM verification:** `GET /api/healthz/arm` — returns `{"status":"ok"}` if App Service managed identity can reach `sub-epf-sandbox-internal`; `{"status":"error",...}` if MI not configured or Reader role missing
 - No readiness probe — no database dependency
 
 ### Rollback Plan
@@ -1005,16 +1068,16 @@ Each PR must include:
 ### Frontend
 - Unit/component tests: store, form components, modal/submit flows
 - Integration tests: template/custom path payload correctness
-- Quality gates: `npm run lint` (0 errors), `npm run test:run` (pass), `npm run build` (static export)
+- Quality gates (run from `web/`): `npm run lint` (0 errors), `npx tsc --noEmit` (0 errors), `npx vitest run` (all pass), `npm run build` (standalone build)
 
 ### Backend
-- Unit tests: validation, service, repository, ID generation
-- API tests: happy path both modes, malformed payloads, unsupported mode, GET by ID
-- Contract tests: OpenAPI compliance
-- Quality gates: lint/test/build/migrations
+- Unit tests: validation, schema, ID generation, ARM status mapping
+- API tests (Vitest with mocks): happy path both modes, malformed payloads, policy-blocked slugs (403), GET by ID
+- Quality gates (run from `web/`): same as frontend — `npx tsc --noEmit` + `npx vitest run`
 
-### Worker
-- Integration tests: Bicep adapter, status transitions, failure paths
+### Worker (run from `functions/`)
+- Unit tests: `arm-template-builder.ts`, `bicep-executor.ts`, `processDeployment.ts`
+- Quality gates: `npx tsc --noEmit` + `npx vitest run`
 
 ### End-to-End
 - Login → template → submit → proof copy
@@ -1065,12 +1128,11 @@ Each PR must include:
 
 ### Required Evidence Pack
 1. OpenAPI contract version and changelog
-2. Migration files and DB schema snapshot
-3. CI run: lint/test/build/security all green
-4. E2E artifacts for both flows
-5. Sample proof text artifact
-6. Observability screenshots (metrics + alerts)
-7. UAT sign-off checklist with approvers
+2. CI run: lint/tsc/test/build all green (web + functions)
+3. E2E artifacts for Template flow and Custom Builder flow
+4. Sample proof text artifact
+5. `GET /api/healthz/arm` → `{"status":"ok"}` screenshot
+6. UAT sign-off checklist with approvers
 
 ### Definition of Done (Program Level)
 1. Authenticated users can deploy from both flows

@@ -41,6 +41,9 @@ Thumbs.db
 # Git worktrees
 .worktrees/
 
+# Superpowers local brainstorming state (per-user, not shared)
+.superpowers/
+
 # Claude Code — personal scope (per-user, not shared)
 .claude/settings.local.json
 .claude/CLAUDE.local.md
