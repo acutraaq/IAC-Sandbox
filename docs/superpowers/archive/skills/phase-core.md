@@ -1,6 +1,9 @@
 ---
 name: phase-core
 description: Foundation + Domain phases (1-2): CSS tokens, layout shell, UI primitives, types, store, and utilities for IAC Sandbox
+archived: true
+archived_date: 2026-05-02
+reason: All phases complete and shipped. Archived to prevent accidental re-execution.
 ---
 
 # Phase: Core Foundation + Domain (Phases 1–2)

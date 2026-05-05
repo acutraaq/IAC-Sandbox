@@ -1,6 +1,9 @@
 ---
 name: phase-templates
 description: Template catalog + wizard flow (Phase 3b): TemplateGrid, FilterPills, TemplateCard, Stepper, WizardStep, SummaryPanel
+archived: true
+archived_date: 2026-05-02
+reason: All phases complete and shipped. Archived to prevent accidental re-execution.
 ---
 
 # Phase: Template Flow (Phase 3b)
