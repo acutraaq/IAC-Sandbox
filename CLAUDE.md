@@ -19,7 +19,7 @@ No active specs or plans. All approved work is implemented; completed designs li
 
 **What is live and working:** See Live Deployment section below.
 **What is designed but not built:** Nothing — all approved specs implemented.
-**What is blocked:** Microsoft SSO / MSAL — placeholder login is live; real SSO swap pending App Registration credentials.
+**SSO status:** Microsoft SSO / MSAL is **on hold** — placeholder login is live and sufficient for current needs. The MSAL plumbing is fully implemented but not being activated at this time. See Authentication section.
 **What needs admin action:** Managed identity not yet enabled on Function App or App Service — cross-subscription ARM deployments will fail until an admin completes the setup checklist in the **Azure Infrastructure Setup** section below. Verify with `GET /api/healthz/arm` → `{"status":"ok"}`.
 
 ---
@@ -34,7 +34,7 @@ No active specs or plans. All approved work is implemented; completed designs li
 
 Both Template and Custom Builder flows converge at a shared Review & Submit page, calling `POST /api/deployments`. After submission, a copyable plain-text proof artifact is generated for manual HOD approval. Deployment status is tracked via Azure ARM — ARM is the source of truth (no database).
 
-**Microsoft SSO (Entra ID / MSAL.js)** is a planned requirement, blocked on admin providing App Registration credentials. A **placeholder login page** is live: visiting any protected route redirects to `/login`, where the "Sign in with Microsoft" button stubs a session cookie carrying `demo@sandbox.local`. When MSAL credentials arrive, the swap is a single-file change to `web/lib/auth.ts` (see Authentication section below).
+**SSO:** Microsoft SSO (Entra ID / MSAL.js) is **on hold**. MSAL plumbing is fully implemented (auth code + PKCE flow, callback handler, `deployedBy` wired end-to-end) but not being activated at this time. A **placeholder login page** is live: visiting any protected route redirects to `/login`, where the "Sign in with Microsoft" button stubs a session cookie carrying `demo@sandbox.local`. When the team decides to activate SSO, the swap is a single-file change to `web/lib/auth.ts` (see Authentication section below).
 
 ---
 

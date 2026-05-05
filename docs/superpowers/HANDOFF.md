@@ -8,7 +8,7 @@
 
 ## TL;DR
 
-Login placeholder (PR #6) was merged. **MSAL SSO plumbing is fully implemented** — authorization code + PKCE flow, callback handler, `deployedBy` wired through the pipeline end-to-end. The app runs with the placeholder `demo@sandbox.local` identity until admin provides App Registration credentials. Dark-only theme is shipped (single `:root` token block, no theme toggle).
+Login placeholder (PR #6) was merged. **MSAL SSO plumbing is fully implemented** — authorization code + PKCE flow, callback handler, `deployedBy` wired through the pipeline end-to-end. SSO is **on hold**; the placeholder `demo@sandbox.local` identity is the current accepted state. Dark-only theme is shipped (single `:root` token block, no theme toggle).
 
 ## What was done in the last session (2026-05-04)
 
@@ -28,8 +28,8 @@ Doc-audit pass against the live codebase. Fixes:
 - Login page at `/login` with "Sign in with Microsoft" anchor link — throws MSAL config error if creds not set (graceful degradation)
 - Placeholder HMAC session cookie still works for `demo@sandbox.local`
 
-### Still blocked
-- **Microsoft SSO (Entra ID / MSAL)** — admin has not provided App Registration credentials (`AZURE_AD_CLIENT_ID`, `AZURE_AD_CLIENT_SECRET`). Code is ready; activation checklist in A2 agent doc or `web/lib/auth.ts`.
+### On hold
+- **Microsoft SSO (Entra ID / MSAL)** — fully implemented but not being activated at this time. Placeholder login (`demo@sandbox.local`) is the accepted state. When the team decides to proceed, the activation checklist is in A2 agent doc or `web/lib/auth.ts`.
 - **Cross-subscription ARM deployments** — managed identity not yet enabled on Function App or App Service. Admin must complete the 5-step setup in CLAUDE.md → Azure Infrastructure Setup.
 
 ### What's next
