@@ -1,11 +1,20 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Search } from "lucide-react";
 import { DynamicIcon } from "@/components/ui/DynamicIcon";
 import { Badge } from "@/components/ui/Badge";
-import { FilterPills } from "@/components/templates/FilterPills";
+import { FilterPills, type CategoryOption } from "@/components/templates/FilterPills";
 import type { AzureResource } from "@/types";
+
+const CATEGORY_LABELS: Record<string, string> = {
+  compute: "Compute",
+  data: "Data",
+  network: "Network",
+  security: "Security",
+  automation: "Automation",
+  integration: "Integration",
+};
 
 interface ResourceCatalogProps {
   resources: AzureResource[];
@@ -20,6 +29,18 @@ export function ResourceCatalog({
 }: ResourceCatalogProps) {
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("all");
+
+  const availableCategories = useMemo<CategoryOption[]>(() => {
+    const seen = new Set<string>();
+    const pills: CategoryOption[] = [{ value: "all", label: "All" }];
+    for (const r of resources) {
+      if (!r.policyBlocked && !seen.has(r.category)) {
+        seen.add(r.category);
+        pills.push({ value: r.category, label: CATEGORY_LABELS[r.category] ?? r.category });
+      }
+    }
+    return pills;
+  }, [resources]);
 
   const filtered = resources.filter((r) => {
     if (r.policyBlocked) return false;
@@ -48,7 +69,7 @@ export function ResourceCatalog({
         />
       </div>
 
-      <FilterPills selected={category} onChange={setCategory} />
+      <FilterPills selected={category} onChange={setCategory} categories={availableCategories} />
 
       {filtered.length === 0 ? (
         <p className="py-8 text-center text-sm text-text-muted">

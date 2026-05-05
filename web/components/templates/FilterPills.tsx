@@ -1,11 +1,11 @@
 "use client";
 
-interface FilterPillsProps {
-  selected: string;
-  onChange: (category: string) => void;
+export interface CategoryOption {
+  value: string;
+  label: string;
 }
 
-const categories = [
+const DEFAULT_CATEGORIES: CategoryOption[] = [
   { value: "all", label: "All" },
   { value: "automation", label: "Automation" },
   { value: "integration", label: "Integration" },
@@ -16,7 +16,13 @@ const categories = [
   { value: "landing-zone", label: "Starter Kits" },
 ];
 
-export function FilterPills({ selected, onChange }: FilterPillsProps) {
+interface FilterPillsProps {
+  selected: string;
+  onChange: (category: string) => void;
+  categories?: CategoryOption[];
+}
+
+export function FilterPills({ selected, onChange, categories = DEFAULT_CATEGORIES }: FilterPillsProps) {
   return (
     <div role="group" aria-label="Filter by category" className="flex flex-wrap gap-2">
       {categories.map((cat) => (
