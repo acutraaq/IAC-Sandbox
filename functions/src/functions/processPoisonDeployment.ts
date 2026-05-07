@@ -67,7 +67,7 @@ export async function processPoisonDeployment(
     submissionId
   );
 
-  await createFailureRecord(env.DEPLOYMENT_QUEUE, {
+  await createFailureRecord(env.AZURE_STORAGE_CONNECTION_STRING, {
     submissionId,
     resourceGroupName,
     error: armError,

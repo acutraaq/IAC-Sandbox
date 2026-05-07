@@ -6,9 +6,7 @@ import { Button } from "@/components/ui/Button";
 import { Check, Copy, RotateCcw, ExternalLink } from "lucide-react";
 import Link from "next/link";
 import type { DeploymentStatus } from "@/types";
-
-const AZURE_TENANT_ID = "3335e1a2-2058-4baf-b03b-031abf0fc821";
-const AZURE_SUBSCRIPTION_ID = "1fed33d2-00fd-40a8-a5c1-c120aec1b902";
+import { getPublicAzureEnv } from "@/lib/env-public";
 
 interface ConfirmModalProps {
   open: boolean;
@@ -154,6 +152,8 @@ export function ConfirmModal({
     }
   }
 
+  const { tenantId, subscriptionId } = getPublicAzureEnv();
+
   return (
     <Modal open={open} onClose={onClose} title="Deployment Submitted">
       <div className="mx-auto max-w-xl space-y-4">
@@ -198,7 +198,7 @@ export function ConfirmModal({
 
           {deploymentStatus === "succeeded" && resourceGroup && (
             <a
-              href={`https://portal.azure.com/#@${AZURE_TENANT_ID}/resource/subscriptions/${AZURE_SUBSCRIPTION_ID}/resourceGroups/${resourceGroup}/overview`}
+              href={`https://portal.azure.com/#@${tenantId}/resource/subscriptions/${subscriptionId}/resourceGroups/${resourceGroup}/overview`}
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center justify-center gap-2 rounded-lg border border-accent/40 bg-accent/5 px-4 py-2.5 text-sm font-medium text-accent transition-colors hover:bg-accent/10"

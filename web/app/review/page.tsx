@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/Button";
 import { toast } from "@/components/ui/Toast";
 import { Send, Loader2, ArrowLeft, Tag } from "lucide-react";
 import { tagsSchema } from "@/lib/deployments/schema";
-import type { ResourceGroupTags } from "@/types";
+import type { ResourceGroupTags, SessionUser } from "@/types";
 import Link from "next/link";
 import { Breadcrumb } from "@/components/layout/Breadcrumb";
 import { PageTransition } from "@/components/layout/PageTransition";
@@ -31,6 +31,22 @@ export default function ReviewPage() {
     "Expiry Date": "",
   });
   const [tagErrors, setTagErrors] = useState<Partial<Record<keyof ResourceGroupTags, string>>>({});
+  const [user, setUser] = useState<SessionUser | null>(null);
+
+  useEffect(() => {
+    async function loadUser() {
+      try {
+        const res = await fetch("/api/auth/me");
+        if (res.ok) {
+          const data = await res.json();
+          setUser(data);
+        }
+      } catch {
+        // ignore
+      }
+    }
+    loadUser();
+  }, []);
 
   function validateTags(): boolean {
     const result = tagsSchema.safeParse(tags);
@@ -112,12 +128,13 @@ export default function ReviewPage() {
       }
 
       const result = await submitDeployment(payload);
+      const reportUser = user ?? { upn: "demo@sandbox.local", displayName: "Demo User" };
       const report = generateReport(result.submissionId, {
         mode,
         selectedTemplate,
         wizardState,
         selectedResources,
-      }, tags);
+      }, reportUser, tags);
 
       setSubmissionResult(result.submissionId, report, result.resourceGroup);
       setDeploymentStatus("accepted", null);

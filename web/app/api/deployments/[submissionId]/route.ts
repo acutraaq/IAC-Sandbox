@@ -3,6 +3,9 @@ import { AppError, toErrorResponse, logError, isArmError } from "@/lib/errors";
 import { getArmClient } from "@/lib/arm";
 import { mapArmProvisioningState } from "@/lib/deployments/arm-status";
 import { getFailureRecord } from "@/lib/deployments/failure-lookup";
+import { getCurrentUser } from "@/lib/auth";
+
+const RG_NAME_REGEX = /^[a-zA-Z0-9_.()-]+$/;
 
 export async function GET(
   request: Request,
@@ -18,8 +21,36 @@ export async function GET(
     return NextResponse.json(toErrorResponse(err, requestId), { status: 400 });
   }
 
+  if (!RG_NAME_REGEX.test(rg)) {
+    const err = AppError.validation("rg query parameter contains invalid characters");
+    return NextResponse.json(toErrorResponse(err, requestId), { status: 400 });
+  }
+
   try {
     const client = getArmClient();
+    const user = await getCurrentUser();
+
+    // Ownership check: verify the requesting user owns this resource group
+    try {
+      const rgMeta = await client.resourceGroups.get(rg);
+      const deployedBy = rgMeta.tags?.["deployedBy"];
+      if (deployedBy && user?.upn !== deployedBy) {
+        // Return 404 to avoid enumeration
+        return NextResponse.json(
+          toErrorResponse(AppError.notFound("Deployment not found"), requestId),
+          { status: 404 }
+        );
+      }
+    } catch (rgErr: unknown) {
+      if (isArmError(rgErr) && rgErr.statusCode === 404) {
+        return NextResponse.json(
+          toErrorResponse(AppError.notFound("Deployment not found"), requestId),
+          { status: 404 }
+        );
+      }
+      throw rgErr;
+    }
+
     let status: ReturnType<typeof mapArmProvisioningState>;
     let errorMessage: string | null = null;
 

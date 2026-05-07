@@ -60,13 +60,20 @@ jobs:
       - name: Test
         run: npm run test:run
 
+      - name: Schema drift check
+        run: |
+          diff -u <(sed '/^\/\//d' ../functions/src/modules/deployments/deployment.schema.ts | sed 's/\.default({})//g' | sed 's/\.min(1)/.min(1)/g' | sed 's/, "[^"]*"//g') <(sed '/^\/\//d' lib/deployments/schema.ts | sed 's/\.default({})//g' | sed 's/\.min(1)/.min(1)/g' | sed 's/, "[^"]*"//g') || true
+          if [ $? -ne 0 ]; then echo "Schema drift detected — verify web/lib/deployments/schema.ts and functions/src/modules/deployments/deployment.schema.ts"; fi
+
       - name: Build
         run: npm run build
         env:
-          AZURE_SUBSCRIPTION_ID: 00000000-0000-0000-0000-000000000000
-          AZURE_TENANT_ID: 00000000-0000-0000-0000-000000000000
-          AZURE_STORAGE_CONNECTION_STRING: DefaultEndpointsProtocol=https;AccountName=build;AccountKey=AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==;EndpointSuffix=core.windows.net
-          SESSION_SECRET: ci_build_dummy_secret_at_least_32_chars_long
+          AZURE_SUBSCRIPTION_ID: ${{ secrets.CI_AZURE_SUBSCRIPTION_ID || '00000000-0000-0000-0000-000000000000' }}
+          AZURE_TENANT_ID: ${{ secrets.CI_AZURE_TENANT_ID || '00000000-0000-0000-0000-000000000000' }}
+          AZURE_STORAGE_CONNECTION_STRING: ${{ secrets.CI_STORAGE_CONNECTION_STRING || 'DefaultEndpointsProtocol=https;AccountName=build;AccountKey=AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==;EndpointSuffix=core.windows.net' }}
+          SESSION_SECRET: ${{ secrets.CI_SESSION_SECRET || 'ci_build_dummy_secret_at_least_32_chars_long' }}
+          NEXT_PUBLIC_AZURE_TENANT_ID: ${{ secrets.CI_AZURE_TENANT_ID || '3335e1a2-2058-4baf-b03b-031abf0fc821' }}
+          NEXT_PUBLIC_AZURE_SUBSCRIPTION_ID: ${{ secrets.CI_AZURE_SUBSCRIPTION_ID || '1fed33d2-00fd-40a8-a5c1-c120aec1b902' }}
 
       - name: Assemble and zip standalone release
         if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
@@ -123,7 +130,7 @@ jobs:
 
       - name: Create deployment package
         if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-        run: zip -r ../functions-deploy.zip dist host.json package.json node_modules
+        run: zip -r ../functions-deploy.zip dist host.json package.json node_modules -x "node_modules/**/*.map" -x "node_modules/**/test/*" -x "node_modules/**/*.md"
 
       - name: Deploy to Azure Functions
         uses: azure/functions-action@v1

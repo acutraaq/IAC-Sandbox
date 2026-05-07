@@ -1,4 +1,4 @@
-import type { DeploymentState, ResourceGroupTags } from "@/types";
+import type { DeploymentState, ResourceGroupTags, SessionUser } from "@/types";
 import { deriveResourceGroupName } from "@/lib/deployments/rg-name";
 import { displayFieldValue } from "@/lib/display";
 
@@ -24,6 +24,7 @@ export function generateReport(
     DeploymentState,
     "mode" | "selectedTemplate" | "wizardState" | "selectedResources"
   >,
+  user: SessionUser,
   tags?: ResourceGroupTags,
 ): string {
   const now = new Date().toLocaleString("en-MY", {
@@ -35,8 +36,8 @@ export function generateReport(
     "SANDBOX DEPLOYMENT PROOF",
     "========================",
     `Submission ID : ${submissionId}`,
-    `Submitted By  : Demo User (demo@contoso.com)`,
-    `Tenant        : contoso.onmicrosoft.com`,
+    `Submitted By  : ${user.displayName} (${user.upn})`,
+    `Tenant        : sub-epf-sandbox-internal`,
     `Date/Time     : ${now}`,
     `Mode          : ${state.mode === "template" ? "Template" : "Custom"}`,
     `Target Sub    : sub-epf-sandbox-internal`,

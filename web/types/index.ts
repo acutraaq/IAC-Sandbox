@@ -3,7 +3,7 @@
 export interface FieldSchema {
   name: string;
   label: string;
-  type: "text" | "number" | "select" | "toggle";
+  type: "text" | "number" | "select" | "toggle" | "password";
   required: boolean;
   placeholder?: string;
   helpText?: string;
@@ -81,11 +81,19 @@ export type DeploymentPayload =
   | TemplateDeploymentPayload
   | CustomDeploymentPayload;
 
+/* ── Auth ── */
+
+export interface SessionUser {
+  upn: string;
+  displayName: string;
+}
+
 /* ── API Responses ── */
 
 export interface SubmitResponse {
   submissionId: string;
   resourceGroup: string;
+  requestId: string;
 }
 
 export type DeploymentStatus = "accepted" | "running" | "succeeded" | "failed";

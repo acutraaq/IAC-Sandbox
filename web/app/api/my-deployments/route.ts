@@ -5,8 +5,12 @@ import { mapArmProvisioningState } from "@/lib/deployments/arm-status";
 import { getCurrentUser } from "@/lib/auth";
 import type { MyDeploymentItem, DeploymentStatus } from "@/types";
 
-export async function GET() {
+const PAGE_SIZE = 20;
+
+export async function GET(request: Request) {
   const requestId = crypto.randomUUID();
+  const { searchParams } = new URL(request.url);
+  const top = Math.min(parseInt(searchParams.get("top") ?? String(PAGE_SIZE), 10), PAGE_SIZE);
 
   try {
     const user = await getCurrentUser();
@@ -20,6 +24,7 @@ export async function GET() {
 
     const rgIterator = client.resourceGroups.list({
       filter: `tagName eq 'deployedBy' and tagValue eq '${user.upn}'`,
+      top,
     });
 
     for await (const rg of rgIterator) {

@@ -12,23 +12,28 @@ function makeReq(url: string, cookies: Record<string, string> = {}) {
 }
 
 describe("proxy", () => {
-  it("passes through unauthenticated requests while SSO is on hold", async () => {
+  it("redirects unauthenticated requests to /login", async () => {
     const { proxy } = await import("@/proxy");
     const res = await proxy(makeReq("/templates"));
-    expect(res.status).toBe(200);
-    expect(res.headers.get("location")).toBeNull();
+    expect(res.status).toBe(302);
+    expect(res.headers.get("location")).toBe("http://localhost:3000/login?next=%2Ftemplates");
   });
 
-  it("passes through requests with query strings", async () => {
+  it("redirects requests with query strings preserving the path", async () => {
     const { proxy } = await import("@/proxy");
     const res = await proxy(makeReq("/templates?cat=compute"));
-    expect(res.status).toBe(200);
-    expect(res.headers.get("location")).toBeNull();
+    expect(res.status).toBe(302);
+    expect(res.headers.get("location")).toBe("http://localhost:3000/login?next=%2Ftemplates%3Fcat%3Dcompute");
   });
 
   it("passes through requests with a valid session cookie", async () => {
+    const { createSessionCookie } = await import("@/lib/auth-core");
+    const value = await createSessionCookie({
+      upn: "demo@sandbox.local",
+      displayName: "Demo User",
+    });
     const { proxy } = await import("@/proxy");
-    const res = await proxy(makeReq("/templates", { iac_session: "any.value" }));
+    const res = await proxy(makeReq("/templates", { iac_session: value }));
     expect(res.status).toBe(200);
     expect(res.headers.get("location")).toBeNull();
   });
@@ -39,9 +44,10 @@ describe("proxy", () => {
     expect(res.status).toBe(200);
   });
 
-  it("passes through requests with an invalid session cookie", async () => {
+  it("redirects requests with an invalid session cookie", async () => {
     const { proxy } = await import("@/proxy");
     const res = await proxy(makeReq("/", { iac_session: "garbage.value" }));
-    expect(res.status).toBe(200);
+    expect(res.status).toBe(302);
+    expect(res.headers.get("location")).toBe("http://localhost:3000/login?next=%2F");
   });
 });

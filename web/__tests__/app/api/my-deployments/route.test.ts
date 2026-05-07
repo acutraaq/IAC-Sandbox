@@ -18,6 +18,10 @@ vi.mock("@/lib/auth", () => ({
 import * as authModule from "@/lib/auth";
 const mockGetCurrentUser = vi.mocked(authModule.getCurrentUser);
 
+function makeReq(): Request {
+  return new Request("http://localhost/api/my-deployments");
+}
+
 async function* makeRgIterator(items: unknown[]) {
   for (const item of items) yield item;
 }
@@ -25,7 +29,7 @@ async function* makeRgIterator(items: unknown[]) {
 describe("GET /api/my-deployments", () => {
   it("returns an empty array when no tagged resource groups exist", async () => {
     mockRgList.mockReturnValueOnce(makeRgIterator([]));
-    const res = await GET();
+    const res = await GET(makeReq());
     expect(res.status).toBe(200);
     const body = await res.json();
     expect(body).toEqual([]);
@@ -49,7 +53,7 @@ describe("GET /api/my-deployments", () => {
       },
     });
 
-    const res = await GET();
+    const res = await GET(makeReq());
     const body = await res.json();
     expect(body).toHaveLength(1);
     expect(body[0].resourceGroup).toBe("my-rg");
@@ -62,7 +66,7 @@ describe("GET /api/my-deployments", () => {
       { name: "my-rg", location: "southeastasia", tags: { deployedBy: "demo@sandbox.local" } },
     ]));
 
-    const res = await GET();
+    const res = await GET(makeReq());
     const body = await res.json();
     expect(body[0].status).toBe("accepted");
     expect(body[0].submissionId).toBeNull();
@@ -70,13 +74,13 @@ describe("GET /api/my-deployments", () => {
 
   it("returns 500 when ARM throws", async () => {
     mockRgList.mockImplementationOnce(() => { throw new Error("ARM error"); });
-    const res = await GET();
+    const res = await GET(makeReq());
     expect(res.status).toBe(500);
   });
 
   it("returns 401 when getCurrentUser returns null", async () => {
     mockGetCurrentUser.mockResolvedValueOnce(null);
-    const res = await GET();
+    const res = await GET(makeReq());
     expect(res.status).toBe(401);
   });
 });

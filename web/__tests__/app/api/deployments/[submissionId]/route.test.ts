@@ -1,12 +1,18 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
 const mockDeploymentsGet = vi.fn();
+const mockResourceGroupsGet = vi.fn();
 const mockGetFailureRecord = vi.fn();
 
 vi.mock("@/lib/arm", () => ({
   getArmClient: () => ({
     deployments: { get: mockDeploymentsGet },
+    resourceGroups: { get: mockResourceGroupsGet },
   }),
+}));
+
+vi.mock("@/lib/auth", () => ({
+  getCurrentUser: vi.fn().mockResolvedValue({ upn: "demo@sandbox.local", displayName: "Demo User" }),
 }));
 
 vi.mock("@/lib/deployments/failure-lookup", () => ({
@@ -16,6 +22,11 @@ vi.mock("@/lib/deployments/failure-lookup", () => ({
 beforeEach(() => {
   vi.clearAllMocks();
   vi.resetModules();
+  mockResourceGroupsGet.mockResolvedValue({
+    name: "my-rg",
+    location: "southeastasia",
+    tags: { deployedBy: "demo@sandbox.local", "iac-submissionId": "sub-id" },
+  });
 });
 
 function makeRequest(submissionId: string, rg?: string) {

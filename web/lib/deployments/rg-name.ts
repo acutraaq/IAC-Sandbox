@@ -24,7 +24,8 @@ export const SLUG_PRIMARY_FIELD: Record<string, string> = {
 };
 
 export function deriveResourceGroupName(
-  payload: DeploymentPayloadWithoutTags
+  payload: DeploymentPayloadWithoutTags,
+  submissionId?: string,
 ): string {
   let base: string;
 
@@ -39,7 +40,8 @@ export function deriveResourceGroupName(
     base = payload.resources[0]?.name ?? "sandbox";
   }
 
-  return sanitise(base) + "-rg";
+  const suffix = submissionId ? `-${submissionId.slice(0, 6)}` : "";
+  return sanitise(base, suffix.length) + suffix + "-rg";
 }
 
 export function deriveLocation(payload: DeploymentPayload): string {
@@ -51,13 +53,14 @@ export function deriveLocation(payload: DeploymentPayload): string {
   return typeof region === "string" ? region : "southeastasia";
 }
 
-export function sanitise(name: string): string {
+export function sanitise(name: string, reserve: number = 0): string {
+  const maxLen = 90 - reserve - 3; // reserve space for suffix and "-rg"
   const result = name
     .toLowerCase()
     .replace(/\s+/g, "-")
     .replace(/[^a-z0-9\-_.()]/g, "")
     .replace(/\.+$/, "")
     .replace(/^[^a-z0-9]+/, "")
-    .slice(0, 87);
+    .slice(0, maxLen);
   return result || "sandbox";
 }

@@ -67,7 +67,7 @@ export async function POST(request: Request) {
     }
 
     const submissionId = crypto.randomUUID();
-    const resourceGroupName = deriveResourceGroupName(payload);
+    const resourceGroupName = deriveResourceGroupName(payload, submissionId);
     const location = deriveLocation(payload);
 
     const message: DeploymentJobMessage = {
@@ -83,7 +83,7 @@ export async function POST(request: Request) {
       Buffer.from(JSON.stringify(message)).toString("base64")
     );
 
-    return NextResponse.json({ submissionId, resourceGroup: resourceGroupName }, { status: 201 });
+    return NextResponse.json({ submissionId, resourceGroup: resourceGroupName, requestId }, { status: 201 });
   } catch (err) {
     if (err instanceof AppError) {
       return NextResponse.json(toErrorResponse(err, requestId), { status: err.statusCode });

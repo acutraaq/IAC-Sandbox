@@ -47,9 +47,8 @@ describe("auth-core: createSessionCookie / verifySessionCookie", () => {
 
   it("rejects an expired cookie", async () => {
     process.env.SESSION_SECRET = "test_secret_at_least_32_chars_long_xxxxx";
-    const { _signForTest, verifySessionCookie } = await loadCore() as typeof import("@/lib/auth-core") & {
-      _signForTest: (payloadJson: string) => Promise<string>;
-    };
+    const { _signForTest } = await import("@/__tests__/helpers/session-signer");
+    const { verifySessionCookie } = await loadCore();
     const expired = JSON.stringify({
       upn: "demo@sandbox.local",
       displayName: "Demo User",
@@ -84,7 +83,7 @@ vi.mock("next/headers", () => ({
 }));
 
 describe("auth: getCurrentUser", () => {
-  it("returns the fixed demo user when SSO is on hold (no cookie needed)", async () => {
+  it("returns the demo user when no cookie is present", async () => {
     const { getCurrentUser } = await load();
     const user = await getCurrentUser();
     expect(user).toEqual({ upn: "demo@sandbox.local", displayName: "Demo User" });

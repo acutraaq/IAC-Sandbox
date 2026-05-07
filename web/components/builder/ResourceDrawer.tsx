@@ -217,6 +217,21 @@ function DrawerContent({
                     />
                   )}
 
+                  {field.type === "password" && (
+                    <input
+                      id={fieldId}
+                      type="password"
+                      placeholder={field.placeholder}
+                      aria-invalid={!!errors[field.name]}
+                      aria-required={field.required}
+                      aria-describedby={describedBy}
+                      {...register(field.name)}
+                      className={`w-full rounded-lg border bg-surface px-4 py-2.5 text-sm text-text placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-accent ${
+                        errors[field.name] ? "border-error" : "border-border"
+                      }`}
+                    />
+                  )}
+
                   {field.type === "number" && (
                     <input
                       id={fieldId}

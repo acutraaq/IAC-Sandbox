@@ -16,16 +16,19 @@ export interface BicepExecutorOptions {
 }
 
 // ---------------------------------------------------------------------------
-// Timeout helper
+// Timeout helper with AbortController
 // ---------------------------------------------------------------------------
 
 const DEPLOYMENT_TIMEOUT_MS = 25 * 60 * 1000;
 
-function withTimeout<T>(promise: Promise<T>, ms: number, label: string): Promise<T> {
+function withTimeout<T>(promise: Promise<T>, ms: number, label: string, controller: AbortController): Promise<T> {
   let timer: ReturnType<typeof setTimeout>;
   const race = new Promise<never>((_, reject) => {
     timer = setTimeout(
-      () => reject(new Error(`[${label}] ARM deployment timed out after ${ms / 1000}s`)),
+      () => {
+        controller.abort();
+        reject(new Error(`[${label}] ARM deployment timed out after ${ms / 1000}s`));
+      },
       ms
     );
   });
@@ -66,13 +69,14 @@ function makeDeploymentsAccessor(credential: DefaultAzureCredential, subscriptio
   }
 
   return {
-    async beginCreateOrUpdateAndWait(rg: string, name: string, body: unknown): Promise<DeploymentResult> {
+    async beginCreateOrUpdateAndWait(rg: string, name: string, body: unknown, signal?: AbortSignal): Promise<DeploymentResult> {
       const url = `${base}/resourcegroups/${rg}/providers/Microsoft.Resources/deployments/${name}?api-version=${API}`;
       const token = await getToken();
       const res = await fetch(url, {
         method: "PUT",
         headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
         body: JSON.stringify(body),
+        signal,
       });
       if (!res.ok) {
         const text = await res.text();
@@ -80,9 +84,12 @@ function makeDeploymentsAccessor(credential: DefaultAzureCredential, subscriptio
       }
       // Poll until terminal state (Succeeded / Failed / Canceled)
       while (true) {
+        if (signal?.aborted) {
+          throw new Error(`ARM deployment ${name} aborted`);
+        }
         await sleep(POLL_INTERVAL_MS);
         const pollToken = await getToken();
-        const pollRes = await fetch(url, { headers: { Authorization: `Bearer ${pollToken}` } });
+        const pollRes = await fetch(url, { headers: { Authorization: `Bearer ${pollToken}` }, signal });
         if (!pollRes.ok) throw new Error(`ARM deployment poll failed: ${pollRes.status}`);
         const data = await pollRes.json() as DeploymentResult;
         const state = data.properties?.provisioningState;
@@ -183,6 +190,7 @@ export async function executeBicepDeployment(
   // Step 3: deploy ARM template into the resource group
   log?.(`[${id}] Starting ARM deployment`);
   let result: DeploymentResult;
+  const controller = new AbortController();
   try {
     result = await withTimeout(
       deployments.beginCreateOrUpdateAndWait(
@@ -194,10 +202,12 @@ export async function executeBicepDeployment(
             template: template as unknown as Record<string, unknown>,
             parameters: {},
           },
-        }
+        },
+        controller.signal
       ),
       DEPLOYMENT_TIMEOUT_MS,
-      id
+      id,
+      controller
     );
   } catch (err) {
     const reasons = await fetchOperationErrors(deployments, opts.resourceGroupName, id, log);

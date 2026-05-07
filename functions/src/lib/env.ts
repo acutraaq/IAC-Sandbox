@@ -10,6 +10,7 @@ const envSchema = z.object({
     .enum(["fatal", "error", "warn", "info", "debug", "trace"])
     .default("info"),
   DEPLOYMENT_QUEUE: z.string().min(1, "DEPLOYMENT_QUEUE is required"),
+  AZURE_STORAGE_CONNECTION_STRING: z.string().min(1, "AZURE_STORAGE_CONNECTION_STRING is required"),
 });
 
 const parsed = envSchema.safeParse(process.env);

@@ -1,5 +1,5 @@
 import { ResourceManagementClient } from "@azure/arm-resources";
-import { DefaultAzureCredential } from "@azure/identity";
+import { DefaultAzureCredential, ManagedIdentityCredential, type TokenCredential } from "@azure/identity";
 import { serverEnv } from "@/lib/server-env";
 
 /** Minimal shape of an ARM deployment GET response */
@@ -16,18 +16,31 @@ export interface ArmDeployment {
 
 /** Thin deployments accessor built on top of the credential token */
 function makeDeploymentsAccessor(
-  credential: DefaultAzureCredential,
+  credential: TokenCredential,
   subscriptionId: string
 ) {
+  let cache: { token: string; expiresOn: number } | null = null;
+
+  async function getToken(): Promise<string> {
+    if (cache && Date.now() < cache.expiresOn - 60_000) {
+      return cache.token;
+    }
+    const tokenResponse = await credential.getToken(
+      "https://management.azure.com/.default"
+    );
+    if (!tokenResponse?.token) {
+      throw new Error("Failed to acquire Azure credential token");
+    }
+    cache = {
+      token: tokenResponse.token,
+      expiresOn: tokenResponse.expiresOnTimestamp ?? Date.now() + 300_000,
+    };
+    return tokenResponse.token;
+  }
+
   return {
     async get(resourceGroupName: string, deploymentName: string): Promise<ArmDeployment> {
-      const tokenResponse = await credential.getToken(
-        "https://management.azure.com/.default"
-      );
-      if (!tokenResponse?.token) {
-        throw new Error("Failed to acquire Azure credential token");
-      }
-      const token = tokenResponse.token;
+      const token = await getToken();
       const url =
         `https://management.azure.com/subscriptions/${subscriptionId}` +
         `/resourcegroups/${resourceGroupName}/providers/Microsoft.Resources` +
@@ -61,7 +74,10 @@ export type ArmClientWithDeployments = ResourceManagementClient & {
 };
 
 export function getArmClient(): ArmClientWithDeployments {
-  const credential = new DefaultAzureCredential();
+  const isAzure = !!process.env.WEBSITE_INSTANCE_ID;
+  const credential: TokenCredential = isAzure
+    ? new ManagedIdentityCredential()
+    : new DefaultAzureCredential();
   const base = new ResourceManagementClient(credential, serverEnv.AZURE_SUBSCRIPTION_ID);
   const deployments = makeDeploymentsAccessor(credential, serverEnv.AZURE_SUBSCRIPTION_ID);
   return Object.assign(base, { deployments });

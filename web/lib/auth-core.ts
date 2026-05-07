@@ -90,10 +90,3 @@ export async function verifySessionCookie(value: string | undefined | null): Pro
   if (result.data.exp <= Math.floor(Date.now() / 1000)) return null;
   return { upn: result.data.upn, displayName: result.data.displayName };
 }
-
-export async function _signForTest(payloadJson: string): Promise<string> {
-  if (process.env.NODE_ENV !== "test") {
-    throw new Error("_signForTest must not be called outside of tests");
-  }
-  return sign(payloadJson);
-}

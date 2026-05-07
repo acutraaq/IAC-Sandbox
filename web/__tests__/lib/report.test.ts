@@ -1,6 +1,8 @@
 import { describe, it, expect } from "vitest";
 import { generateReport } from "@/lib/report";
 
+const demoUser = { upn: "demo@sandbox.local", displayName: "Demo User" };
+
 describe("generateReport", () => {
   const baseState = {
     mode: "template" as const,
@@ -43,40 +45,40 @@ describe("generateReport", () => {
   };
 
   it("includes SANDBOX DEPLOYMENT PROOF header", () => {
-    const report = generateReport("SUB-123", baseState);
+    const report = generateReport("SUB-123", baseState, demoUser);
     expect(report).toContain("SANDBOX DEPLOYMENT PROOF");
     expect(report).toContain("========================");
   });
 
   it("includes submissionId", () => {
-    const report = generateReport("SUB-ABC-123", baseState);
+    const report = generateReport("SUB-ABC-123", baseState, demoUser);
     expect(report).toContain("Submission ID : SUB-ABC-123");
   });
 
   it("includes mode as Template", () => {
-    const report = generateReport("SUB-123", baseState);
+    const report = generateReport("SUB-123", baseState, demoUser);
     expect(report).toContain("Mode          : Template");
   });
 
   it("includes template name", () => {
-    const report = generateReport("SUB-123", baseState);
+    const report = generateReport("SUB-123", baseState, demoUser);
     expect(report).toContain("Template: Web Application");
   });
 
   it("includes form values", () => {
-    const report = generateReport("SUB-123", baseState);
+    const report = generateReport("SUB-123", baseState, demoUser);
     expect(report).toContain("my-app");
   });
 
   it("includes HOD approval note", () => {
-    const report = generateReport("SUB-123", baseState);
+    const report = generateReport("SUB-123", baseState, demoUser);
     expect(report).toContain(
       "Note: Manual HOD approval is required outside this system.",
     );
   });
 
   it("includes status accepted", () => {
-    const report = generateReport("SUB-123", baseState);
+    const report = generateReport("SUB-123", baseState, demoUser);
     expect(report).toContain("Status        : accepted");
   });
 
@@ -99,7 +101,7 @@ describe("generateReport", () => {
       ],
     };
 
-    const report = generateReport("SUB-456", customState);
+    const report = generateReport("SUB-456", customState, demoUser);
     expect(report).toContain("Mode          : Custom");
     expect(report).toContain("Resource 1: Secret Manager");
     expect(report).toContain("my-secrets");

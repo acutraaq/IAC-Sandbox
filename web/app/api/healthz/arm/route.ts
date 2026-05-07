@@ -8,12 +8,6 @@ export async function GET() {
     const tokenResponse = await credential.getToken(
       "https://management.azure.com/.default"
     );
-    if (!tokenResponse?.token) {
-      return NextResponse.json(
-        { status: "error", detail: "credential chain returned no token" },
-        { status: 503 }
-      );
-    }
 
     const url =
       `https://management.azure.com/subscriptions/${serverEnv.AZURE_SUBSCRIPTION_ID}` +

@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/Button";
 import { TemplateGrid } from "@/components/home/TemplateGrid";
 import { DeployedList } from "@/components/home/DeployedList";
 import { PageTransition } from "@/components/layout/PageTransition";
+import { NavLink } from "@/components/home/NavLink";
 import templatesData from "@/data/templates.json";
 import type { Template } from "@/types";
 
@@ -35,12 +36,12 @@ export default function Home() {
             <Button asChild size="md">
               <Link href="/templates">Browse Templates</Link>
             </Button>
-            <Button asChild variant="secondary" size="md">
-              <Link href="/builder">Build Custom</Link>
-            </Button>
-            <Button asChild variant="ghost" size="md">
-              <Link href="/request">Request Custom Setup</Link>
-            </Button>
+            <NavLink href="/builder" mode="custom" variant="secondary" size="md">
+              Build Custom
+            </NavLink>
+            <NavLink href="/request" mode="custom-request" variant="ghost" size="md">
+              Request Custom Setup
+            </NavLink>
           </div>
         </div>
 

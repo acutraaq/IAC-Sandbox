@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 
 process.env.AZURE_SUBSCRIPTION_ID ??= "11111111-1111-1111-1111-111111111111";
 process.env.AZURE_TENANT_ID ??= "22222222-2222-2222-2222-222222222222";
-process.env.DEPLOYMENT_QUEUE ??= "DefaultEndpointsProtocol=https;AccountName=test;AccountKey=dGVzdA==;EndpointSuffix=core.windows.net";
+process.env.AZURE_STORAGE_CONNECTION_STRING ??= process.env.DEPLOYMENT_QUEUE;
 process.env.NODE_ENV = "test";
 
 const mockCreateFailureRecord = vi.fn();
@@ -64,7 +64,7 @@ describe("processPoisonDeployment handler", () => {
     await processPoisonDeployment(validMessage, ctx);
     expect(mockCreateFailureRecord).toHaveBeenCalledOnce();
     const args = mockCreateFailureRecord.mock.calls[0];
-    expect(args[0]).toBe(process.env.DEPLOYMENT_QUEUE);
+    expect(args[0]).toBe(process.env.AZURE_STORAGE_CONNECTION_STRING);
     expect(args[1].submissionId).toBe(validMessage.submissionId);
     expect(args[1].resourceGroupName).toBe(validMessage.resourceGroupName);
     expect(args[1].deployedBy).toBe(validMessage.deployedBy);

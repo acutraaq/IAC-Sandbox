@@ -9,6 +9,7 @@ export function buildSchema(
   for (const field of fields) {
     switch (field.type) {
       case "text":
+      case "password":
         shape[field.name] = field.required
           ? z.string().min(1, `${field.label} is required`)
           : z.string().optional();

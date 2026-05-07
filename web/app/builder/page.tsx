@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { ResourceCatalog } from "@/components/builder/ResourceCatalog";
 import { ResourceDrawer } from "@/components/builder/ResourceDrawer";
 import { SelectedPanel } from "@/components/builder/SelectedPanel";
@@ -11,15 +11,11 @@ import resources from "@/data/resources.json";
 import type { AzureResource } from "@/types";
 
 export default function BuilderPage() {
-  const { selectedResources, setMode, addResource, removeResource } =
+  const { selectedResources, addResource, removeResource } =
     useDeploymentStore();
   const [activeResource, setActiveResource] = useState<AzureResource | null>(
     null,
   );
-
-  useEffect(() => {
-    setMode("custom");
-  }, [setMode]);
 
   const selectedTypes = selectedResources.map((r) => r.type);
   const isDuplicate = activeResource

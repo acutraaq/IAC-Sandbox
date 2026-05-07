@@ -859,18 +859,17 @@ export function buildArmTemplate(
       : buildCustomResources(payload.resources, opts.tenantId);
 
   // COE-Enforce-Tag-Resources: every individual resource must carry the 4 policy tags.
-  if (opts.tags) {
-    for (const resource of resources) {
-      resource.tags = opts.tags;
-    }
-  }
+  // Clone resources to avoid mutating builder output.
+  const taggedResources = opts.tags
+    ? resources.map((r) => ({ ...r, tags: opts.tags }))
+    : resources;
 
   return {
     $schema:
       "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
     contentVersion: "1.0.0.0",
     parameters: {},
-    resources,
+    resources: taggedResources,
     outputs: {},
   };
 }

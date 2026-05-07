@@ -29,7 +29,7 @@ describe("sanitise", () => {
     expect(sanitise("---my-resource")).toBe("my-resource");
   });
 
-  it("truncates to 87 characters", () => {
+  it("truncates to fit within limit", () => {
     const long = "a".repeat(100);
     expect(sanitise(long)).toHaveLength(87);
   });
@@ -77,6 +77,28 @@ describe("deriveResourceGroupName", () => {
     });
     expect(result).toBe("sandbox-rg");
   });
+
+  it("appends submissionId suffix when provided", () => {
+    const result = deriveResourceGroupName(
+      {
+        mode: "template",
+        template: { slug: "storage-account", formValues: { storageName: "mydata" } },
+      },
+      "123e4567-e89b-12d3-a456-426614174000"
+    );
+    expect(result).toBe("mydata-123e45-rg");
+  });
+
+  it("total length does not exceed 90 characters", () => {
+    const result = deriveResourceGroupName(
+      {
+        mode: "template",
+        template: { slug: "storage-account", formValues: { storageName: "a".repeat(100) } },
+      },
+      "123e4567-e89b-12d3-a456-426614174000"
+    );
+    expect(result.length).toBeLessThanOrEqual(90);
+  });
 });
 
 describe("deriveLocation", () => {
@@ -84,9 +106,9 @@ describe("deriveLocation", () => {
     const result = deriveLocation({
       mode: "template",
       tags: validTags,
-      template: { slug: "storage-account", formValues: { region: "malaysiasouth" } },
+      template: { slug: "storage-account", formValues: { region: "southeastasia" } },
     });
-    expect(result).toBe("malaysiasouth");
+    expect(result).toBe("southeastasia");
   });
 
   it("defaults to southeastasia for template mode with no region", () => {

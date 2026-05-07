@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { ResourceCatalog } from "@/components/builder/ResourceCatalog";
 import { ResourceDrawer } from "@/components/builder/ResourceDrawer";
 import { RequestDocument } from "@/components/request/RequestDocument";
@@ -12,14 +12,10 @@ import resources from "@/data/resources.json";
 import type { AzureResource } from "@/types";
 
 export default function RequestPage() {
-  const { selectedResources, setMode, addResource, removeResource, resetCustomRequest } =
+  const { selectedResources, addResource, removeResource, resetCustomRequest } =
     useDeploymentStore();
   const [activeResource, setActiveResource] = useState<AzureResource | null>(null);
   const [showDocument, setShowDocument] = useState(false);
-
-  useEffect(() => {
-    setMode("custom-request");
-  }, [setMode]);
 
   const selectedTypes = selectedResources.map((r) => r.type);
   const isDuplicate = activeResource ? selectedTypes.includes(activeResource.type) : false;
