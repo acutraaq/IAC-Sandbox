@@ -20,7 +20,7 @@ No active specs or plans. All approved work is implemented; completed designs li
 **What is live and working:** See Live Deployment section below.
 **What is designed but not built:** Nothing — all approved specs implemented.
 **SSO status:** Microsoft SSO / MSAL is **on hold** — placeholder login is live and sufficient for current needs. The MSAL plumbing is fully implemented but not being activated at this time. See Authentication section.
-**What needs admin action:** Managed identity not yet enabled on Function App or App Service — cross-subscription ARM deployments will fail until an admin completes the setup checklist in `.claude/rules/azure-infra.md`. Verify with `GET /api/healthz/arm` → `{"status":"ok"}`.
+**What needs admin action:** Managed identity not yet enabled on Function App or App Service — ARM deployments will fail until an admin completes the setup checklist in `.claude/rules/azure-infra.md`. Verify with `GET /api/healthz/arm` → `{"status":"ok"}`.
 
 ---
 
@@ -47,17 +47,17 @@ Both Template and Custom Builder flows converge at a shared Review & Submit page
 | Resource | Name | Subscription |
 |----------|------|--------------|
 | Azure App Service (Linux, Node 22, B1 SKU) | `epf-experimental-sandbox-playground` | sub-epf-sandbox-cloud (`bcef681c-2e70-4357-8fa3-c36b558d61da`) |
-| Azure Function App (queue-triggered) | `epf-sandbox-functions` | sub-epf-sandbox-cloud (`bcef681c-2e70-4357-8fa3-c36b558d61da`) |
-| Azure Storage Account + Queue (`deployment-jobs`) | `coeiacsandbox8bfc` | sub-epf-sandbox-cloud (`bcef681c-2e70-4357-8fa3-c36b558d61da`) |
+| Azure Function App (queue-triggered) | `epf-sandbox-functions` | sub-epf-sandbox-internal (`1fed33d2-00fd-40a8-a5c1-c120aec1b902`) |
+| Azure Storage Account + Queue (`deployment-jobs`) | `coeiacsandbox8bfc` | sub-epf-sandbox-internal (`1fed33d2-00fd-40a8-a5c1-c120aec1b902`) |
 | User-deployed resource groups (ARM target) | — | sub-epf-sandbox-internal (`1fed33d2-00fd-40a8-a5c1-c120aec1b902`) |
 
 **App Service env vars (required):**
 
 | Variable | Purpose |
 |----------|---------|
-| `AZURE_SUBSCRIPTION_ID` | Deployment target subscription (`1fed33d2-00fd-40a8-a5c1-c120aec1b902`) — sub-epf-sandbox-internal |
+| `AZURE_SUBSCRIPTION_ID` | Deployment target / hosting subscription (`1fed33d2-00fd-40a8-a5c1-c120aec1b902`) — sub-epf-sandbox-internal |
 | `AZURE_TENANT_ID` | Azure tenant ID (`3335e1a2-2058-4baf-b03b-031abf0fc821`) |
-| `AZURE_STORAGE_CONNECTION_STRING` | Storage account connection string for queue |
+| `AZURE_STORAGE_CONNECTION_STRING` | Storage account connection string for queue (must point to storage in `sandbox-internal`) |
 | `SESSION_SECRET` | HMAC secret for the placeholder session cookie. ≥ 32 chars. Generate with `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"`. |
 
 **GitHub Secrets required:**
@@ -68,7 +68,7 @@ Both Template and Custom Builder flows converge at a shared Review & Submit page
 | `AZURE_FUNCTIONAPP_PUBLISH_PROFILE` | Function App deployment (download from Azure Portal → `epf-sandbox-functions` → Get publish profile) |
 
 > CI/CD workflow details (standalone assembly, oryx config, zip steps): see `.claude/rules/cicd.md` — auto-loads when editing `.github/`.  
-> Managed identity setup checklist: see `.claude/rules/azure-infra.md` — auto-loads when editing `functions/src/`.
+> Managed identity setup checklist: see `.claude/rules/azure-infra.md` — auto-loads when editing `functions/src/`. Both App Service and Function App Managed Identities need roles on `sub-epf-sandbox-internal`.
 
 ---
 

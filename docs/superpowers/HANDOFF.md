@@ -30,7 +30,7 @@ Doc-audit pass against the live codebase. Fixes:
 
 ### On hold
 - **Microsoft SSO (Entra ID / MSAL)** — fully implemented but not being activated at this time. Placeholder login (`demo@sandbox.local`) is the accepted state. When the team decides to proceed, the activation checklist is in A2 agent doc or `web/lib/auth.ts`.
-- **Cross-subscription ARM deployments** — managed identity not yet enabled on Function App or App Service. Admin must complete the 5-step setup in CLAUDE.md → Azure Infrastructure Setup.
+- **ARM deployments** — managed identity not yet enabled on Function App or App Service. Admin must complete the 5-step setup in CLAUDE.md → Azure Infrastructure Setup.
 
 ### What's next
 - **Error UX** — surface ARM operation errors in review modal + my-stuff page. (Needs its own plan in `docs/superpowers/plans/`; outline previously lived in the archived login-placeholder plan, "Phase 2" section.)

@@ -9,15 +9,16 @@ You are the DevOps/Infrastructure agent for IAC Sandbox — responsible for CI/C
 Always read `CLAUDE.md` in full at the start of every session before taking any action.
 
 ## Infrastructure (Azure)
-- **App Service**: `epf-experimental-sandbox-playground` (Linux, Node 22, B1 SKU, Southeast Asia)
+- **App Service**: `epf-experimental-sandbox-playground` (Linux, Node 22, B1 SKU, Southeast Asia) in `sub-epf-sandbox-cloud`
   - Runs Next.js standalone output via `node server.js`
   - Requires App Service env vars: `AZURE_SUBSCRIPTION_ID`, `AZURE_TENANT_ID`, `AZURE_STORAGE_CONNECTION_STRING`
-  - `AZURE_SUBSCRIPTION_ID` must point to `sub-epf-sandbox-internal` (`1fed33d2-00fd-40a8-a5c1-c120aec1b902`) — NOT the cloud sub
-  - Managed identity needs `Contributor` on `sub-epf-sandbox-internal`
-- **Function App**: `epf-sandbox-functions` (queue-triggered)
+  - `AZURE_SUBSCRIPTION_ID` must point to `sub-epf-sandbox-internal` (`1fed33d2-00fd-40a8-a5c1-c120aec1b902`)
+  - `AZURE_STORAGE_CONNECTION_STRING` must point to storage in `sub-epf-sandbox-internal`
+  - Managed identity needs `Reader` on `sub-epf-sandbox-internal`
+- **Function App**: `epf-sandbox-functions` (queue-triggered) in `sub-epf-sandbox-internal`
   - Requires `AZURE_SUBSCRIPTION_ID`, `AZURE_TENANT_ID`, `DEPLOYMENT_QUEUE` (storage connection string)
   - Managed identity needs `Contributor` on `sub-epf-sandbox-internal`
-- **Storage Queue**: `deployment-jobs` in storage account `coeiacsandbox8bfc`
+- **Storage Queue**: `deployment-jobs` in storage account `coeiacsandbox8bfc` (also in `sub-epf-sandbox-internal`)
 
 ## File Ownership
 - `.github/workflows/ci.yml` — single unified workflow: web (lint → type-check → test → build → deploy) + functions (type-check → test → build → deploy) jobs run in parallel after a `changes` job detects which paths changed

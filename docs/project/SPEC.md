@@ -401,7 +401,7 @@ Standard error response (ADR-007):
 |----------|---------|----------|-------------|
 | `AZURE_SUBSCRIPTION_ID` | web + functions | Yes | Target subscription (`sub-epf-sandbox-internal`) for ARM operations |
 | `AZURE_TENANT_ID` | web + functions | Yes | Azure AD tenant ID |
-| `AZURE_STORAGE_CONNECTION_STRING` | web | Yes | Storage account connection string for queue dispatch |
+| `AZURE_STORAGE_CONNECTION_STRING` | web | Yes | Storage account connection string for queue dispatch (must point to storage in `sub-epf-sandbox-internal`) |
 | `SESSION_SECRET` | web | Yes | HMAC secret for placeholder session cookie (≥ 32 chars) |
 | `DEPLOYMENT_QUEUE` | functions | Yes | Full storage connection string (Azure Functions queue binding) |
 | `AZURE_AD_CLIENT_ID` | web | Optional | MSAL App Registration client ID — activates real SSO when set |
@@ -603,7 +603,7 @@ ARM `provisioningState` → app status:
 - Local dev: `Connect-AzAccount` (PowerShell) or `az login` → `DefaultAzureCredential`
 - Production: managed identity on App Service and Function App → `DefaultAzureCredential`
 - Managed identity object IDs: App Service `ec30f747`, Function App `6f19f683`
-- Required RBAC: `Contributor` on `sub-epf-sandbox-internal`
+- Required RBAC: `Contributor` on `sub-epf-sandbox-internal` (Function App); `Reader` on `sub-epf-sandbox-internal` (App Service)
 
 ### Deployment Scope
 - Resource-group scope only (ADR-015)

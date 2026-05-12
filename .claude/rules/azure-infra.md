@@ -5,7 +5,7 @@ globs: functions/src/**
 
 # Azure Infrastructure Setup
 
-**Status: Pending admin action.** The code is correct. The Function App and App Service use `DefaultAzureCredential()` which resolves to Managed Identity in Azure. The managed identities have not been enabled or granted cross-subscription access yet.
+**Status: Pending admin action.** The code is correct. The App Service (web) and Function App use `DefaultAzureCredential()` which resolves to Managed Identity in Azure. All platform resources (App Service, Function App, Storage Account) now live in `sub-epf-sandbox-internal`. The managed identities have not been enabled or granted subscription-level access yet.
 
 ## Admin checklist (one-time, Azure Portal)
 
