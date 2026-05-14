@@ -5,7 +5,7 @@ globs: functions/src/**
 
 # Azure Infrastructure Setup
 
-**Status: Partially complete.** Step 3 (Contributor role for Function App) is confirmed done by the user. Steps 1, 2, and 4 still require admin action.
+**Status: Partially complete.** Steps 2 + 4 confirmed done (App Service MI + Reader role — `/api/healthz/arm` returns ok). Step 3 confirmed done. Step 1 (Function App MI enable) unconfirmed. Step 5 (Function App env vars) unconfirmed — likely blocking queue consumption.
 
 > Once Steps 1–4 are complete, verify with `curl https://epf-experimental-sandbox-playground-cvhdbjgdcqabdjau.southeastasia-01.azurewebsites.net/api/healthz/arm` → `{"status":"ok"}`.
 
@@ -55,8 +55,11 @@ Portal path: `epf-sandbox-functions` → Configuration → Application settings
 | `AZURE_TENANT_ID` | `3335e1a2-2058-4baf-b03b-031abf0fc821` |
 | `DEPLOYMENT_QUEUE` | Full Azure Storage connection string for `coeiacsandbox8bfc` (same value as `AZURE_STORAGE_CONNECTION_STRING` on the App Service) |
 | `AZURE_STORAGE_CONNECTION_STRING` | Same as `DEPLOYMENT_QUEUE` — used by the poison-queue handler to write dead-letter failure records to blob storage |
+| `AzureWebJobsStorage` | Same storage connection string — required by the Functions runtime itself for internal state |
 
 Click **Save** after any changes; allow the Function App to restart.
+
+> ⚠️ If `DEPLOYMENT_QUEUE` or `AZURE_STORAGE_CONNECTION_STRING` is missing, `env.ts` throws on startup → Function host fails to load → queue trigger never activates → all messages stay stuck at `accepted` forever.
 
 ## Verification
 
@@ -72,4 +75,4 @@ If `{"status":"error",...}`:
 
 After that passes, submit a test template deployment (e.g., Storage Account) and confirm a resource group appears in sub-epf-sandbox-internal with all 6 ARM tags.
 
-For Function App managed identity verification, the HTTP trigger `healthz` function (exposed at `https://epf-sandbox-functions.azurewebsites.net/api/healthz`) can be used as a quick probe — it acquires an ARM token via `DefaultAzureCredential` and returns `{"status":"ok","mi":true}`.
+For Function App managed identity verification, the HTTP trigger `healthz` function (exposed at `https://epf-sandbox-functions-d2f0a8huescxghgq.southeastasia-01.azurewebsites.net/api/healthz`) can be used as a quick probe — it acquires an ARM token via `DefaultAzureCredential` and returns `{"status":"ok","mi":true}`.
