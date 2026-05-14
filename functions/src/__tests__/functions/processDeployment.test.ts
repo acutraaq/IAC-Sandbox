@@ -88,7 +88,7 @@ describe("processDeployment handler", () => {
       })
     );
     expect(ctx.log).toHaveBeenCalledWith(
-      expect.stringContaining("succeeded")
+      expect.stringContaining("submitted")
     );
   });
 

@@ -13,13 +13,23 @@ const envSchema = z.object({
   AZURE_STORAGE_CONNECTION_STRING: z.string().min(1, "AZURE_STORAGE_CONNECTION_STRING is required"),
 });
 
-const parsed = envSchema.safeParse(process.env);
+let parsedData: z.infer<typeof envSchema> | undefined;
 
-if (!parsed.success) {
-  const formatted = parsed.error.issues
-    .map((issue) => `  ${issue.path.join(".")}: ${issue.message}`)
-    .join("\n");
-  throw new Error(`Invalid environment variables:\n${formatted}`);
+function getEnv() {
+  if (parsedData) return parsedData;
+  const parsed = envSchema.safeParse(process.env);
+  if (!parsed.success) {
+    const formatted = parsed.error.issues
+      .map((issue) => `  ${issue.path.join(".")}: ${issue.message}`)
+      .join("\n");
+    throw new Error(`Invalid environment variables:\n${formatted}`);
+  }
+  parsedData = parsed.data;
+  return parsedData;
 }
 
-export default parsed.data;
+export default new Proxy({} as z.infer<typeof envSchema>, {
+  get(_target, prop) {
+    return getEnv()[prop as keyof z.infer<typeof envSchema>];
+  },
+});

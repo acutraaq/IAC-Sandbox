@@ -21,9 +21,14 @@
         "required": true,
         "helpText": "Choose a location close to your users.",
         "options": [
-          { "label": "Southeast Asia (Singapore)", "value": "southeastasia" },
-          { "label": "East Asia (Hong Kong)", "value": "eastasia" },
-          { "label": "Australia East (Sydney)", "value": "australiaeast" }
+          {
+            "label": "Malaysia (Malaysia West)",
+            "value": "malaysiawest"
+          },
+          {
+            "label": "Asia Pacific (Southeast Asia)",
+            "value": "southeastasia"
+          }
         ]
       },
       {
@@ -33,9 +38,18 @@
         "required": true,
         "helpText": "Start small — you can scale up later.",
         "options": [
-          { "label": "Small — Testing and demos", "value": "B1" },
-          { "label": "Medium — Most teams", "value": "B2" },
-          { "label": "Large — High traffic", "value": "B3" }
+          {
+            "label": "Small — Testing and demos",
+            "value": "B1"
+          },
+          {
+            "label": "Medium — Most teams",
+            "value": "B2"
+          },
+          {
+            "label": "Large — High traffic",
+            "value": "B3"
+          }
         ]
       }
     ]
@@ -63,8 +77,14 @@
         "required": true,
         "helpText": "Choose the OS you're most comfortable with.",
         "options": [
-          { "label": "Windows Server 2022", "value": "WindowsServer2022" },
-          { "label": "Ubuntu 22.04 (Linux)", "value": "Ubuntu2204" }
+          {
+            "label": "Windows Server 2022",
+            "value": "WindowsServer2022"
+          },
+          {
+            "label": "Ubuntu 22.04 (Linux)",
+            "value": "Ubuntu2204"
+          }
         ]
       },
       {
@@ -74,9 +94,18 @@
         "required": true,
         "helpText": "Larger sizes cost more but handle heavier workloads.",
         "options": [
-          { "label": "Small (2 CPUs, 4 GB) — Light tasks", "value": "Standard_B2s" },
-          { "label": "Medium (4 CPUs, 8 GB) — Most workloads", "value": "Standard_B4ms" },
-          { "label": "Large (8 CPUs, 16 GB) — Heavy workloads", "value": "Standard_B8ms" }
+          {
+            "label": "Small (2 CPUs, 4 GB) — Light tasks",
+            "value": "Standard_B2s"
+          },
+          {
+            "label": "Medium (4 CPUs, 8 GB) — Most workloads",
+            "value": "Standard_B4ms"
+          },
+          {
+            "label": "Large (8 CPUs, 16 GB) — Heavy workloads",
+            "value": "Standard_B8ms"
+          }
         ]
       }
     ]
@@ -103,9 +132,14 @@
         "required": true,
         "helpText": "For best performance, choose the same location as your application.",
         "options": [
-          { "label": "Southeast Asia (Singapore)", "value": "southeastasia" },
-          { "label": "East Asia (Hong Kong)", "value": "eastasia" },
-          { "label": "Australia East (Sydney)", "value": "australiaeast" }
+          {
+            "label": "Malaysia (Malaysia West)",
+            "value": "malaysiawest"
+          },
+          {
+            "label": "Asia Pacific (Southeast Asia)",
+            "value": "southeastasia"
+          }
         ]
       },
       {
@@ -142,9 +176,14 @@
         "required": true,
         "helpText": "Choose a location close to where you'll be accessing the files.",
         "options": [
-          { "label": "Southeast Asia (Singapore)", "value": "southeastasia" },
-          { "label": "East Asia (Hong Kong)", "value": "eastasia" },
-          { "label": "Australia East (Sydney)", "value": "australiaeast" }
+          {
+            "label": "Malaysia (Malaysia West)",
+            "value": "malaysiawest"
+          },
+          {
+            "label": "Asia Pacific (Southeast Asia)",
+            "value": "southeastasia"
+          }
         ]
       },
       {
@@ -154,8 +193,14 @@
         "required": true,
         "helpText": "Hot is faster but costs more for infrequent access.",
         "options": [
-          { "label": "Frequently (Hot) — Daily use", "value": "Hot" },
-          { "label": "Occasionally (Cool) — Monthly access", "value": "Cool" }
+          {
+            "label": "Frequently (Hot) — Daily use",
+            "value": "Hot"
+          },
+          {
+            "label": "Occasionally (Cool) — Monthly access",
+            "value": "Cool"
+          }
         ]
       }
     ]
@@ -182,9 +227,14 @@
         "required": true,
         "helpText": "Must be in the same location as the resources using this network.",
         "options": [
-          { "label": "Southeast Asia (Singapore)", "value": "southeastasia" },
-          { "label": "East Asia (Hong Kong)", "value": "eastasia" },
-          { "label": "Australia East (Sydney)", "value": "australiaeast" }
+          {
+            "label": "Malaysia (Malaysia West)",
+            "value": "malaysiawest"
+          },
+          {
+            "label": "Asia Pacific (Southeast Asia)",
+            "value": "southeastasia"
+          }
         ]
       },
       {
@@ -219,9 +269,14 @@
         "required": true,
         "helpText": "For best performance, choose the same location as your application.",
         "options": [
-          { "label": "Southeast Asia (Singapore)", "value": "southeastasia" },
-          { "label": "East Asia (Hong Kong)", "value": "eastasia" },
-          { "label": "Australia East (Sydney)", "value": "australiaeast" }
+          {
+            "label": "Malaysia (Malaysia West)",
+            "value": "malaysiawest"
+          },
+          {
+            "label": "Asia Pacific (Southeast Asia)",
+            "value": "southeastasia"
+          }
         ]
       },
       {
@@ -279,9 +334,14 @@
         "required": true,
         "helpText": "Choose a location close to the services it will connect.",
         "options": [
-          { "label": "Southeast Asia (Singapore)", "value": "southeastasia" },
-          { "label": "East Asia (Hong Kong)", "value": "eastasia" },
-          { "label": "Australia East (Sydney)", "value": "australiaeast" }
+          {
+            "label": "Malaysia (Malaysia West)",
+            "value": "malaysiawest"
+          },
+          {
+            "label": "Asia Pacific (Southeast Asia)",
+            "value": "southeastasia"
+          }
         ]
       }
     ]
@@ -300,9 +360,14 @@
         "required": true,
         "helpText": "Choose a location close to the services sending and receiving messages.",
         "options": [
-          { "label": "Southeast Asia (Singapore)", "value": "southeastasia" },
-          { "label": "East Asia (Hong Kong)", "value": "eastasia" },
-          { "label": "Australia East (Sydney)", "value": "australiaeast" }
+          {
+            "label": "Malaysia (Malaysia West)",
+            "value": "malaysiawest"
+          },
+          {
+            "label": "Asia Pacific (Southeast Asia)",
+            "value": "southeastasia"
+          }
         ]
       },
       {
@@ -312,8 +377,14 @@
         "required": true,
         "helpText": "Standard adds topics and subscriptions for fan-out messaging.",
         "options": [
-          { "label": "Basic — Simple point-to-point queues", "value": "Basic" },
-          { "label": "Standard — Topics and subscriptions", "value": "Standard" }
+          {
+            "label": "Basic — Simple point-to-point queues",
+            "value": "Basic"
+          },
+          {
+            "label": "Standard — Topics and subscriptions",
+            "value": "Standard"
+          }
         ]
       }
     ]
@@ -332,9 +403,14 @@
         "required": true,
         "helpText": "Choose a location close to the services publishing events.",
         "options": [
-          { "label": "Southeast Asia (Singapore)", "value": "southeastasia" },
-          { "label": "East Asia (Hong Kong)", "value": "eastasia" },
-          { "label": "Australia East (Sydney)", "value": "australiaeast" }
+          {
+            "label": "Malaysia (Malaysia West)",
+            "value": "malaysiawest"
+          },
+          {
+            "label": "Asia Pacific (Southeast Asia)",
+            "value": "southeastasia"
+          }
         ]
       },
       {
@@ -344,8 +420,14 @@
         "required": true,
         "helpText": "CloudEvents is the open standard — prefer it for new systems.",
         "options": [
-          { "label": "CloudEvents 1.0 (recommended)", "value": "CloudEventSchemaV1_0" },
-          { "label": "Event Grid Schema (legacy)", "value": "EventGridSchema" }
+          {
+            "label": "CloudEvents 1.0 (recommended)",
+            "value": "CloudEventSchemaV1_0"
+          },
+          {
+            "label": "Event Grid Schema (legacy)",
+            "value": "EventGridSchema"
+          }
         ]
       }
     ]

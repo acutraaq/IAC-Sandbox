@@ -1,26 +1,25 @@
 import type { DeploymentPayload } from "./schema";
 
+export const ALLOWED_REGIONS = new Set(["malaysiawest", "southeastasia"]);
+const DEFAULT_REGION = "malaysiawest";
+
 type DeploymentPayloadWithoutTags =
   | Omit<Extract<DeploymentPayload, { mode: "template" }>, "tags">
   | Omit<Extract<DeploymentPayload, { mode: "custom" }>, "tags">;
 
 export const SLUG_PRIMARY_FIELD: Record<string, string> = {
-  "web-application": "appName",
-  "virtual-machine": "vmName",
-  "database": "dbName",
-  "storage-account": "storageName",
-  "virtual-network": "vnetName",
-  "key-vault": "vaultName",
-  "container-app": "appName",
-  "landing-zone": "projectName",
-  "approval-workflow": "workflowName",
+  "web-application":    "appName",
+  "database":           "dbName",
+  "storage-account":    "storageName",
+  "virtual-network":    "vnetName",
+  "key-vault":          "vaultName",
+  "container-app":      "appName",
+  "landing-zone":       "projectName",
+  "approval-workflow":  "workflowName",
   "scheduled-automation": "workflowName",
-  "message-queue": "namespaceName",
-  "event-broadcaster": "topicName",
-  "full-stack-web-app":     "appName",
-  "microservices-platform": "appName",
-  "data-pipeline":          "pipelineName",
-  "secure-api-backend":     "apiName",
+  "message-queue":      "namespaceName",
+  "event-broadcaster":  "topicName",
+  "full-stack-web-app": "appName",
 };
 
 export function deriveResourceGroupName(
@@ -45,12 +44,12 @@ export function deriveResourceGroupName(
 }
 
 export function deriveLocation(payload: DeploymentPayload): string {
-  if (payload.mode === "template") {
-    const region = payload.template.formValues["region"];
-    return typeof region === "string" ? region : "southeastasia";
-  }
-  const region = payload.resources[0]?.config["region"];
-  return typeof region === "string" ? region : "southeastasia";
+  const raw =
+    payload.mode === "template"
+      ? payload.template.formValues["region"]
+      : payload.resources[0]?.config["region"];
+  const region = typeof raw === "string" ? raw : DEFAULT_REGION;
+  return ALLOWED_REGIONS.has(region) ? region : DEFAULT_REGION;
 }
 
 export function sanitise(name: string, reserve: number = 0): string {
@@ -61,6 +60,7 @@ export function sanitise(name: string, reserve: number = 0): string {
     .replace(/[^a-z0-9\-_.()]/g, "")
     .replace(/\.+$/, "")
     .replace(/^[^a-z0-9]+/, "")
+    .replace(/-+$/, "")
     .slice(0, maxLen);
   return result || "sandbox";
 }

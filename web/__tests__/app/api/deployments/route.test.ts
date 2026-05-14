@@ -60,11 +60,11 @@ describe("POST /api/deployments", () => {
     expect(body.resourceGroup).toBeTruthy();
   });
 
-  it("enqueues a base64-encoded message", async () => {
+  it("enqueues a JSON message", async () => {
     await POST(makeRequest(validPayload));
     expect(mockSendMessage).toHaveBeenCalledOnce();
-    const [encoded] = mockSendMessage.mock.calls[0] as [string];
-    const decoded = JSON.parse(Buffer.from(encoded, "base64").toString());
+    const [message] = mockSendMessage.mock.calls[0] as [string];
+    const decoded = JSON.parse(message);
     expect(decoded.payload.mode).toBe("template");
   });
 
@@ -103,8 +103,8 @@ describe("POST /api/deployments", () => {
 
   it("includes deployedBy from the current user in the queue message", async () => {
     await POST(makeRequest(validPayload));
-    const [encoded] = mockSendMessage.mock.calls[0] as [string];
-    const decoded = JSON.parse(Buffer.from(encoded, "base64").toString()) as {
+    const [message] = mockSendMessage.mock.calls[0] as [string];
+    const decoded = JSON.parse(message) as {
       deployedBy: string;
     };
     expect(decoded.deployedBy).toBe("user@epf.gov.my");

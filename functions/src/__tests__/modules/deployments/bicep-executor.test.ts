@@ -44,8 +44,6 @@ describe("executeBicepDeployment", () => {
   });
 
   it("applies the full tag set (policy + deployedBy + iac-submissionId) to the resource group", async () => {
-    // First fetch (PUT create deployment) returns 400 — we only care about
-    // observing the RG createOrUpdate tags, so we fail fast after that.
     const fetchFn = vi.fn().mockResolvedValue({
       ok: false,
       status: 400,
@@ -83,7 +81,6 @@ describe("executeBicepDeployment", () => {
       .fn()
       .mockImplementationOnce(async (_url: string, init: RequestInit) => {
         putBody = JSON.parse(init.body as string);
-        // Fail fast to short-circuit the polling loop
         return { ok: false, status: 400, text: async () => "stop" };
       });
     vi.stubGlobal("fetch", fetchFn);
@@ -109,6 +106,27 @@ describe("executeBicepDeployment", () => {
       expect(r.tags).not.toHaveProperty("deployedBy");
       expect(r.tags).not.toHaveProperty("iac-submissionId");
     }
+  });
+
+  it("resolves when ARM deployment PUT returns 2xx (fire-and-forget)", async () => {
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue({
+      ok: true,
+      status: 202,
+      json: async () => ({ properties: { provisioningState: "Accepted" } }),
+    }));
+    createOrUpdate.mockResolvedValue({});
+
+    await expect(
+      executeBicepDeployment({
+        subscriptionId: "sub-1",
+        resourceGroupName: "rg-1",
+        deploymentName: "dep-success",
+        payload: VALID_STORAGE_PAYLOAD,
+        location: "southeastasia",
+        tags: TAGS,
+        deployedBy: "user@test.com",
+      })
+    ).resolves.toBeUndefined();
   });
 
   it("throws PolicyBlockedTemplateError before touching Azure for blocked template slugs", async () => {

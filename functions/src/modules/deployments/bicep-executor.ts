@@ -15,164 +15,41 @@ export interface BicepExecutorOptions {
   log?: (msg: string) => void;
 }
 
-// ---------------------------------------------------------------------------
-// Timeout helper with AbortController
-// ---------------------------------------------------------------------------
-
-const DEPLOYMENT_TIMEOUT_MS = 25 * 60 * 1000;
-
-function withTimeout<T>(promise: Promise<T>, ms: number, label: string, controller: AbortController): Promise<T> {
-  let timer: ReturnType<typeof setTimeout>;
-  const race = new Promise<never>((_, reject) => {
-    timer = setTimeout(
-      () => {
-        controller.abort();
-        reject(new Error(`[${label}] ARM deployment timed out after ${ms / 1000}s`));
-      },
-      ms
-    );
-  });
-  return Promise.race([promise, race]).finally(() => clearTimeout(timer));
-}
+const ARM_API = "2021-04-01";
 
 // ---------------------------------------------------------------------------
-// Custom fetch-based deployments accessor
-// @azure/arm-resources v7 removed the deployments namespace — we use the
-// ARM REST API directly, mirroring the pattern in web/lib/arm.ts.
-// ---------------------------------------------------------------------------
-
-interface OperationItem {
-  properties?: {
-    provisioningState?: string;
-    statusMessage?: unknown;
-  };
-}
-
-interface DeploymentResult {
-  properties?: {
-    provisioningState?: string;
-    outputs?: unknown;
-  };
-}
-
-const sleep = (ms: number) => new Promise<void>(r => setTimeout(r, ms));
-
-function makeDeploymentsAccessor(credential: DefaultAzureCredential, subscriptionId: string) {
-  const base = `https://management.azure.com/subscriptions/${subscriptionId}`;
-  const API = "2021-04-01";
-  const POLL_INTERVAL_MS = 15_000;
-
-  async function getToken(): Promise<string> {
-    const tr = await credential.getToken("https://management.azure.com/.default");
-    if (!tr?.token) throw new Error("Failed to acquire ARM token");
-    return tr.token;
-  }
-
-  return {
-    async beginCreateOrUpdateAndWait(rg: string, name: string, body: unknown, signal?: AbortSignal): Promise<DeploymentResult> {
-      const url = `${base}/resourcegroups/${rg}/providers/Microsoft.Resources/deployments/${name}?api-version=${API}`;
-      const token = await getToken();
-      const res = await fetch(url, {
-        method: "PUT",
-        headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
-        body: JSON.stringify(body),
-        signal,
-      });
-      if (!res.ok) {
-        const text = await res.text();
-        throw new Error(`ARM deployment create failed: ${res.status} ${text}`);
-      }
-      // Poll until terminal state (Succeeded / Failed / Canceled)
-      while (true) {
-        if (signal?.aborted) {
-          throw new Error(`ARM deployment ${name} aborted`);
-        }
-        await sleep(POLL_INTERVAL_MS);
-        const pollToken = await getToken();
-        const pollRes = await fetch(url, { headers: { Authorization: `Bearer ${pollToken}` }, signal });
-        if (!pollRes.ok) throw new Error(`ARM deployment poll failed: ${pollRes.status}`);
-        const data = await pollRes.json() as DeploymentResult;
-        const state = data.properties?.provisioningState;
-        if (state === "Succeeded") return data;
-        if (state === "Failed" || state === "Canceled") throw new Error(`ARM deployment ${state}`);
-        // Running / Accepted — continue polling
-      }
-    },
-
-    async listOperations(rg: string, name: string): Promise<OperationItem[]> {
-      const url = `${base}/resourcegroups/${rg}/providers/Microsoft.Resources/deployments/${name}/operations?api-version=${API}`;
-      const token = await getToken();
-      const res = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
-      if (!res.ok) return [];
-      const body = await res.json() as { value?: OperationItem[] };
-      return body.value ?? [];
-    },
-  };
-}
-
-// ---------------------------------------------------------------------------
-// Type guards
-// ---------------------------------------------------------------------------
-
-function isStatusMessage(v: unknown): v is { error?: { code?: string; message?: string } } {
-  return typeof v === "object" && v !== null;
-}
-
-// ---------------------------------------------------------------------------
-// Operation error fetcher — best-effort, never throws
-// ---------------------------------------------------------------------------
-
-async function fetchOperationErrors(
-  accessor: { listOperations: (rg: string, name: string) => Promise<OperationItem[]> },
-  rg: string,
-  deploymentName: string,
-  log?: (msg: string) => void
-): Promise<string> {
-  try {
-    const ops = await accessor.listOperations(rg, deploymentName);
-    const reasons: string[] = [];
-    for (const op of ops) {
-      const state = op.properties?.provisioningState;
-      const msg = op.properties?.statusMessage;
-      if (state === "Failed" && isStatusMessage(msg) && msg.error) {
-        reasons.push(`[${msg.error.code ?? "Unknown"}] ${msg.error.message ?? ""}`);
-      }
-    }
-    return reasons.join("; ");
-  } catch {
-    log?.(`[${deploymentName}] Could not retrieve operation errors`);
-    return "(could not retrieve operation errors)";
-  }
-}
-
-// ---------------------------------------------------------------------------
-// Main executor
+// Main executor — fire-and-forget pattern
+//
+// Creates the RG, submits the ARM deployment PUT, returns immediately.
+// ARM runs server-side; the web app polls completion via
+// GET /api/deployments/[submissionId] which reads ARM state directly.
+//
+// Token discipline: DefaultAzureCredential maintains its own cache.
+// Call getToken() at each use site — never hold a token reference across
+// async operations. The second call is a cache hit (~0 ms).
 // ---------------------------------------------------------------------------
 
 export async function executeBicepDeployment(
   opts: BicepExecutorOptions
-): Promise<string> {
+): Promise<void> {
   const { deploymentName: id, log } = opts;
   const credential = new DefaultAzureCredential();
   const client = new ResourceManagementClient(credential, opts.subscriptionId);
-  const deployments = makeDeploymentsAccessor(credential, opts.subscriptionId);
 
-  // Verify token acquisition up-front — this is the most common failure point
-  // when managed identity is misconfigured, and surfacing it early prevents
-  // confusing silent timeouts inside the polling loop.
+  // Verify managed identity is reachable before touching any Azure resource.
+  // Surfaces misconfiguration early with a clear error rather than a cryptic
+  // 401 deep inside createOrUpdate or the deployment PUT.
   try {
-    const tokenCheck = await credential.getToken("https://management.azure.com/.default");
-    log?.(`[${id}] ARM token acquired (expires ${tokenCheck.expiresOnTimestamp})`);
+    const probe = await credential.getToken("https://management.azure.com/.default");
+    if (!probe?.token) throw new Error("no token returned");
+    log?.(`[${id}] ARM token acquired (expires ${probe.expiresOnTimestamp})`);
   } catch (tokenErr) {
     const msg = tokenErr instanceof Error ? tokenErr.message : String(tokenErr);
-    log?.(`[${id}] Failed to acquire ARM token: ${msg}`);
     throw new Error(`[${id}] Failed to acquire ARM token: ${msg}`);
   }
 
-  // Step 1: build and validate the ARM template against subscription policy
-  // before touching Azure — avoids creating an empty RG on policy violations.
-  // The full tag set (policy tags + identity/correlation) is applied to both
-  // the RG and every resource in the template for consistent attribution.
+  // Build and validate ARM template against subscription policy before
+  // touching Azure — avoids creating an empty RG on a policy violation.
   log?.(`[${id}] Building ARM template`);
   const fullTags = {
     ...opts.tags,
@@ -193,41 +70,52 @@ export async function executeBicepDeployment(
     );
   }
 
-  // Step 2: create the resource group with required policy tags (idempotent)
+  // Create resource group with full 6 tags (idempotent — safe on retry).
   log?.(`[${id}] Creating resource group ${opts.resourceGroupName}`);
   await client.resourceGroups.createOrUpdate(opts.resourceGroupName, {
     location: opts.location,
     tags: fullTags,
   });
 
-  // Step 3: deploy ARM template into the resource group
-  log?.(`[${id}] Starting ARM deployment`);
-  let result: DeploymentResult;
-  const controller = new AbortController();
-  try {
-    result = await withTimeout(
-      deployments.beginCreateOrUpdateAndWait(
-        opts.resourceGroupName,
-        id,
-        {
-          properties: {
-            mode: "Incremental",
-            template: template as unknown as Record<string, unknown>,
-            parameters: {},
-          },
-        },
-        controller.signal
-      ),
-      DEPLOYMENT_TIMEOUT_MS,
-      id,
-      controller
-    );
-  } catch (err) {
-    const reasons = await fetchOperationErrors(deployments, opts.resourceGroupName, id, log);
-    const detail = reasons || (err instanceof Error ? err.message : String(err));
-    throw new Error(`[${id}] ARM deployment failed: ${detail}`);
+  // Acquire a fresh token at call site. DefaultAzureCredential returns the
+  // cached token from the probe above (~0 ms) — no extra network round-trip.
+  const tokenResult = await credential.getToken("https://management.azure.com/.default");
+  if (!tokenResult?.token) throw new Error(`[${id}] Failed to re-acquire ARM token`);
+
+  // Submit ARM deployment and return. A non-2xx response means ARM rejected
+  // the request synchronously; throw so the Functions runtime retries.
+  log?.(`[${id}] Submitting ARM deployment`);
+  const url =
+    `https://management.azure.com/subscriptions/${opts.subscriptionId}` +
+    `/resourcegroups/${opts.resourceGroupName}` +
+    `/providers/Microsoft.Resources/deployments/${id}` +
+    `?api-version=${ARM_API}`;
+
+  const res = await fetch(url, {
+    method: "PUT",
+    headers: {
+      Authorization: `Bearer ${tokenResult.token}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      properties: {
+        mode: "Incremental",
+        template: template as unknown as Record<string, unknown>,
+        parameters: {},
+      },
+    }),
+  });
+
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`[${id}] ARM deployment create failed: ${res.status} ${text}`);
   }
 
-  log?.(`[${id}] ARM deployment completed`);
-  return JSON.stringify(result.properties?.outputs ?? {});
+  // Parse the initial provisioningState from the response for observability.
+  // ARM typically returns "Accepted" or "Running" on a successful submission.
+  const body = await res.json().catch(() => null) as
+    | { properties?: { provisioningState?: string } }
+    | null;
+  const initialState = body?.properties?.provisioningState ?? "unknown";
+  log?.(`[${id}] ARM deployment submitted — initial state: ${initialState}`);
 }

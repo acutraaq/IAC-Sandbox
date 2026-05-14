@@ -62,8 +62,7 @@ jobs:
 
       - name: Schema drift check
         run: |
-          diff -u <(sed '/^\/\//d' ../functions/src/modules/deployments/deployment.schema.ts | sed 's/\.default({})//g' | sed 's/\.min(1)/.min(1)/g' | sed 's/, "[^"]*"//g') <(sed '/^\/\//d' lib/deployments/schema.ts | sed 's/\.default({})//g' | sed 's/\.min(1)/.min(1)/g' | sed 's/, "[^"]*"//g') || true
-          if [ $? -ne 0 ]; then echo "Schema drift detected — verify web/lib/deployments/schema.ts and functions/src/modules/deployments/deployment.schema.ts"; fi
+          diff -u <(sed '/^\/\//d' ../functions/src/modules/deployments/deployment.schema.ts | sed 's/\.default({})//g' | sed 's/\.min(1)/.min(1)/g' | sed 's/, "[^"]*"//g') <(sed '/^\/\//d' lib/deployments/schema.ts | sed 's/\.default({})//g' | sed 's/\.min(1)/.min(1)/g' | sed 's/, "[^"]*"//g') || (echo "Schema drift detected — verify web/lib/deployments/schema.ts and functions/src/modules/deployments/deployment.schema.ts" && exit 1)
 
       - name: Build
         run: npm run build

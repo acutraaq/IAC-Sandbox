@@ -87,14 +87,14 @@ The core cookie signing/verification logic lives in `web/lib/auth-core.ts`, whic
 ## Architecture — How Deployments Work
 
 1. User submits → `POST /api/deployments` validates policy (returns 403 if slug is blocked), generates a `submissionId` (UUID), derives resource group name, enqueues a message. Returns `{ submissionId, resourceGroup }`.
-2. Azure Function App picks up the queue message, creates the resource group with full tags (6 tags — see below), runs the ARM deployment with the same 6 tags applied to every resource.
+2. Azure Function App picks up the queue message, creates the resource group with 6 tags, runs the ARM deployment with 4 policy tags applied to every resource.
 3. Review page polls `GET /api/deployments/:id?rg=<rgName>` every 3 s — queries ARM directly for deployment status. Returns `"accepted"` if the ARM deployment does not exist yet (still queued).
 4. "My Stuff" page calls `GET /api/my-deployments` — queries ARM for resource groups tagged `deployedBy: demo@sandbox.local`.
 5. On `succeeded`, ConfirmModal shows a "View in Azure Portal" deep-link to the resource group in `sub-epf-sandbox-internal`.
 
-**ARM tags applied to both resource group AND every individual resource:**
-- Policy-required: `Cost Center`, `Project ID`, `Project Owner`, `Expiry Date`
-- App-added: `deployedBy` (user identity stub), `iac-submissionId` (for status back-lookup)
+**ARM tags — resource group gets 6 tags; ARM resources get 4 policy tags only:**
+- Policy-required (on RG + every resource): `Cost Center`, `Project ID`, `Project Owner`, `Expiry Date`
+- App-added (RG only): `deployedBy` (user identity stub), `iac-submissionId` (for status back-lookup)
 
 **Status timeline (ConfirmModal — 3 steps):**
 - `accepted` → Submitted (active)
@@ -110,9 +110,8 @@ The core cookie signing/verification logic lives in `web/lib/auth-core.ts`, whic
 ## Template Catalog
 
 16 templates across 7 categories (compute, data, network, security, automation, integration, landing-zone). All region options are locked to:
+- Malaysia (Malaysia West) — default
 - Asia Pacific (Southeast Asia)
-- Asia Pacific (East Asia)
-- Asia Pacific (Australia East)
 
 | Category | Slug | Resource Type |
 |----------|------|---------------|
@@ -125,8 +124,8 @@ The core cookie signing/verification logic lives in `web/lib/auth-core.ts`, whic
 | data | `storage-account` | `Microsoft.Storage/storageAccounts` |
 | data | `data-pipeline` | policy-blocked |
 | security | `key-vault` | `Microsoft.KeyVault/vaults` |
-| security | `secure-api-backend` | policy-blocked |
 | network | `virtual-network` | `Microsoft.Network/virtualNetworks` |
+| compute | `secure-api-backend` | policy-blocked |
 | landing-zone | `landing-zone` | VNet + Key Vault + Log Analytics (conditional) |
 | automation | `approval-workflow` | `Microsoft.Logic/workflows` (HTTP trigger) |
 | automation | `scheduled-automation` | `Microsoft.Logic/workflows` (recurrence trigger) |
@@ -231,7 +230,7 @@ Prisma and PostgreSQL have been removed. ARM is the source of truth for all depl
 │       ├── lib/env.ts
 │       └── modules/deployments/
 │           ├── arm-template-builder.ts      # builders + PolicyBlockedTemplateError
-│           ├── bicep-executor.ts            # applies 6 tags to RG + all ARM resources
+│           ├── bicep-executor.ts            # applies 6 tags to RG, 4 policy tags to ARM resources
 │           ├── deployment.schema.ts
 │           └── sanitize.ts                  # name sanitization helpers
 │       └── __tests__/

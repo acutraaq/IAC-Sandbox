@@ -2,6 +2,13 @@ import { randomBytes } from "crypto";
 import type { DeploymentPayload } from "./deployment.schema.js";
 import { sanitizeStorageName, sanitizeKeyVaultName, sanitizeGenericName } from "./sanitize.js";
 
+const ALLOWED_REGIONS = new Set(["malaysiawest", "southeastasia"]);
+const DEFAULT_REGION = "malaysiawest";
+function resolveRegion(raw: unknown): string {
+  const r = typeof raw === "string" ? raw : DEFAULT_REGION;
+  return ALLOWED_REGIONS.has(r) ? r : DEFAULT_REGION;
+}
+
 function generatePassword(): string {
   return randomBytes(16).toString("base64url");
 }
@@ -553,7 +560,7 @@ function buildLogicApp(
                 frequency: freq,
                 interval: 1,
                 timeZone: "SE Asia Standard Time",
-                startTime: `2026-01-01T${time}:00Z`,
+                startTime: `${new Date(Date.now() + 86400000).toISOString().split("T")[0]}T${time}:00Z`,
               },
             },
           };
@@ -598,7 +605,7 @@ function buildServiceBusNamespace(
     apiVersion: "2022-10-01-preview",
     name: safeName,
     location,
-    sku: { name: tier, tier },
+    sku: { name: tier },
     properties: {},
   };
 }
@@ -681,8 +688,7 @@ function buildTemplateResources(
     throw new PolicyBlockedTemplateError(slug);
   }
 
-  const location =
-    typeof formValues.region === "string" ? formValues.region : "southeastasia";
+  const location = resolveRegion(formValues.region);
 
   switch (slug) {
     case "web-application":
@@ -807,10 +813,7 @@ function buildCustomResources(
   const armResources: ArmResource[] = [];
 
   for (const resource of resources) {
-    const location =
-      typeof resource.config.region === "string"
-        ? resource.config.region
-        : "southeastasia";
+    const location = resolveRegion(resource.config.region);
 
     switch (resource.type) {
       case "Microsoft.Web/sites":

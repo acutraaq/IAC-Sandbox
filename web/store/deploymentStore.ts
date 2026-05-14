@@ -75,7 +75,15 @@ export const useDeploymentStore = create<DeploymentState>((set, get) => ({
     set({ deploymentStatus: status, deploymentError: error ?? null }),
 
   resetCustomRequest: () =>
-    set({ mode: null, selectedResources: [] }),
+    set({
+      mode: null,
+      selectedResources: [],
+      submissionId: null,
+      deployedResourceGroup: null,
+      deploymentSummary: null,
+      deploymentStatus: null,
+      deploymentError: null,
+    }),
 
   reset: () =>
     set({

@@ -15,8 +15,8 @@ const steps: TemplateStep[] = [
         type: "select",
         required: true,
         options: [
-          { label: "Southeast Asia (Singapore)", value: "southeastasia" },
-          { label: "East Asia (Hong Kong)", value: "eastasia" },
+          { label: "Malaysia (Malaysia West)", value: "malaysiawest" },
+          { label: "Asia Pacific (Southeast Asia)", value: "southeastasia" },
         ],
       },
     ],
@@ -66,7 +66,7 @@ describe("SummaryPanel", () => {
         formValues={{ region: "southeastasia" }}
       />,
     );
-    expect(screen.getByText("Southeast Asia (Singapore)")).toBeInTheDocument();
+    expect(screen.getByText("Asia Pacific (Southeast Asia)")).toBeInTheDocument();
   });
 
   it("displays toggle true as 'Yes'", () => {
@@ -96,11 +96,11 @@ describe("SummaryPanel", () => {
       <SummaryPanel
         steps={steps}
         completedSteps={[0]}
-        formValues={{ appName: "", region: "eastasia" }}
+        formValues={{ appName: "", region: "malaysiawest" }}
       />,
     );
     expect(screen.queryByText("Application name:")).toBeNull();
-    expect(screen.getByText("East Asia (Hong Kong)")).toBeInTheDocument();
+    expect(screen.getByText("Malaysia (Malaysia West)")).toBeInTheDocument();
   });
 
   it("has accessible aside landmark", () => {

@@ -11,21 +11,28 @@ globs: web/components/review/**, web/lib/report.ts
 SANDBOX DEPLOYMENT PROOF
 ========================
 Submission ID : <submissionId>
-Submitted By  : <name> (<email>)
+Submitted By  : <displayName> (<upn>)
 Tenant        : <tenantId>
 Date/Time     : <locale-formatted, en-MY>
 Mode          : Template | Custom
-Target Sub    : <subscription>
+Target Sub    : sub-epf-sandbox-internal
 Target RG     : <resource-group>
-Status        : accepted | running | succeeded | failed
+Status        : accepted
+
+Tags:
+  Cost Center  : <value>
+  Project ID   : <value>
+  Project Owner: <value>
+  Expiry Date  : <value>
 
 Selection:
-- Template: <slug/name>
-  Form Values:
+- Template: <name>
+  Configuration:
     <key>: <value>
 or
-- Resource 1: <type> — <name>
-  Config: <key>: <value>
+- Resource 1: <name>
+  Configuration:
+    <key>: <value>
 
 Note: Manual HOD approval is required outside this system.
 ```

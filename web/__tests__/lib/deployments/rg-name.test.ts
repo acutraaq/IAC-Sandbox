@@ -111,27 +111,27 @@ describe("deriveLocation", () => {
     expect(result).toBe("southeastasia");
   });
 
-  it("defaults to southeastasia for template mode with no region", () => {
+  it("defaults to malaysiawest for template mode with no region", () => {
     const result = deriveLocation({
       mode: "template",
       tags: validTags,
       template: { slug: "storage-account", formValues: {} },
     });
-    expect(result).toBe("southeastasia");
+    expect(result).toBe("malaysiawest");
   });
 
-  it("returns region from first resource config for custom mode", () => {
+  it("returns southeastasia from first resource config for custom mode", () => {
     const result = deriveLocation({
       mode: "custom",
       tags: validTags,
       resources: [
-        { type: "Microsoft.Storage/storageAccounts", name: "store", icon: "Database", config: { region: "eastasia" } },
+        { type: "Microsoft.Storage/storageAccounts", name: "store", icon: "Database", config: { region: "southeastasia" } },
       ],
     });
-    expect(result).toBe("eastasia");
+    expect(result).toBe("southeastasia");
   });
 
-  it("defaults to southeastasia for custom mode with no region", () => {
+  it("defaults to malaysiawest for custom mode with no region", () => {
     const result = deriveLocation({
       mode: "custom",
       tags: validTags,
@@ -139,6 +139,15 @@ describe("deriveLocation", () => {
         { type: "Microsoft.Storage/storageAccounts", name: "store", icon: "Database", config: {} },
       ],
     });
-    expect(result).toBe("southeastasia");
+    expect(result).toBe("malaysiawest");
+  });
+
+  it("clamps disallowed region to malaysiawest", () => {
+    const result = deriveLocation({
+      mode: "template",
+      tags: validTags,
+      template: { slug: "storage-account", formValues: { region: "eastus" } },
+    });
+    expect(result).toBe("malaysiawest");
   });
 });

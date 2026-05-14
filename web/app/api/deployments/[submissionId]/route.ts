@@ -34,7 +34,7 @@ export async function GET(
     try {
       const rgMeta = await client.resourceGroups.get(rg);
       const deployedBy = rgMeta.tags?.["deployedBy"];
-      if (deployedBy && user?.upn !== deployedBy) {
+      if (!deployedBy || user?.upn !== deployedBy) {
         // Return 404 to avoid enumeration
         return NextResponse.json(
           toErrorResponse(AppError.notFound("Deployment not found"), requestId),

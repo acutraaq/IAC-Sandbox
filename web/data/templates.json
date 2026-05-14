@@ -28,12 +28,12 @@
             "helpText": "Choose a location close to your users for the best performance.",
             "options": [
               {
-                "label": "Asia Pacific (Southeast Asia)",
-                "value": "southeastasia"
+                "label": "Malaysia (Malaysia West)",
+                "value": "malaysiawest"
               },
               {
-                "label": "Asia Pacific (East Asia)",
-                "value": "eastasia"
+                "label": "Asia Pacific (Southeast Asia)",
+                "value": "southeastasia"
               }
             ]
           }
@@ -51,15 +51,15 @@
             "helpText": "You can change this later if your needs grow.",
             "options": [
               {
-                "label": "Small \u2014 Good for testing and demos",
+                "label": "Small — Good for testing and demos",
                 "value": "B1"
               },
               {
-                "label": "Medium \u2014 Suitable for most teams",
+                "label": "Medium — Suitable for most teams",
                 "value": "B2"
               },
               {
-                "label": "Large \u2014 High traffic or demanding apps",
+                "label": "Large — High traffic or demanding apps",
                 "value": "B3"
               }
             ]
@@ -146,12 +146,12 @@
             "helpText": "Choose a location close to your users or your office.",
             "options": [
               {
-                "label": "Asia Pacific (Southeast Asia)",
-                "value": "southeastasia"
+                "label": "Malaysia (Malaysia West)",
+                "value": "malaysiawest"
               },
               {
-                "label": "Asia Pacific (East Asia)",
-                "value": "eastasia"
+                "label": "Asia Pacific (Southeast Asia)",
+                "value": "southeastasia"
               }
             ]
           }
@@ -169,15 +169,15 @@
             "helpText": "Larger sizes cost more but can handle heavier workloads.",
             "options": [
               {
-                "label": "Small (2 CPUs, 4 GB memory) \u2014 Light tasks",
+                "label": "Small (2 CPUs, 4 GB memory) — Light tasks",
                 "value": "Standard_B2s"
               },
               {
-                "label": "Medium (4 CPUs, 8 GB memory) \u2014 Most workloads",
+                "label": "Medium (4 CPUs, 8 GB memory) — Most workloads",
                 "value": "Standard_B4ms"
               },
               {
-                "label": "Large (8 CPUs, 16 GB memory) \u2014 Heavy workloads",
+                "label": "Large (8 CPUs, 16 GB memory) — Heavy workloads",
                 "value": "Standard_B8ms"
               }
             ]
@@ -210,7 +210,7 @@
   {
     "slug": "database",
     "name": "Managed Database",
-    "description": "Create a fully managed database \u2014 no server maintenance needed. Great for apps that store data.",
+    "description": "Create a fully managed database — no server maintenance needed. Great for apps that store data.",
     "category": "data",
     "icon": "Database",
     "resourceCount": 2,
@@ -236,12 +236,12 @@
             "helpText": "For best performance, choose the same location as your application.",
             "options": [
               {
-                "label": "Asia Pacific (Southeast Asia)",
-                "value": "southeastasia"
+                "label": "Malaysia (Malaysia West)",
+                "value": "malaysiawest"
               },
               {
-                "label": "Asia Pacific (East Asia)",
-                "value": "eastasia"
+                "label": "Asia Pacific (Southeast Asia)",
+                "value": "southeastasia"
               }
             ]
           },
@@ -253,7 +253,7 @@
             "helpText": "PostgreSQL is the most versatile choice for most projects.",
             "options": [
               {
-                "label": "PostgreSQL 16 \u2014 Recommended",
+                "label": "PostgreSQL 16 — Recommended",
                 "value": "16"
               },
               {
@@ -280,7 +280,7 @@
             "placeholder": "32",
             "min": 32,
             "max": 16384,
-            "helpText": "Start with 32 GB \u2014 you can increase this later as your data grows."
+            "helpText": "Start with 32 GB — you can increase this later as your data grows."
           },
           {
             "name": "enableBackup",
@@ -309,7 +309,7 @@
   {
     "slug": "storage-account",
     "name": "File Storage",
-    "description": "Store files, documents, images, and data securely in the cloud \u2014 accessible from anywhere.",
+    "description": "Store files, documents, images, and data securely in the cloud — accessible from anywhere.",
     "category": "data",
     "icon": "HardDrive",
     "resourceCount": 1,
@@ -335,12 +335,12 @@
             "helpText": "Choose a location close to where you'll be uploading and downloading files.",
             "options": [
               {
-                "label": "Asia Pacific (Southeast Asia)",
-                "value": "southeastasia"
+                "label": "Malaysia (Malaysia West)",
+                "value": "malaysiawest"
               },
               {
-                "label": "Asia Pacific (East Asia)",
-                "value": "eastasia"
+                "label": "Asia Pacific (Southeast Asia)",
+                "value": "southeastasia"
               }
             ]
           }
@@ -358,15 +358,15 @@
             "helpText": "More copies means better protection against data loss.",
             "options": [
               {
-                "label": "3 copies in the same location \u2014 Basic protection",
+                "label": "3 copies in the same location — Basic protection",
                 "value": "LRS"
               },
               {
-                "label": "6 copies across 2 locations \u2014 Better protection",
+                "label": "6 copies across 2 locations — Better protection",
                 "value": "ZRS"
               },
               {
-                "label": "6 copies across distant locations \u2014 Best protection",
+                "label": "6 copies across distant locations — Best protection",
                 "value": "GRS"
               }
             ]
@@ -379,15 +379,15 @@
             "helpText": "Choose based on how often you need to access the files. Hot is faster but costs more.",
             "options": [
               {
-                "label": "Frequently (Hot) \u2014 Daily use",
+                "label": "Frequently (Hot) — Daily use",
                 "value": "Hot"
               },
               {
-                "label": "Occasionally (Cool) \u2014 Monthly access",
+                "label": "Occasionally (Cool) — Monthly access",
                 "value": "Cool"
               },
               {
-                "label": "Rarely (Archive) \u2014 Long-term storage",
+                "label": "Rarely (Archive) — Long-term storage",
                 "value": "Archive"
               }
             ]
@@ -438,12 +438,12 @@
             "helpText": "Must be in the same location as the resources that will use this network.",
             "options": [
               {
-                "label": "Asia Pacific (Southeast Asia)",
-                "value": "southeastasia"
+                "label": "Malaysia (Malaysia West)",
+                "value": "malaysiawest"
               },
               {
-                "label": "Asia Pacific (East Asia)",
-                "value": "eastasia"
+                "label": "Asia Pacific (Southeast Asia)",
+                "value": "southeastasia"
               }
             ]
           }
@@ -490,7 +490,7 @@
   {
     "slug": "key-vault",
     "name": "Secret Manager",
-    "description": "Safely store passwords, API keys, certificates, and encryption keys \u2014 away from your code.",
+    "description": "Safely store passwords, API keys, certificates, and encryption keys — away from your code.",
     "category": "security",
     "icon": "KeyRound",
     "resourceCount": 1,
@@ -516,12 +516,12 @@
             "helpText": "For best performance, choose the same location as your application.",
             "options": [
               {
-                "label": "Asia Pacific (Southeast Asia)",
-                "value": "southeastasia"
+                "label": "Malaysia (Malaysia West)",
+                "value": "malaysiawest"
               },
               {
-                "label": "Asia Pacific (East Asia)",
-                "value": "eastasia"
+                "label": "Asia Pacific (Southeast Asia)",
+                "value": "southeastasia"
               }
             ]
           }
@@ -559,11 +559,11 @@
             "helpText": "Role-based access is the modern and recommended approach.",
             "options": [
               {
-                "label": "Role-based access \u2014 Recommended",
+                "label": "Role-based access — Recommended",
                 "value": "rbac"
               },
               {
-                "label": "Vault access policies \u2014 Legacy approach",
+                "label": "Vault access policies — Legacy approach",
                 "value": "vault"
               }
             ]
@@ -575,7 +575,7 @@
   {
     "slug": "container-app",
     "name": "Container Application",
-    "description": "Run containerized applications without managing servers \u2014 just provide your container image.",
+    "description": "Run containerized applications without managing servers — just provide your container image.",
     "category": "compute",
     "icon": "Box",
     "resourceCount": 3,
@@ -609,12 +609,12 @@
             "helpText": "Choose a location close to your users.",
             "options": [
               {
-                "label": "Asia Pacific (Southeast Asia)",
-                "value": "southeastasia"
+                "label": "Malaysia (Malaysia West)",
+                "value": "malaysiawest"
               },
               {
-                "label": "Asia Pacific (East Asia)",
-                "value": "eastasia"
+                "label": "Asia Pacific (Southeast Asia)",
+                "value": "southeastasia"
               }
             ]
           }
@@ -664,7 +664,7 @@
   {
     "slug": "landing-zone",
     "name": "Landing Zone Starter",
-    "description": "A complete foundation setup \u2014 includes a private network, security controls, and monitoring for your project.",
+    "description": "A complete foundation setup — includes a private network, security controls, and monitoring for your project.",
     "category": "landing-zone",
     "icon": "LayoutGrid",
     "resourceCount": 8,
@@ -690,12 +690,12 @@
             "helpText": "Choose a location close to your team or users.",
             "options": [
               {
-                "label": "Asia Pacific (Southeast Asia)",
-                "value": "southeastasia"
+                "label": "Malaysia (Malaysia West)",
+                "value": "malaysiawest"
               },
               {
-                "label": "Asia Pacific (East Asia)",
-                "value": "eastasia"
+                "label": "Asia Pacific (Southeast Asia)",
+                "value": "southeastasia"
               }
             ]
           }
@@ -747,7 +747,7 @@
   {
     "slug": "approval-workflow",
     "name": "Automated Approval Workflow",
-    "description": "Set up an automated approval chain \u2014 for leave requests, expense claims, or document sign-off \u2014 that runs when someone submits a form or calls a URL.",
+    "description": "Set up an automated approval chain — for leave requests, expense claims, or document sign-off — that runs when someone submits a form or calls a URL.",
     "category": "automation",
     "icon": "GitBranch",
     "resourceCount": 1,
@@ -773,12 +773,12 @@
             "helpText": "Choose a location close to your users for the best performance.",
             "options": [
               {
-                "label": "Asia Pacific (Southeast Asia)",
-                "value": "southeastasia"
+                "label": "Malaysia (Malaysia West)",
+                "value": "malaysiawest"
               },
               {
-                "label": "Asia Pacific (East Asia)",
-                "value": "eastasia"
+                "label": "Asia Pacific (Southeast Asia)",
+                "value": "southeastasia"
               }
             ]
           }
@@ -796,15 +796,15 @@
             "helpText": "For most use cases, 1 or 2 levels is sufficient. Add more levels for high-value or compliance-sensitive requests.",
             "options": [
               {
-                "label": "1 level \u2014 single approver",
+                "label": "1 level — single approver",
                 "value": "1"
               },
               {
-                "label": "2 levels \u2014 two approvers in sequence",
+                "label": "2 levels — two approvers in sequence",
                 "value": "2"
               },
               {
-                "label": "3 levels \u2014 three approvers in sequence",
+                "label": "3 levels — three approvers in sequence",
                 "value": "3"
               }
             ]
@@ -825,7 +825,7 @@
   {
     "slug": "scheduled-automation",
     "name": "Scheduled Task Runner",
-    "description": "Run an automated task on a schedule \u2014 daily reports, weekly data syncs, or overnight batch jobs \u2014 without anyone needing to remember to do it.",
+    "description": "Run an automated task on a schedule — daily reports, weekly data syncs, or overnight batch jobs — without anyone needing to remember to do it.",
     "category": "automation",
     "icon": "Clock",
     "resourceCount": 1,
@@ -851,12 +851,12 @@
             "helpText": "Choose a location close to your data or systems.",
             "options": [
               {
-                "label": "Asia Pacific (Southeast Asia)",
-                "value": "southeastasia"
+                "label": "Malaysia (Malaysia West)",
+                "value": "malaysiawest"
               },
               {
-                "label": "Asia Pacific (East Asia)",
-                "value": "eastasia"
+                "label": "Asia Pacific (Southeast Asia)",
+                "value": "southeastasia"
               }
             ]
           }
@@ -874,15 +874,15 @@
             "helpText": "Choose the interval that matches your business need.",
             "options": [
               {
-                "label": "Daily \u2014 every day",
+                "label": "Daily — every day",
                 "value": "Day"
               },
               {
-                "label": "Weekly \u2014 once a week",
+                "label": "Weekly — once a week",
                 "value": "Week"
               },
               {
-                "label": "Monthly \u2014 once a month",
+                "label": "Monthly — once a month",
                 "value": "Month"
               }
             ]
@@ -895,19 +895,19 @@
             "helpText": "All times are Malaysia time (UTC+8).",
             "options": [
               {
-                "label": "Early morning \u2014 6:00 AM",
+                "label": "Early morning — 6:00 AM",
                 "value": "06:00"
               },
               {
-                "label": "Morning \u2014 9:00 AM",
+                "label": "Morning — 9:00 AM",
                 "value": "09:00"
               },
               {
-                "label": "Midday \u2014 12:00 PM",
+                "label": "Midday — 12:00 PM",
                 "value": "12:00"
               },
               {
-                "label": "End of day \u2014 5:00 PM",
+                "label": "End of day — 5:00 PM",
                 "value": "17:00"
               }
             ]
@@ -945,12 +945,12 @@
             "helpText": "Choose a location close to the systems that will use this queue.",
             "options": [
               {
-                "label": "Asia Pacific (Southeast Asia)",
-                "value": "southeastasia"
+                "label": "Malaysia (Malaysia West)",
+                "value": "malaysiawest"
               },
               {
-                "label": "Asia Pacific (East Asia)",
-                "value": "eastasia"
+                "label": "Asia Pacific (Southeast Asia)",
+                "value": "southeastasia"
               }
             ]
           }
@@ -968,11 +968,11 @@
             "helpText": "Basic is free and great for testing. Standard supports larger workloads and advanced features like message sessions and dead-lettering.",
             "options": [
               {
-                "label": "Basic \u2014 for testing and low traffic",
+                "label": "Basic — for testing and low traffic",
                 "value": "Basic"
               },
               {
-                "label": "Standard \u2014 for moderate production load",
+                "label": "Standard — for moderate production load",
                 "value": "Standard"
               }
             ]
@@ -984,7 +984,7 @@
   {
     "slug": "event-broadcaster",
     "name": "Event Notification Hub",
-    "description": "Publish events \u2014 like 'member record updated' or 'claim approved' \u2014 and let multiple systems react independently without needing to call each one individually.",
+    "description": "Publish events — like 'member record updated' or 'claim approved' — and let multiple systems react independently without needing to call each one individually.",
     "category": "integration",
     "icon": "Radio",
     "resourceCount": 1,
@@ -1010,12 +1010,12 @@
             "helpText": "Choose a location close to the systems that will publish and receive events.",
             "options": [
               {
-                "label": "Asia Pacific (Southeast Asia)",
-                "value": "southeastasia"
+                "label": "Malaysia (Malaysia West)",
+                "value": "malaysiawest"
               },
               {
-                "label": "Asia Pacific (East Asia)",
-                "value": "eastasia"
+                "label": "Asia Pacific (Southeast Asia)",
+                "value": "southeastasia"
               }
             ]
           }
@@ -1030,14 +1030,14 @@
             "label": "What format should events use?",
             "type": "select",
             "required": true,
-            "helpText": "Event Grid Schema is simpler to start with. Cloud Events 1.0 is an open standard \u2014 better if you need to connect to non-Microsoft platforms.",
+            "helpText": "Event Grid Schema is simpler to start with. Cloud Events 1.0 is an open standard — better if you need to connect to non-Microsoft platforms.",
             "options": [
               {
-                "label": "Event Grid Schema \u2014 simpler, recommended for getting started",
+                "label": "Event Grid Schema — simpler, recommended for getting started",
                 "value": "EventGridSchema"
               },
               {
-                "label": "Cloud Events 1.0 \u2014 open standard for cross-platform use",
+                "label": "Cloud Events 1.0 — open standard for cross-platform use",
                 "value": "CloudEventSchemaV1_0"
               }
             ]
@@ -1049,7 +1049,7 @@
   {
     "slug": "full-stack-web-app",
     "name": "Full-Stack Web App",
-    "description": "App Service + Azure SQL + Storage + Key Vault \u2014 a complete production-ready web stack.",
+    "description": "App Service + Azure SQL + Storage + Key Vault — a complete production-ready web stack.",
     "category": "compute",
     "icon": "Layers",
     "resourceCount": 6,
@@ -1076,15 +1076,15 @@
             "helpText": "Choose the compute size for your web application.",
             "options": [
               {
-                "label": "Small (B1) \u2014 Testing and demos",
+                "label": "Small (B1) — Testing and demos",
                 "value": "B1"
               },
               {
-                "label": "Medium (B2) \u2014 Most teams",
+                "label": "Medium (B2) — Most teams",
                 "value": "B2"
               },
               {
-                "label": "Standard (B3) \u2014 Production workloads",
+                "label": "Standard (B3) — Production workloads",
                 "value": "B3"
               }
             ]
@@ -1096,16 +1096,12 @@
             "required": true,
             "options": [
               {
-                "label": "Southeast Asia (Singapore)",
+                "label": "Malaysia (Malaysia West)",
+                "value": "malaysiawest"
+              },
+              {
+                "label": "Asia Pacific (Southeast Asia)",
                 "value": "southeastasia"
-              },
-              {
-                "label": "East Asia (Hong Kong)",
-                "value": "eastasia"
-              },
-              {
-                "label": "Australia East (Sydney)",
-                "value": "australiaeast"
               }
             ]
           }
@@ -1136,11 +1132,11 @@
             "required": true,
             "options": [
               {
-                "label": "Basic (2 GB) \u2014 Development",
+                "label": "Basic (2 GB) — Development",
                 "value": "Basic"
               },
               {
-                "label": "Standard S2 \u2014 Most workloads",
+                "label": "Standard S2 — Most workloads",
                 "value": "S2"
               }
             ]
@@ -1158,11 +1154,11 @@
             "required": true,
             "options": [
               {
-                "label": "Locally Redundant (LRS) \u2014 Cheapest",
+                "label": "Locally Redundant (LRS) — Cheapest",
                 "value": "Standard_LRS"
               },
               {
-                "label": "Zone Redundant (ZRS) \u2014 Recommended",
+                "label": "Zone Redundant (ZRS) — Recommended",
                 "value": "Standard_ZRS"
               }
             ]
@@ -1201,7 +1197,7 @@
   {
     "slug": "microservices-platform",
     "name": "Microservices Platform",
-    "description": "Container Apps + Service Bus + Managed Identity \u2014 event-driven microservices infrastructure.",
+    "description": "Container Apps + Service Bus + Managed Identity — event-driven microservices infrastructure.",
     "category": "compute",
     "icon": "Network",
     "resourceCount": 4,
@@ -1235,16 +1231,12 @@
             "required": true,
             "options": [
               {
-                "label": "Southeast Asia (Singapore)",
+                "label": "Malaysia (Malaysia West)",
+                "value": "malaysiawest"
+              },
+              {
+                "label": "Asia Pacific (Southeast Asia)",
                 "value": "southeastasia"
-              },
-              {
-                "label": "East Asia (Hong Kong)",
-                "value": "eastasia"
-              },
-              {
-                "label": "Australia East (Sydney)",
-                "value": "australiaeast"
               }
             ]
           }
@@ -1261,11 +1253,11 @@
             "required": true,
             "options": [
               {
-                "label": "Basic \u2014 Simple queues",
+                "label": "Basic — Simple queues",
                 "value": "Basic"
               },
               {
-                "label": "Standard \u2014 Topics and subscriptions",
+                "label": "Standard — Topics and subscriptions",
                 "value": "Standard"
               }
             ]
@@ -1295,7 +1287,7 @@
   {
     "slug": "data-pipeline",
     "name": "Data Pipeline",
-    "description": "Storage Account + Azure Functions + Azure SQL \u2014 serverless data ingestion and processing.",
+    "description": "Storage Account + Azure Functions + Azure SQL — serverless data ingestion and processing.",
     "category": "data",
     "icon": "GitMerge",
     "resourceCount": 4,
@@ -1321,16 +1313,12 @@
             "required": true,
             "options": [
               {
-                "label": "Southeast Asia (Singapore)",
+                "label": "Malaysia (Malaysia West)",
+                "value": "malaysiawest"
+              },
+              {
+                "label": "Asia Pacific (Southeast Asia)",
                 "value": "southeastasia"
-              },
-              {
-                "label": "East Asia (Hong Kong)",
-                "value": "eastasia"
-              },
-              {
-                "label": "Australia East (Sydney)",
-                "value": "australiaeast"
               }
             ]
           }
@@ -1388,7 +1376,7 @@
   {
     "slug": "secure-api-backend",
     "name": "Secure API Backend",
-    "description": "App Service + Key Vault + API Management + Log Analytics \u2014 a secure, observable API platform.",
+    "description": "App Service + Key Vault + API Management + Log Analytics — a secure, observable API platform.",
     "category": "compute",
     "icon": "ShieldCheck",
     "resourceCount": 5,
@@ -1415,11 +1403,11 @@
             "helpText": "Developer tier is suitable for non-production workloads.",
             "options": [
               {
-                "label": "Developer (no SLA) \u2014 Testing",
+                "label": "Developer (no SLA) — Testing",
                 "value": "Developer"
               },
               {
-                "label": "Standard (SLA) \u2014 Production",
+                "label": "Standard (SLA) — Production",
                 "value": "Standard"
               }
             ]
@@ -1431,16 +1419,12 @@
             "required": true,
             "options": [
               {
-                "label": "Southeast Asia (Singapore)",
+                "label": "Malaysia (Malaysia West)",
+                "value": "malaysiawest"
+              },
+              {
+                "label": "Asia Pacific (Southeast Asia)",
                 "value": "southeastasia"
-              },
-              {
-                "label": "East Asia (Hong Kong)",
-                "value": "eastasia"
-              },
-              {
-                "label": "Australia East (Sydney)",
-                "value": "australiaeast"
               }
             ]
           }

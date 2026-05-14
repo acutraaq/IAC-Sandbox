@@ -5,10 +5,9 @@ globs: web/app/templates/**, web/data/**, web/lib/deployments/**
 
 # Template Catalog
 
-16 templates across 6 categories. All region options are locked to:
+16 templates across 7 categories. All region options are locked to:
+- Malaysia (Malaysia West) — default
 - Asia Pacific (Southeast Asia)
-- Asia Pacific (East Asia)
-- Asia Pacific (Australia East)
 
 | Category | Slug | Resource Type |
 |----------|------|---------------|
@@ -21,9 +20,9 @@ globs: web/app/templates/**, web/data/**, web/lib/deployments/**
 | data | `storage-account` | `Microsoft.Storage/storageAccounts` |
 | data | `data-pipeline` | policy-blocked |
 | security | `key-vault` | `Microsoft.KeyVault/vaults` |
-| security | `secure-api-backend` | policy-blocked |
 | network | `virtual-network` | `Microsoft.Network/virtualNetworks` |
-| network | `landing-zone` | VNet + Key Vault + Log Analytics (conditional) |
+| landing-zone | `landing-zone` | VNet + Key Vault + Log Analytics (conditional) |
+| compute | `secure-api-backend` | policy-blocked |
 | automation | `approval-workflow` | `Microsoft.Logic/workflows` (HTTP trigger) |
 | automation | `scheduled-automation` | `Microsoft.Logic/workflows` (recurrence trigger) |
 | integration | `message-queue` | `Microsoft.ServiceBus/namespaces` |

@@ -579,9 +579,9 @@ describe("buildFullStackWebApp (full-stack-web-app template)", () => {
   });
 
   it("all resources share the same location", () => {
-    const t = buildArmTemplate(templatePayload("full-stack-web-app", { appName: "my-app", region: "eastasia" }), { tenantId: TENANT_ID });
+    const t = buildArmTemplate(templatePayload("full-stack-web-app", { appName: "my-app", region: "southeastasia" }), { tenantId: TENANT_ID });
     for (const r of t.resources) {
-      expect(r.location).toBe("eastasia");
+      expect(r.location).toBe("southeastasia");
     }
   });
 

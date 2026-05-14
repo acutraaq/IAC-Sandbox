@@ -17,14 +17,24 @@ export async function processDeployment(
   queueItem: unknown,
   context: InvocationContext
 ): Promise<void> {
-  const rawMessage = typeof queueItem === "string" ? JSON.parse(queueItem) : queueItem;
+  const preview = JSON.stringify(queueItem).slice(0, 200);
+  context.log(`processDeployment received queue item (type=${typeof queueItem}, preview=${preview})`);
+
+  let rawMessage: unknown;
+  try {
+    rawMessage = typeof queueItem === "string" ? JSON.parse(queueItem) : queueItem;
+  } catch (parseErr) {
+    context.error(`Queue item is not valid JSON: ${preview}`);
+    return;
+  }
+
   const parsed = deploymentJobMessageSchema.safeParse(rawMessage);
   if (!parsed.success) {
     const detail = parsed.error.issues
       .map((i) => `${i.path.join(".")}: ${i.message}`)
       .join("; ");
-    const preview = JSON.stringify(rawMessage).slice(0, 500);
-    context.error(`Invalid queue message: ${detail} | raw: ${preview}`);
+    const rawPreview = JSON.stringify(rawMessage).slice(0, 500);
+    context.error(`Invalid queue message: ${detail} | raw: ${rawPreview}`);
     // Return without throwing: malformed messages should NOT trigger the
     // Functions runtime retry loop (they will never succeed). They are
     // effectively dropped; poison queue is reserved for executor failures.
@@ -48,7 +58,7 @@ export async function processDeployment(
     log: (msg) => context.log(msg),
   });
 
-  context.log(`Deployment ${submissionId} succeeded`);
+  context.log(`Deployment ${submissionId} submitted to ARM`);
 }
 
 app.storageQueue("processDeployment", {
