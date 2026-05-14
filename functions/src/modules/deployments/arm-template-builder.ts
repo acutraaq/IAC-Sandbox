@@ -125,9 +125,11 @@ function toStorageSku(value: string): string {
 function buildStorageAccount(
   name: string,
   location: string,
-  config: Record<string, unknown>
+  config: Record<string, unknown>,
+  suffix = ""
 ): ArmResource {
-  const safeName = sanitizeStorageName(name) || "sandboxstorage";
+  const base = sanitizeStorageName(name).slice(0, 16) || "sandboxstorage";
+  const safeName = suffix ? base + suffix.slice(0, 8) : base;
 
   return {
     type: "Microsoft.Storage/storageAccounts",
@@ -172,9 +174,11 @@ function buildKeyVault(
   name: string,
   location: string,
   config: Record<string, unknown>,
-  tenantId: string
+  tenantId: string,
+  suffix = ""
 ): ArmResource {
-  const safeName = sanitizeKeyVaultName(name) || "sandbox-kv";
+  const base = (sanitizeKeyVaultName(name) || "sandbox-kv").slice(0, 16).replace(/-+$/, "");
+  const safeName = suffix ? base + suffix.slice(0, 8) : base;
   const rawSku = typeof config.kvSku === "string" ? config.kvSku
     : typeof config.sku === "string" ? config.sku
     : "standard";
@@ -477,7 +481,8 @@ function buildVirtualMachine(
 function buildLandingZone(
   config: Record<string, unknown>,
   location: string,
-  tenantId: string
+  tenantId: string,
+  suffix = ""
 ): ArmResource[] {
   const prefix =
     typeof config.namingPrefix === "string" ? config.namingPrefix : "proj";
@@ -495,7 +500,7 @@ function buildLandingZone(
 
   if (config.includeSecurity === true) {
     resources.push(
-      buildKeyVault(`${prefix}-kv`, location, { softDelete: true, purgeProtection: false, accessModel: "rbac" }, tenantId)
+      buildKeyVault(`${prefix}-kv`, location, { softDelete: true, purgeProtection: false, accessModel: "rbac" }, tenantId, suffix)
     );
   }
 
@@ -631,7 +636,8 @@ function buildFullStackWebApp(
   name: string,
   location: string,
   config: Record<string, unknown>,
-  tenantId: string
+  tenantId: string,
+  suffix = ""
 ): ArmResource[] {
   // Keep the base short (≤35 chars) so derived names fit within Azure limits.
   const baseName = sanitizeGenericName(name, 35) || "sandbox-app";
@@ -651,11 +657,11 @@ function buildFullStackWebApp(
 
   const storageResource = buildStorageAccount(baseName, location, {
     redundancy: config.storageTier,
-  });
+  }, suffix);
 
   const kvResource = buildKeyVault(`${baseName}-kv`, location, {
     kvSku: config.kvSku,
-  }, tenantId);
+  }, tenantId, suffix);
 
   return [...appResources, ...sqlResources, storageResource, kvResource];
 }
@@ -666,7 +672,8 @@ function buildFullStackWebApp(
 
 function buildTemplateResources(
   template: { slug: string; formValues: Record<string, unknown> },
-  tenantId: string
+  tenantId: string,
+  suffix = ""
 ): ArmResource[] {
   const { slug, formValues } = template;
 
@@ -703,7 +710,8 @@ function buildTemplateResources(
         buildStorageAccount(
           typeof formValues.storageName === "string" ? formValues.storageName : "sandboxstorage",
           location,
-          formValues
+          formValues,
+          suffix
         ),
       ];
     case "virtual-network":
@@ -720,7 +728,8 @@ function buildTemplateResources(
           typeof formValues.vaultName === "string" ? formValues.vaultName : "sandbox-kv",
           location,
           formValues,
-          tenantId
+          tenantId,
+          suffix
         ),
       ];
     case "container-app":
@@ -730,7 +739,7 @@ function buildTemplateResources(
         formValues
       );
     case "landing-zone":
-      return buildLandingZone(formValues, location, tenantId);
+      return buildLandingZone(formValues, location, tenantId, suffix);
     case "approval-workflow":
       return [
         buildLogicApp(
@@ -770,7 +779,8 @@ function buildTemplateResources(
         typeof formValues.appName === "string" ? formValues.appName : "sandbox-app",
         location,
         formValues,
-        tenantId
+        tenantId,
+        suffix
       );
     default:
       throw new Error(
@@ -791,7 +801,8 @@ function buildCustomResources(
     icon: string;
     config: Record<string, unknown>;
   }>,
-  tenantId: string
+  tenantId: string,
+  suffix = ""
 ): ArmResource[] {
   const armResources: ArmResource[] = [];
 
@@ -812,13 +823,13 @@ function buildCustomResources(
         armResources.push(buildPostgresServer(resource.name, location, resource.config));
         break;
       case "Microsoft.Storage/storageAccounts":
-        armResources.push(buildStorageAccount(resource.name, location, resource.config));
+        armResources.push(buildStorageAccount(resource.name, location, resource.config, suffix));
         break;
       case "Microsoft.Network/virtualNetworks":
         armResources.push(buildVirtualNetwork(resource.name, location, resource.config));
         break;
       case "Microsoft.KeyVault/vaults":
-        armResources.push(buildKeyVault(resource.name, location, resource.config, tenantId));
+        armResources.push(buildKeyVault(resource.name, location, resource.config, tenantId, suffix));
         break;
       case "Microsoft.App/containerApps":
         armResources.push(...buildContainerApp(resource.name, location, resource.config));
@@ -853,10 +864,12 @@ export function buildArmTemplate(
   payload: DeploymentPayload,
   opts: { tenantId: string; tags?: Record<string, string> }
 ): ArmTemplate {
+  const rawId = opts.tags?.["iac-submissionId"] ?? "";
+  const uniqueSuffix = rawId.replace(/-/g, "").slice(0, 8);
   const resources =
     payload.mode === "template"
-      ? buildTemplateResources(payload.template, opts.tenantId)
-      : buildCustomResources(payload.resources, opts.tenantId);
+      ? buildTemplateResources(payload.template, opts.tenantId, uniqueSuffix)
+      : buildCustomResources(payload.resources, opts.tenantId, uniqueSuffix);
 
   // COE-Enforce-Tag-Resources: every individual resource must carry the 4 policy tags.
   // Clone resources to avoid mutating builder output.
