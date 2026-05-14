@@ -3,13 +3,13 @@ import { render, screen } from "@testing-library/react";
 import { Footer } from "@/components/layout/Footer";
 
 describe("Footer", () => {
-  it("renders brand name", () => {
+  it("renders version info", () => {
     render(<Footer />);
-    expect(screen.getByText(/Sandbox Cloud Automation/i)).toBeInTheDocument();
+    expect(screen.getByText(/v1\.0\.0/i)).toBeInTheDocument();
   });
 
-  it("renders environment label", () => {
+  it("renders subscription meta", () => {
     render(<Footer />);
-    expect(screen.getByText(/Sandbox Environment/i)).toBeInTheDocument();
+    expect(screen.getByText(/sub-epf-sandbox-internal/i)).toBeInTheDocument();
   });
 });

@@ -5,12 +5,13 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Menu, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Logo } from "@/components/ui/Logo";
 import { UserMenu } from "./UserMenu";
 
 const navLinks = [
   { href: "/", label: "Home" },
   { href: "/templates", label: "Templates" },
+  { href: "/builder", label: "Builder" },
+  { href: "/my-stuff", label: "My Stuff" },
 ];
 
 export interface NavbarProps {
@@ -35,23 +36,24 @@ export function Navbar({ user }: NavbarProps = {}) {
   return (
     <nav
       aria-label="Main navigation"
-      className={`fixed top-0 left-0 right-0 z-50 border-b border-border transition-colors duration-200 ${
-        scrolled ? "backdrop-blur-md bg-surface/90" : "bg-surface"
+      className={`fixed top-0 left-0 right-0 z-50 h-16 transition-all duration-150 ${
+        scrolled
+          ? "bg-surface/90 backdrop-blur-md border-b border-border"
+          : "bg-surface border-b border-transparent"
       }`}
     >
-      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-6 md:px-8">
-        {/* Logo + wordmark */}
+      <div className="mx-auto flex h-full max-w-7xl items-center justify-between px-6 md:px-8">
         <Link
           href="/"
-          className="flex items-center gap-2.5 transition-opacity hover:opacity-80"
+          className="flex items-center gap-2 transition-opacity hover:opacity-80"
           aria-label="Sandbox home"
         >
-          <Logo size="md" />
-          <span className="text-base font-semibold text-text">Sandbox</span>
+          <span className="font-mono text-base font-medium text-text">
+            <span className="text-prompt">~/</span>sandbox
+          </span>
         </Link>
 
-        {/* Desktop nav links */}
-        <div className="hidden sm:flex items-center gap-8">
+        <div className="hidden sm:flex items-center gap-1">
           {navLinks.map(({ href, label }) => {
             const active =
               href === "/" ? pathname === "/" : pathname.startsWith(href);
@@ -60,8 +62,10 @@ export function Navbar({ user }: NavbarProps = {}) {
                 key={href}
                 href={href}
                 aria-current={active ? "page" : undefined}
-                className={`relative text-sm font-medium transition-colors ${
-                  active ? "text-text" : "text-text-muted hover:text-text"
+                className={`relative rounded-lg px-3 py-2 text-sm font-medium transition-colors duration-150 ${
+                  active
+                    ? "text-text"
+                    : "text-text-muted hover:text-text"
                 }`}
               >
                 {label}
@@ -69,8 +73,8 @@ export function Navbar({ user }: NavbarProps = {}) {
                   <motion.span
                     layoutId="nav-underline"
                     aria-hidden="true"
-                    className="absolute -bottom-0.5 left-0 right-0 h-0.5 bg-primary"
-                    transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
+                    className="absolute -bottom-0.5 left-2 right-2 h-0.5 rounded-full bg-accent"
+                    transition={{ duration: 0.15, ease: [0.22, 1, 0.36, 1] }}
                   />
                 )}
               </Link>
@@ -78,20 +82,19 @@ export function Navbar({ user }: NavbarProps = {}) {
           })}
         </div>
 
-        {/* Right: toggle + avatar + mobile button */}
         <div className="flex items-center gap-3">
           {user ? (
             <UserMenu user={user} />
           ) : (
             <div
               aria-hidden="true"
-              className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-white text-xs font-semibold select-none"
+              className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-white text-xs font-bold select-none"
             >
               SB
             </div>
           )}
           <button
-            className="sm:hidden flex min-h-[44px] min-w-[44px] items-center justify-center rounded-md text-text-muted hover:text-text"
+            className="sm:hidden flex min-h-[44px] min-w-[44px] items-center justify-center rounded-full text-text-muted hover:text-text hover:bg-surface-elevated"
             onClick={() => setMobileOpen((o) => !o)}
             aria-label={mobileOpen ? "Close menu" : "Open menu"}
             aria-expanded={mobileOpen}
@@ -102,7 +105,6 @@ export function Navbar({ user }: NavbarProps = {}) {
         </div>
       </div>
 
-      {/* Mobile menu */}
       <AnimatePresence initial={false}>
         {mobileOpen && (
           <motion.div
@@ -110,20 +112,28 @@ export function Navbar({ user }: NavbarProps = {}) {
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
-            transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
+            transition={{ duration: 0.15, ease: [0.22, 1, 0.36, 1] }}
             className="sm:hidden overflow-hidden border-t border-border bg-surface"
           >
-            <div className="flex flex-col gap-4 px-6 py-4">
-              {navLinks.map(({ href, label }) => (
-                <Link
-                  key={href}
-                  href={href}
-                  onClick={() => setMobileOpen(false)}
-                  className="text-sm font-medium text-text"
-                >
-                  {label}
-                </Link>
-              ))}
+            <div className="flex flex-col gap-1 px-6 py-4">
+              {navLinks.map(({ href, label }) => {
+                const active =
+                  href === "/" ? pathname === "/" : pathname.startsWith(href);
+                return (
+                  <Link
+                    key={href}
+                    href={href}
+                    onClick={() => setMobileOpen(false)}
+                    className={`rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
+                      active
+                        ? "text-text bg-surface-elevated"
+                        : "text-text-muted hover:text-text"
+                    }`}
+                  >
+                    {label}
+                  </Link>
+                );
+              })}
             </div>
           </motion.div>
         )}

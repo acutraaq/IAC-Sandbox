@@ -1,9 +1,7 @@
 "use client";
 
-import { forwardRef } from "react";
-
-type ButtonVariant = "primary" | "secondary" | "ghost";
-type ButtonSize = "sm" | "md" | "lg";
+import * as React from "react";
+import { buttonClasses, type ButtonVariant, type ButtonSize } from "@/lib/button-classes";
 
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: ButtonVariant;
@@ -11,24 +9,7 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   asChild?: boolean;
 }
 
-const variantClasses: Record<ButtonVariant, string> = {
-  primary: "bg-accent text-white hover:bg-accent-hover",
-  secondary:
-    "border border-border bg-transparent text-text hover:bg-surface-elevated",
-  ghost:
-    "bg-transparent text-text-muted hover:text-text hover:bg-surface-elevated",
-};
-
-const sizeClasses: Record<ButtonSize, string> = {
-  sm: "h-9 px-4 text-sm",
-  md: "h-11 px-6 text-sm",
-  lg: "h-12 px-8 text-base",
-};
-
-const baseClasses =
-  "inline-flex items-center justify-center gap-2 rounded-full font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent disabled:pointer-events-none disabled:opacity-50 no-underline";
-
-export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
+export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   function Button(
     {
       variant = "primary",
@@ -39,33 +20,30 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       children,
       ...props
     },
-    ref,
+    _ref,
   ) {
-    const classes = `${baseClasses} ${variantClasses[variant]} ${sizeClasses[size]} ${className}`;
+    const classes = buttonClasses(variant, size, className);
 
-    if (asChild && children) {
-      const child = children as React.ReactElement<{
-        className?: string;
-        ref?: React.Ref<HTMLElement>;
-        [key: string]: unknown;
-      }>;
-      return (
-        <child.type
-          {...props}
-          {...child.props}
-          ref={ref}
-          className={`${classes} ${child.props.className ?? ""}`}
-        />
-      );
+    if (asChild) {
+      const validChildren = React.Children.toArray(children).filter(
+        React.isValidElement,
+      ) as React.ReactElement[];
+      if (validChildren.length !== 1) {
+        throw new Error(
+          "Button with asChild expects exactly one React element child.",
+        );
+      }
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const child = validChildren[0] as React.ReactElement<any>;
+      return React.cloneElement(child, {
+        ...child.props,
+        ...props,
+        className: `${classes} ${(child.props.className as string | undefined) ?? ""}`.trim(),
+      });
     }
 
     return (
-      <button
-        ref={ref}
-        disabled={disabled}
-        className={classes}
-        {...props}
-      >
+      <button ref={_ref} disabled={disabled} className={classes} {...props}>
         {children}
       </button>
     );

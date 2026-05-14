@@ -4,6 +4,7 @@ node_modules/
 .pnp.js
 
 # Build outputs
+/.next/
 /web/.next/
 /web/out/
 /web/build/

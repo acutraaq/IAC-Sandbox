@@ -5,8 +5,8 @@ import { Modal } from "@/components/ui/Modal";
 import { Button } from "@/components/ui/Button";
 import { Check, Copy, RotateCcw, ExternalLink } from "lucide-react";
 import Link from "next/link";
-import type { DeploymentStatus } from "@/types";
 import { getPublicAzureEnv } from "@/lib/env-public";
+import type { DeploymentStatus } from "@/types";
 
 interface ConfirmModalProps {
   open: boolean;
@@ -30,61 +30,6 @@ function activeStepIndex(status: DeploymentStatus | null): number {
   }
 }
 
-type StepState = "done" | "active" | "pending" | "failed";
-
-interface TimelineStepProps {
-  label: string;
-  state: StepState;
-  isLast: boolean;
-}
-
-function TimelineStep({ label, state, isLast }: TimelineStepProps) {
-  const dotClass =
-    state === "failed"
-      ? "bg-error"
-      : state === "done" || state === "active"
-      ? "bg-primary"
-      : "border-2 border-border bg-surface";
-
-  const labelClass =
-    state === "failed"
-      ? "text-error font-medium"
-      : state === "active"
-      ? "text-text font-medium"
-      : state === "done"
-      ? "text-text"
-      : "text-text-muted";
-
-  return (
-    <li
-      data-active={state === "active" ? "" : undefined}
-      data-failed={state === "failed" ? "" : undefined}
-      className="flex flex-col items-start gap-1.5"
-      style={{ flex: isLast ? "0 0 auto" : 1 }}
-    >
-      <div className="flex w-full items-center">
-        <span
-          aria-hidden="true"
-          className={`flex h-3 w-3 shrink-0 rounded-full transition-colors ${dotClass} ${
-            state === "active"
-              ? "animate-pulse motion-reduce:animate-none"
-              : ""
-          }`}
-        />
-        {!isLast && (
-          <span
-            aria-hidden="true"
-            className={`h-px flex-1 transition-colors ${
-              state === "done" ? "bg-primary" : "bg-border"
-            }`}
-          />
-        )}
-      </div>
-      <span className={`text-xs ${labelClass}`}>{label}</span>
-    </li>
-  );
-}
-
 function StatusTimeline({
   status,
   error,
@@ -93,35 +38,43 @@ function StatusTimeline({
   error: string | null;
 }) {
   const activeIdx = activeStepIndex(status);
-
   return (
-    <div className="space-y-2">
-      <ol className="flex w-full items-start">
-        {TIMELINE_STEPS.map((label, i) => {
-          let state: StepState;
-          if (status === "failed" && i === TIMELINE_STEPS.length - 1) {
-            state = "failed";
-          } else if (i < activeIdx) {
-            state = "done";
-          } else if (i === activeIdx) {
-            state = "active";
-          } else {
-            state = "pending";
-          }
-          return (
-            <TimelineStep
-              key={label}
-              label={label}
-              state={state}
-              isLast={i === TIMELINE_STEPS.length - 1}
-            />
-          );
-        })}
-      </ol>
+    <ol className="font-mono text-xs leading-relaxed">
+      {TIMELINE_STEPS.map((label, i) => {
+        let glyph: string;
+        let className: string;
+        const isActive = i === activeIdx;
+        const isFailed = status === "failed" && i === TIMELINE_STEPS.length - 1;
+        const isDone = i < activeIdx;
+        if (isFailed) {
+          glyph = "[x]";
+          className = "text-error font-medium";
+        } else if (isDone) {
+          glyph = "[✓]";
+          className = "text-success";
+        } else if (isActive) {
+          glyph = "[*]";
+          className = "text-accent font-medium animate-pulse motion-reduce:animate-none";
+        } else {
+          glyph = "[ ]";
+          className = "text-text-muted";
+        }
+        return (
+          <li
+            key={label}
+            data-active={isActive && !isFailed ? "" : undefined}
+            data-failed={isFailed ? "" : undefined}
+            className={className}
+          >
+            <span className="select-none">{glyph}</span>{" "}
+            <span>{label}</span>
+          </li>
+        );
+      })}
       {status === "failed" && error && (
-        <p className="text-xs text-error">{error}</p>
+        <p className="mt-2 text-xs text-error font-sans">{error}</p>
       )}
-    </div>
+    </ol>
   );
 }
 
@@ -152,18 +105,16 @@ export function ConfirmModal({
     }
   }
 
-  const { tenantId, subscriptionId } = getPublicAzureEnv();
-
   return (
     <Modal open={open} onClose={onClose} title="Deployment Submitted">
       <div className="mx-auto max-w-xl space-y-4">
-        <p className="text-sm text-text-muted">
-          Your deployment has been submitted. Copy the text below and share it
-          with your approver for HOD sign-off.
+        <p className="font-mono text-xs text-text-muted">
+          <span className="text-comment"># </span>
+          Copy the text below and share it with your approver for HOD sign-off.
         </p>
 
         {deploymentStatus && (
-          <div aria-live="polite" aria-atomic="true">
+          <div aria-live="polite" aria-atomic="true" className="rounded-md border border-border bg-bg/50 p-3">
             <StatusTimeline status={deploymentStatus} error={deploymentError} />
           </div>
         )}
@@ -171,7 +122,7 @@ export function ConfirmModal({
         <div className="relative">
           <pre
             id="proof-text"
-            className="max-h-48 overflow-auto rounded-lg border border-border bg-bg p-3 font-mono text-[11px] leading-relaxed text-text sm:max-h-64 sm:p-4 sm:text-xs"
+            className="max-h-48 overflow-auto rounded-md border border-border bg-bg p-3 font-mono text-[11px] leading-relaxed text-text sm:max-h-64 sm:p-4 sm:text-xs"
           >
             {proofText}
           </pre>
@@ -197,19 +148,19 @@ export function ConfirmModal({
           </Button>
 
           {deploymentStatus === "succeeded" && resourceGroup && (
-            <a
-              href={`https://portal.azure.com/#@${tenantId}/resource/subscriptions/${subscriptionId}/resourceGroups/${resourceGroup}/overview`}
+            <Link
+              href={`https://portal.azure.com/#@/${getPublicAzureEnv().tenantId}/resource/subscriptions/${getPublicAzureEnv().subscriptionId}/resourceGroups/${resourceGroup}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center justify-center gap-2 rounded-lg border border-accent/40 bg-accent/5 px-4 py-2.5 text-sm font-medium text-accent transition-colors hover:bg-accent/10"
+              className="flex items-center justify-center gap-2 rounded-full border border-border bg-transparent px-4 py-2.5 text-sm font-medium text-accent transition-all hover:bg-surface-elevated hover:border-accent/30"
             >
               <ExternalLink className="h-4 w-4" />
               View in Azure Portal
-            </a>
+            </Link>
           )}
 
-          <Button asChild variant="ghost" className="w-full" onClick={onReset}>
-            <Link href="/">
+          <Button asChild variant="ghost" className="w-full">
+            <Link href="/" onClick={onReset}>
               <RotateCcw className="h-4 w-4" />
               Start New Deployment
             </Link>

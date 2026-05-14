@@ -9,11 +9,13 @@ import { ReviewSection } from "@/components/review/ReviewSection";
 import { ConfirmModal } from "@/components/review/ConfirmModal";
 import { Button } from "@/components/ui/Button";
 import { toast } from "@/components/ui/Toast";
-import { Send, Loader2, ArrowLeft, Tag } from "lucide-react";
+import { Send, Loader2, ArrowLeft } from "lucide-react";
 import { tagsSchema } from "@/lib/deployments/schema";
 import type { ResourceGroupTags, SessionUser } from "@/types";
 import Link from "next/link";
-import { Breadcrumb } from "@/components/layout/Breadcrumb";
+import { PageEyebrow } from "@/components/layout/PageEyebrow";
+import { MonoSectionHeader } from "@/components/ui/MonoSectionHeader";
+import { DocumentDivider } from "@/components/ui/DocumentDivider";
 import { PageTransition } from "@/components/layout/PageTransition";
 
 export default function ReviewPage() {
@@ -134,7 +136,7 @@ export default function ReviewPage() {
         selectedTemplate,
         wizardState,
         selectedResources,
-      }, reportUser, tags);
+      }, reportUser, tags, result.resourceGroup);
 
       setSubmissionResult(result.submissionId, report, result.resourceGroup);
       setDeploymentStatus("accepted", null);
@@ -164,7 +166,7 @@ export default function ReviewPage() {
   return (
     <PageTransition>
     <div className="mx-auto max-w-[clamp(42rem,60vw,56rem)] px-6 md:px-8 py-8 md:py-12">
-      <Breadcrumb items={[{ label: "Home", href: "/" }, { label: "Review" }]} />
+      <PageEyebrow path="review" />
       <div className="mb-6">
         <Link
           href={backHref}
@@ -173,11 +175,15 @@ export default function ReviewPage() {
           <ArrowLeft className="h-4 w-4" />
           {mode === "template" ? "Back to setup" : "Back to builder"}
         </Link>
-        <h1 className="text-2xl font-semibold text-text">Review Your Setup</h1>
+        <h1 className="font-mono text-[clamp(1.5rem,3vw,2rem)] font-medium text-text">
+          <span className="text-text-faint"># </span>review-your-setup
+        </h1>
         <p className="mt-1 text-sm text-text-muted">
           Check everything looks right before submitting.
         </p>
       </div>
+
+      <DocumentDivider label="configuration" />
 
       <ReviewSection
         mode={mode}
@@ -186,14 +192,13 @@ export default function ReviewPage() {
         selectedResources={selectedResources}
       />
 
+      <DocumentDivider label="tags" />
+
       <div className="mt-6 rounded-xl border border-border bg-surface p-5">
-        <div className="mb-4 flex items-center gap-2">
-          <Tag className="h-4 w-4 text-accent" />
-          <p className="text-sm font-semibold text-text">Resource Group Tags</p>
-        </div>
-        <p className="mb-4 text-xs text-text-muted">
-          Required by subscription policy. All four tags must be provided.
-        </p>
+        <MonoSectionHeader
+          title="resource-group-tags"
+          description="Required by subscription policy. All four tags must be provided."
+        />
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           {(["Cost Center", "Project ID", "Project Owner"] as const).map((field) => {
             const fieldId = `tag-${field.toLowerCase().replace(/\s+/g, "-")}`;
@@ -250,6 +255,8 @@ export default function ReviewPage() {
           </div>
         </div>
       </div>
+
+      <DocumentDivider label="submit" />
 
       <div className="mt-4 rounded-xl border border-border bg-surface p-5">
         <p className="mb-4 text-sm text-text-muted">

@@ -1,9 +1,13 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/Button";
-import { TemplateGrid } from "@/components/home/TemplateGrid";
 import { DeployedList } from "@/components/home/DeployedList";
-import { PageTransition } from "@/components/layout/PageTransition";
 import { NavLink } from "@/components/home/NavLink";
+import { TerminalHero } from "@/components/home/TerminalHero";
+import { TemplateRow } from "@/components/templates/TemplateRow";
+import { PageEyebrow } from "@/components/layout/PageEyebrow";
+import { MonoSectionHeader } from "@/components/ui/MonoSectionHeader";
+import { DocumentDivider } from "@/components/ui/DocumentDivider";
+import { ArrowRight } from "lucide-react";
 import templatesData from "@/data/templates.json";
 import type { Template } from "@/types";
 
@@ -13,65 +17,75 @@ const popularTemplates = (templatesData as Template[])
 
 export default function Home() {
   return (
-    <PageTransition>
-      <div className="mx-auto max-w-7xl space-y-12 px-6 py-8 md:px-8 md:py-12">
-        {/* Zone 1: Welcome */}
-        <div>
-          <h1
-            className="text-4xl font-bold text-text animate-fade-up motion-reduce:animate-none"
-            style={{ animationDelay: "0ms" }}
+    <div className="line-gutter mx-auto max-w-7xl space-y-14 px-6 py-10 md:px-8 md:py-16">
+      <PageEyebrow path="" />
+
+      <header className="grid grid-cols-1 items-start gap-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,30rem)] lg:gap-12">
+        <div className="min-w-0">
+          <pre
+            className="m-0 font-mono text-text leading-[1.4] text-[clamp(1.25rem,2.6vw,2rem)] font-medium whitespace-pre"
+            aria-label="Sandbox — Azure IaC for EPF"
           >
-            Sandbox
-          </h1>
-          <p
-            className="mt-2 text-text-muted animate-fade-up motion-reduce:animate-none"
-            style={{ animationDelay: "80ms" }}
-          >
-            Deploy Azure resources in minutes.
+{`# ----------------------------
+# Sandbox — Azure IaC for EPF
+# ----------------------------`}
+          </pre>
+          <p className="mt-6 max-w-[65ch] text-base text-text-muted md:text-lg">
+            Deploy Azure resources in minutes. Pick a template, build your own
+            setup, or request a custom configuration.
           </p>
-          <div
-            className="mt-6 flex flex-wrap gap-3 animate-fade-up motion-reduce:animate-none"
-            style={{ animationDelay: "160ms" }}
-          >
-            <Button asChild size="md">
-              <Link href="/templates">Browse Templates</Link>
+          <div className="mt-8 flex flex-wrap gap-3">
+            <Button asChild size="lg">
+              <Link href="/templates">
+                Browse Templates
+                <ArrowRight className="h-4 w-4" />
+              </Link>
             </Button>
-            <NavLink href="/builder" mode="custom" variant="secondary" size="md">
+            <NavLink href="/builder" mode="custom" variant="secondary" size="lg">
               Build Custom
             </NavLink>
-            <NavLink href="/request" mode="custom-request" variant="ghost" size="md">
+            <NavLink href="/request" mode="custom-request" variant="ghost" size="lg">
               Request Custom Setup
             </NavLink>
           </div>
         </div>
+        <div className="w-full">
+          <TerminalHero />
+        </div>
+      </header>
 
-        {/* Zone 2: Popular Templates */}
-        <div
-          className="animate-fade-up motion-reduce:animate-none"
-          style={{ animationDelay: "260ms" }}
-        >
-          <div className="mb-4 flex items-center justify-between">
-            <h2 className="text-sm font-semibold uppercase tracking-wider text-text-muted">
-              Popular Templates
-            </h2>
-            <Link href="/templates" className="text-sm text-accent hover:underline">
-              View all templates →
+      <DocumentDivider label="popular-templates" />
+
+      <section>
+        <MonoSectionHeader
+          title="popular-templates"
+          description="Quick-start configurations for common workloads."
+          rightSlot={
+            <Link
+              href="/templates"
+              className="flex items-center gap-1 font-mono text-xs text-accent hover:text-accent-hover"
+            >
+              view all
+              <ArrowRight className="h-3.5 w-3.5" />
             </Link>
-          </div>
-          <TemplateGrid templates={popularTemplates} />
+          }
+        />
+        <div className="border-t border-border">
+          {popularTemplates.map((t, i) => (
+            <TemplateRow key={t.slug} template={t} index={i + 1} />
+          ))}
         </div>
+      </section>
 
-        {/* Zone 3: Recent Deployments */}
-        <div
-          className="animate-fade-up motion-reduce:animate-none"
-          style={{ animationDelay: "360ms" }}
-        >
-          <h2 className="mb-4 text-sm font-semibold uppercase tracking-wider text-text-muted">
-            My Recent Deployments
-          </h2>
-          <DeployedList />
-        </div>
-      </div>
-    </PageTransition>
+      <DocumentDivider label="recent-deployments" />
+
+      <section>
+        <MonoSectionHeader
+          title="recent-deployments"
+          description="Your latest Azure resource group deployments."
+        />
+        <DeployedList />
+      </section>
+    </div>
   );
 }

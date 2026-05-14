@@ -88,7 +88,11 @@
       "Bash(GIT_SSL_NO_VERIFY=true git push -u origin feature/formal-proof-labels)",
       "Bash(winpty gh pr create --title 'fix\\(report\\): use formal field labels in proof artifact' --body ' *)",
       "Bash(GIT_SSL_NO_VERIFY=true git fetch origin main)",
-      "Bash(git rm *)"
+      "Bash(git rm *)",
+      "Bash(git diff *)",
+      "Bash(nslookup epf-sandbox-functions.azurewebsites.net 8.8.8.8)",
+      "Bash(nslookup epf-sandbox-functions.azurewebsites.net)",
+      "Bash(az account *)"
     ]
   },
   "hooks": {

@@ -1,9 +1,12 @@
+"use client";
+
 import Link from "next/link";
 import templatesData from "@/data/templates.json";
-import { TemplateCard } from "@/components/templates/TemplateCard";
-import { TemplateGrid } from "@/components/templates/TemplateGrid";
-import { Breadcrumb } from "@/components/layout/Breadcrumb";
-import { PageTransition } from "@/components/layout/PageTransition";
+import { TemplateRow } from "@/components/templates/TemplateRow";
+import { PageEyebrow } from "@/components/layout/PageEyebrow";
+import { MonoSectionHeader } from "@/components/ui/MonoSectionHeader";
+import { DocumentDivider } from "@/components/ui/DocumentDivider";
+import { ArrowRight } from "lucide-react";
 import type { Template } from "@/types";
 
 const BUNDLE_SLUGS = [
@@ -22,55 +25,60 @@ const individual = (templatesData as Template[]).filter(
 
 export default function TemplatesPage() {
   return (
-    <PageTransition>
-      <div className="mx-auto max-w-7xl px-6 py-8 md:px-8 md:py-12">
-        <Breadcrumb
-          items={[{ label: "Home", href: "/" }, { label: "Templates" }]}
+    <div className="line-gutter mx-auto max-w-7xl px-6 py-8 md:px-8 md:py-12">
+      <PageEyebrow path="templates" />
+
+      <header className="mb-10">
+        <h1 className="font-mono text-[clamp(1.75rem,3.5vw,2.5rem)] font-medium text-text">
+          <span className="text-text-faint"># </span>
+          templates
+        </h1>
+        <p className="mt-2 max-w-[65ch] text-sm text-text-muted md:text-base">
+          Choose from pre-built configurations or start from scratch.
+        </p>
+      </header>
+
+      <section className="mb-12">
+        <MonoSectionHeader
+          title="scenario-bundles"
+          description="Pre-built multi-resource configurations for common workloads."
         />
+        <div className="border-t border-border">
+          {bundles.map((t, i) => (
+            <TemplateRow key={t.slug} template={t} index={i + 1} />
+          ))}
+        </div>
+      </section>
 
-        {/* Scenario Bundles */}
-        <section className="mb-12">
-          <h2 className="text-2xl font-semibold text-text">Scenario Bundles</h2>
-          <p className="mt-1 text-sm text-text-muted">
-            Pre-built multi-resource configurations for common workloads.
+      <DocumentDivider label="individual-resources" />
+
+      <section>
+        <MonoSectionHeader
+          title="individual-resources"
+          description="Single-resource deployments for targeted infrastructure needs."
+        />
+        <div className="border-t border-border">
+          {individual.map((t, i) => (
+            <TemplateRow key={t.slug} template={t} index={i + 1} />
+          ))}
+        </div>
+      </section>
+
+      <section className="mt-14 border-y border-border py-6">
+        <div className="flex flex-col items-start gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <p className="font-mono text-sm text-text-muted">
+            <span className="text-comment"># </span>
+            can&apos;t find what you need? request a custom setup
           </p>
-          <div className="mt-6 grid gap-5 sm:grid-cols-2">
-            {bundles.map((t) => (
-              <TemplateCard key={t.slug} template={t} />
-            ))}
-          </div>
-        </section>
-
-        {/* Individual Resources */}
-        <section>
-          <h2 className="mb-1 text-2xl font-semibold text-text">
-            Individual Resources
-          </h2>
-          <p className="mb-6 text-sm text-text-muted">
-            Single-resource deployments for targeted infrastructure needs.
-          </p>
-          <TemplateGrid templates={individual} />
-        </section>
-
-        {/* Custom Request CTA */}
-        <section className="mt-12 flex flex-col items-start gap-3 rounded-xl border border-border bg-surface p-6 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <h3 className="text-base font-semibold text-text">
-              Need something specific?
-            </h3>
-            <p className="mt-1 text-sm text-text-muted">
-              If none of the templates match your use case, tell us what you need
-              and we will provision it for you after HOD approval.
-            </p>
-          </div>
           <Link
             href="/request"
-            className="shrink-0 rounded-lg border border-accent/40 bg-accent/5 px-4 py-2 text-sm font-medium text-accent transition-colors hover:bg-accent/10"
+            className="shrink-0 inline-flex items-center gap-2 rounded-full border border-border bg-transparent px-5 py-2.5 text-sm font-medium text-accent transition-all hover:bg-surface-elevated hover:border-accent/30"
           >
-            Request a Custom Setup →
+            Request a Custom Setup
+            <ArrowRight className="h-4 w-4" />
           </Link>
-        </section>
-      </div>
-    </PageTransition>
+        </div>
+      </section>
+    </div>
   );
 }

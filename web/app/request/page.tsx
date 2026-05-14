@@ -1,6 +1,6 @@
-"use client";
+﻿"use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ResourceCatalog } from "@/components/builder/ResourceCatalog";
 import { ResourceDrawer } from "@/components/builder/ResourceDrawer";
 import { RequestDocument } from "@/components/request/RequestDocument";
@@ -12,8 +12,13 @@ import resources from "@/data/resources.json";
 import type { AzureResource } from "@/types";
 
 export default function RequestPage() {
-  const { selectedResources, addResource, removeResource, resetCustomRequest } =
+  const { selectedResources, addResource, removeResource, resetCustomRequest, setMode } =
     useDeploymentStore();
+
+  useEffect(() => {
+    setMode("custom-request");
+  }, [setMode]);
+
   const [activeResource, setActiveResource] = useState<AzureResource | null>(null);
   const [showDocument, setShowDocument] = useState(false);
 

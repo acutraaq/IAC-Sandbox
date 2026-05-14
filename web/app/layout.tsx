@@ -3,6 +3,7 @@ import { IBM_Plex_Sans, IBM_Plex_Mono } from "next/font/google";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { MainShell } from "@/components/layout/MainShell";
+import { AmbientBackground } from "@/components/layout/AmbientBackground";
 import { ToastContainer } from "@/components/ui/Toast";
 import { getCurrentUser } from "@/lib/auth";
 import "./globals.css";
@@ -39,10 +40,11 @@ export default async function RootLayout({
       <body className="min-h-full flex flex-col bg-bg text-text font-sans">
         <a
           href="#main-content"
-          className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-md focus:bg-accent focus:px-4 focus:py-2 focus:text-sm focus:font-medium focus:text-white"
+          className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-lg focus:bg-primary focus:px-4 focus:py-2 focus:text-sm focus:font-semibold focus:text-white"
         >
           Skip to main content
         </a>
+        <AmbientBackground />
         <Navbar user={user} />
         <MainShell>{children}</MainShell>
         <Footer />

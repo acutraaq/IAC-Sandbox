@@ -1,6 +1,6 @@
 import type { DeploymentState, ResourceGroupTags, SessionUser } from "@/types";
-import { deriveResourceGroupName } from "@/lib/deployments/rg-name";
 import { displayFieldValue } from "@/lib/display";
+import { getPublicAzureEnv } from "@/lib/env-public";
 
 const ACRONYMS = new Set(["id", "url", "uri", "ip", "dns", "ssl", "tls", "https", "http", "api", "sku", "vm", "db", "sql", "cidr", "vnet", "nsg", "rg"]);
 
@@ -26,6 +26,7 @@ export function generateReport(
   >,
   user: SessionUser,
   tags?: ResourceGroupTags,
+  resourceGroupName?: string,
 ): string {
   const now = new Date().toLocaleString("en-MY", {
     dateStyle: "full",
@@ -37,16 +38,11 @@ export function generateReport(
     "========================",
     `Submission ID : ${submissionId}`,
     `Submitted By  : ${user.displayName} (${user.upn})`,
-    `Tenant        : sub-epf-sandbox-internal`,
+    `Tenant        : ${getPublicAzureEnv().tenantId}`,
     `Date/Time     : ${now}`,
     `Mode          : ${state.mode === "template" ? "Template" : "Custom"}`,
     `Target Sub    : sub-epf-sandbox-internal`,
-    `Target RG     : ${deriveResourceGroupName(
-      // Adapt UI state to DeploymentPayload shape; tags are unused by deriveResourceGroupName.
-      state.mode === "template" && state.selectedTemplate
-        ? { mode: "template", template: { slug: state.selectedTemplate.slug, formValues: state.wizardState.formValues } }
-        : { mode: "custom", resources: state.selectedResources }
-    )}`,
+    `Target RG     : ${resourceGroupName ?? ""}`,
     `Status        : accepted`,
     "",
     "Tags:",

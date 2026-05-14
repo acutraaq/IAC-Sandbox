@@ -1,6 +1,6 @@
 # Sandbox Azure Deployer — Complete Specification
 
-> **Version:** v2.3.0 | **Last updated:** 2026-05-04 | **Status:** Active  
+> **Version:** v2.3.0 | **Last updated:** 2026-05-14 | **Status:** Active  
 > **Owner:** Product + Architecture | **Review cadence:** Quarterly or on breaking changes  
 > **Related docs:** [Project Index](../README.md) | [API Spec](API_SPEC_OPENAPI.yaml) | [Glossary](../GLOSSARY.md) | [CLAUDE.md](../../CLAUDE.md)
 >

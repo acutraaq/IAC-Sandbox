@@ -18,6 +18,11 @@ vi.mock("@/lib/msal", () => ({
 beforeEach(() => {
   vi.clearAllMocks();
   buildAuthCodeUrlMock.mockResolvedValue("https://login.microsoftonline.com/mock-auth-url");
+  // Ensure MSAL is configured so the handler uses the MSAL branch (not stub login)
+  process.env.AZURE_AD_CLIENT_ID = "mock-client-id";
+  process.env.AZURE_AD_CLIENT_SECRET = "mock-client-secret";
+  process.env.AZURE_TENANT_ID = "mock-tenant-id";
+  process.env.SESSION_SECRET = "a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6";
 });
 
 describe("GET /api/auth/login", () => {

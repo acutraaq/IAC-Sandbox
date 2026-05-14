@@ -1,6 +1,6 @@
 # CLAUDE.md — Project Conventions & Developer Guidance
 
-> **Version:** 2.3.0 | **Last updated:** 2026-05-04 | **Status:** Active  
+> **Version:** 2.4.0 | **Last updated:** 2026-05-14 | **Status:** Active  
 > **Purpose:** Single source of truth for project conventions, tech stack, and development patterns  
 > **Owner:** All engineers | **Review cadence:** On every convention or pattern change  
 > **Related docs:** [Documentation Index](docs/README.md) | [Complete Spec](docs/project/SPEC.md) | [Glossary](docs/GLOSSARY.md) | [HANDOFF](docs/superpowers/HANDOFF.md)
@@ -17,7 +17,7 @@ Before starting any work, check `docs/superpowers/specs/` for any active (non-ar
 
 No active specs or plans. All approved work is implemented; completed designs live under `docs/superpowers/archive/`.
 
-**What is live and working:** See Live Deployment section below.
+**What is live and working:** Terminal-native document redesign (mono nav chrome, editorial rows, `~/path` eyebrows); see Live Deployment section below.
 **What is designed but not built:** Nothing — all approved specs implemented.
 **SSO status:** Microsoft SSO / MSAL is **on hold** — placeholder login is live and sufficient for current needs. The MSAL plumbing is fully implemented but not being activated at this time. See Authentication section.
 **What needs admin action:** Managed identity not yet enabled on Function App or App Service — ARM deployments will fail until an admin completes the setup checklist in `.claude/rules/azure-infra.md`. Verify with `GET /api/healthz/arm` → `{"status":"ok"}`.
@@ -47,7 +47,7 @@ Both Template and Custom Builder flows converge at a shared Review & Submit page
 | Resource | Name | Subscription |
 |----------|------|--------------|
 | Azure App Service (Linux, Node 22, B1 SKU) | `epf-experimental-sandbox-playground` | sub-epf-sandbox-cloud (`bcef681c-2e70-4357-8fa3-c36b558d61da`) |
-| Azure Function App (queue-triggered) | `epf-sandbox-functions` | sub-epf-sandbox-internal (`1fed33d2-00fd-40a8-a5c1-c120aec1b902`) |
+| Azure Function App (queue-triggered) | `epf-sandbox-functions` | sub-epf-sandbox-cloud (`bcef681c-2e70-4357-8fa3-c36b558d61da`) |
 | Azure Storage Account + Queue (`deployment-jobs`) | `coeiacsandbox8bfc` | sub-epf-sandbox-internal (`1fed33d2-00fd-40a8-a5c1-c120aec1b902`) |
 | User-deployed resource groups (ARM target) | — | sub-epf-sandbox-internal (`1fed33d2-00fd-40a8-a5c1-c120aec1b902`) |
 
@@ -187,20 +187,21 @@ Prisma and PostgreSQL have been removed. ARM is the source of truth for all depl
 │   │       ├── my-deployments/      # GET list RGs by deployedBy tag
 │   │       └── healthz/
 │   ├── components/
-│   │   ├── layout/   # Navbar, Breadcrumb, Footer, PageTransition, UserMenu
-│   │   ├── ui/       # Button, Card, Badge, Modal, Toast
-│   │   ├── templates/
-│   │   ├── wizard/
+│   │   ├── layout/   # Navbar, Breadcrumb, Footer, PageTransition, UserMenu, PageEyebrow
+│   │   ├── ui/       # Button, Card, Badge, Modal, Toast, MonoSectionHeader, DocumentDivider
+│   │   ├── templates/# TemplateRow, TemplateWizardClient
+│   │   ├── wizard/   # Stepper, WizardStep, SummaryPanel
 │   │   ├── builder/
 │   │   ├── request/  # RequestDocument — copy-paste request block
-│   │   ├── review/   # ReviewSection, ConfirmModal (3-step timeline + portal deep-link)
-│   │   ├── home/     # DeployedList, TemplateGrid (home page sections)
+│   │   ├── review/   # ReviewSection, ConfirmModal (mono glyph timeline + portal deep-link)
+│   │   ├── home/     # DeployedList, TerminalHero
 │   │   └── stuff/    # DeployedTable (my-stuff page)
 │   ├── store/
 │   │   └── deploymentStore.ts   # mode: "template"|"custom"|"custom-request"; resetCustomRequest()
 │   ├── lib/
 │   │   ├── api.ts               # Client-side fetch helpers
 │   │   ├── arm.ts               # getArmClient() factory
+│   │   ├── button-classes.ts    # Server-safe Tailwind button class builder
 │   │   ├── errors.ts            # AppError (incl. forbidden()), toErrorResponse()
 │   │   ├── server-env.ts        # Zod env (no DATABASE_URL)
 │   │   ├── schema.ts
@@ -214,8 +215,8 @@ Prisma and PostgreSQL have been removed. ARM is the source of truth for all depl
 │   │       └── arm-status.ts    # mapArmProvisioningState → DeploymentStatus
 │   ├── types/index.ts
 │   ├── data/
-│   │   ├── templates.json       # 16 templates across 6 categories; regions locked to SEA/EA/AUE only
-│   │   └── resources.json       # NSG removed; used by Custom Builder + Request pages
+│   │   ├── templates.json       # 16 templates across 7 categories; regions locked to SEA/EA/AUE only
+│   │   └── resources.json       # 10 resource types (NSG removed); used by Custom Builder + Request pages
 │   └── __tests__/
 │       ├── store/
 │       ├── lib/deployments/

@@ -35,7 +35,7 @@ function SkeletonRow() {
   return (
     <div
       data-testid="skeleton-row"
-      className="h-16 rounded-xl bg-border animate-pulse motion-reduce:animate-none"
+      className="h-16 rounded-md bg-surface-highlight animate-pulse motion-reduce:animate-none"
     />
   );
 }
@@ -63,22 +63,27 @@ export function DeployedList() {
 
   if (items.length === 0) {
     return (
-      <p className="py-8 text-center text-sm text-text-muted">
-        No deployments yet.{" "}
-        <Link href="/templates" className="text-accent hover:underline">
-          Start with a template.
-        </Link>
-      </p>
+      <div className="flex flex-col items-center gap-3 py-12 text-center">
+        <p className="text-sm text-text-muted">
+          No deployments yet.{" "}
+          <Link
+            href="/templates"
+            className="text-accent hover:text-accent-hover transition-colors"
+          >
+            Start with a template.
+          </Link>
+        </p>
+      </div>
     );
   }
 
   return (
     <div className="space-y-3">
-      <div className="flex flex-col overflow-hidden rounded-xl border border-border bg-surface">
+      <div className="flex flex-col overflow-hidden rounded-md border border-border bg-surface">
         {items.map((item, index) => (
           <div
             key={item.submissionId ?? item.resourceGroup}
-            className={`flex items-center justify-between px-5 py-3.5 transition-colors hover:bg-surface-elevated ${
+            className={`flex items-center justify-between px-5 py-3.5 transition-colors duration-150 hover:bg-surface-elevated ${
               index !== items.length - 1 ? "border-b border-border" : ""
             }`}
           >
@@ -98,14 +103,17 @@ export function DeployedList() {
                 </p>
               </div>
             </div>
-            <span className="shrink-0 ml-4 text-xs font-medium text-text-muted">
+            <span className="shrink-0 ml-4 text-xs font-semibold text-text-muted">
               {statusLabel(item.status)}
             </span>
           </div>
         ))}
       </div>
       <div className="text-right">
-        <Link href="/my-stuff" className="text-sm text-accent hover:underline">
+        <Link
+          href="/my-stuff"
+          className="text-sm font-medium text-accent hover:text-accent-hover transition-colors"
+        >
           View all →
         </Link>
       </div>

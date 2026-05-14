@@ -157,6 +157,18 @@ export async function executeBicepDeployment(
   const client = new ResourceManagementClient(credential, opts.subscriptionId);
   const deployments = makeDeploymentsAccessor(credential, opts.subscriptionId);
 
+  // Verify token acquisition up-front — this is the most common failure point
+  // when managed identity is misconfigured, and surfacing it early prevents
+  // confusing silent timeouts inside the polling loop.
+  try {
+    const tokenCheck = await credential.getToken("https://management.azure.com/.default");
+    log?.(`[${id}] ARM token acquired (expires ${tokenCheck.expiresOnTimestamp})`);
+  } catch (tokenErr) {
+    const msg = tokenErr instanceof Error ? tokenErr.message : String(tokenErr);
+    log?.(`[${id}] Failed to acquire ARM token: ${msg}`);
+    throw new Error(`[${id}] Failed to acquire ARM token: ${msg}`);
+  }
+
   // Step 1: build and validate the ARM template against subscription policy
   // before touching Azure — avoids creating an empty RG on policy violations.
   // The full tag set (policy tags + identity/correlation) is applied to both

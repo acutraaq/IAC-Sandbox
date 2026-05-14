@@ -5,7 +5,9 @@ globs: functions/src/**
 
 # Azure Infrastructure Setup
 
-**Status: Pending admin action.** The code is correct. The App Service (web) and Function App use `DefaultAzureCredential()` which resolves to Managed Identity in Azure. All platform resources (App Service, Function App, Storage Account) now live in `sub-epf-sandbox-internal`. The managed identities have not been enabled or granted subscription-level access yet.
+**Status: Partially complete.** Step 3 (Contributor role for Function App) is confirmed done by the user. Steps 1, 2, and 4 still require admin action.
+
+> Once Steps 1–4 are complete, verify with `curl https://epf-experimental-sandbox-playground-cvhdbjgdcqabdjau.southeastasia-01.azurewebsites.net/api/healthz/arm` → `{"status":"ok"}`.
 
 ## Admin checklist (one-time, Azure Portal)
 
@@ -19,7 +21,7 @@ Note the **Object (principal) ID** shown after saving.
 Portal path: `epf-experimental-sandbox-playground` → Identity → System assigned → Status **On** → Save  
 Note the **Object (principal) ID** shown after saving.
 
-**Step 3 — Grant Function App MI: Contributor on sub-epf-sandbox-internal**
+**Step 3 — Grant Function App MI: Contributor on sub-epf-sandbox-internal** (✅ Done by user)
 
 Portal path: Subscriptions → `sub-epf-sandbox-internal` (`1fed33d2-00fd-40a8-a5c1-c120aec1b902`) → Access control (IAM) → Add role assignment
 
@@ -52,6 +54,7 @@ Portal path: `epf-sandbox-functions` → Configuration → Application settings
 | `AZURE_SUBSCRIPTION_ID` | `1fed33d2-00fd-40a8-a5c1-c120aec1b902` |
 | `AZURE_TENANT_ID` | `3335e1a2-2058-4baf-b03b-031abf0fc821` |
 | `DEPLOYMENT_QUEUE` | Full Azure Storage connection string for `coeiacsandbox8bfc` (same value as `AZURE_STORAGE_CONNECTION_STRING` on the App Service) |
+| `AZURE_STORAGE_CONNECTION_STRING` | Same as `DEPLOYMENT_QUEUE` — used by the poison-queue handler to write dead-letter failure records to blob storage |
 
 Click **Save** after any changes; allow the Function App to restart.
 
@@ -68,3 +71,5 @@ If `{"status":"error",...}`:
 - ARM 404 → subscription ID mismatch in App Service env vars
 
 After that passes, submit a test template deployment (e.g., Storage Account) and confirm a resource group appears in sub-epf-sandbox-internal with all 6 ARM tags.
+
+For Function App managed identity verification, the HTTP trigger `healthz` function (exposed at `https://epf-sandbox-functions.azurewebsites.net/api/healthz`) can be used as a quick probe — it acquires an ARM token via `DefaultAzureCredential` and returns `{"status":"ok","mi":true}`.

@@ -51,11 +51,12 @@ describe("Breadcrumb", () => {
   });
 
   it("renders separator between items", () => {
-    const { container } = render(
+    render(
       <Breadcrumb
         items={[{ label: "Home", href: "/" }, { label: "Templates" }]}
       />
     );
-    expect(container.textContent).toContain("/");
+    // ChevronRight icon is rendered as svg between breadcrumb items
+    expect(document.querySelector("svg")).toBeInTheDocument();
   });
 });

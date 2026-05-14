@@ -1,18 +1,23 @@
-"use client";
+﻿"use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ResourceCatalog } from "@/components/builder/ResourceCatalog";
 import { ResourceDrawer } from "@/components/builder/ResourceDrawer";
 import { SelectedPanel } from "@/components/builder/SelectedPanel";
-import { Breadcrumb } from "@/components/layout/Breadcrumb";
-import { PageTransition } from "@/components/layout/PageTransition";
+import { PageEyebrow } from "@/components/layout/PageEyebrow";
+import { MonoSectionHeader } from "@/components/ui/MonoSectionHeader";
 import { useDeploymentStore } from "@/store/deploymentStore";
 import resources from "@/data/resources.json";
 import type { AzureResource } from "@/types";
 
 export default function BuilderPage() {
-  const { selectedResources, addResource, removeResource } =
+  const { selectedResources, addResource, removeResource, setMode } =
     useDeploymentStore();
+
+  useEffect(() => {
+    setMode("custom");
+  }, [setMode]);
+
   const [activeResource, setActiveResource] = useState<AzureResource | null>(
     null,
   );
@@ -36,37 +41,39 @@ export default function BuilderPage() {
   }
 
   return (
-    <PageTransition>
-      <div className="mx-auto max-w-7xl px-6 py-8 md:px-8 md:py-12">
-        <Breadcrumb items={[{ label: "Home", href: "/" }, { label: "Builder" }]} />
+    <div className="mx-auto max-w-7xl px-6 py-8 md:px-8 md:py-12">
+      <PageEyebrow path="builder" />
 
-        <div className="mb-8">
-          <h1 className="text-2xl font-semibold text-text">Build Your Own Setup</h1>
-          <p className="mt-1 text-sm text-text-muted">
-            Choose Azure resources one at a time and configure each one. Review
-            your complete setup before submitting.
-          </p>
-        </div>
+      <h1 className="font-mono text-[clamp(1.75rem,3.5vw,2.5rem)] font-medium text-text mb-2">
+        <span className="text-text-faint"># </span>builder
+      </h1>
+      <p className="mt-2 mb-8 text-sm text-text-muted md:text-base">
+        Choose Azure resources one at a time and configure each one. Review
+        your complete setup before submitting.
+      </p>
 
-        <div className="grid gap-8 lg:grid-cols-[1fr_300px]">
+      <div className="grid gap-8 lg:grid-cols-[1fr_300px]">
+        <div>
+          <MonoSectionHeader title="available-resources" />
           <ResourceCatalog
             resources={resources as AzureResource[]}
             selectedTypes={selectedTypes}
             onSelect={handleSelect}
           />
-
-          <div className="lg:sticky lg:top-24 lg:flex lg:max-h-[calc(100vh-7rem)] lg:flex-col">
-            <SelectedPanel resources={selectedResources} onRemove={removeResource} />
-          </div>
         </div>
 
-        <ResourceDrawer
-          resource={activeResource}
-          isDuplicate={isDuplicate}
-          onClose={handleClose}
-          onAdd={handleAdd}
-        />
+        <div className="lg:sticky lg:top-24 lg:flex lg:max-h-[calc(100vh-7rem)] lg:flex-col">
+          <MonoSectionHeader title="selected" />
+          <SelectedPanel resources={selectedResources} onRemove={removeResource} />
+        </div>
       </div>
-    </PageTransition>
+
+      <ResourceDrawer
+        resource={activeResource}
+        isDuplicate={isDuplicate}
+        onClose={handleClose}
+        onAdd={handleAdd}
+      />
+    </div>
   );
 }

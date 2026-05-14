@@ -1,6 +1,6 @@
 # Domain Glossary
 
-> **Version:** 1.0.0 | **Last updated:** 2026-04-26 | **Status:** Active
+> **Version:** 1.0.0 | **Last updated:** 2026-05-14 | **Status:** Active
 
 Definitions of project-specific and Azure-specific terms used throughout IAC Sandbox documentation and code.
 

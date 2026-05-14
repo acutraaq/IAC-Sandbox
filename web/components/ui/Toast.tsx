@@ -18,6 +18,12 @@ const icons: Record<ToastType, React.ReactNode> = {
   warning: <AlertTriangle className="h-5 w-5 text-warning" />,
 };
 
+const borderClasses: Record<ToastType, string> = {
+  success: "border-success/25",
+  error: "border-error/25",
+  warning: "border-warning/25",
+};
+
 let addToastGlobal: ((type: ToastType, message: string) => void) | null = null;
 
 export function toast(type: ToastType, message: string) {
@@ -74,14 +80,14 @@ function ToastItem({
       initial={{ opacity: 0, x: 40 }}
       animate={{ opacity: 1, x: 0 }}
       exit={{ opacity: 0, x: 40 }}
-      className="flex items-center gap-3 rounded-xl border border-border bg-surface-elevated px-4 py-3 shadow-lg"
+      className={`flex items-center gap-3 rounded-xl border ${borderClasses[t.type]} bg-surface-elevated px-4 py-3 shadow-lg`}
     >
       {icons[t.type]}
-      <span className="text-sm text-text">{t.message}</span>
+      <span className="text-sm font-medium text-text">{t.message}</span>
       <button
         onClick={() => onDismiss(t.id)}
         aria-label="Dismiss notification"
-        className="ml-2 flex min-h-[44px] min-w-[44px] items-center justify-center rounded text-text-muted hover:text-text"
+        className="ml-2 flex min-h-[40px] min-w-[40px] items-center justify-center rounded-full text-text-muted hover:text-text hover:bg-surface"
       >
         <X className="h-4 w-4" />
       </button>

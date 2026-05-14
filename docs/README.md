@@ -1,6 +1,6 @@
 # Documentation Index
 
-> **Last updated:** 2026-04-26 | **Status:** Active
+> **Last updated:** 2026-05-14 | **Status:** Active
 
 Welcome to the IAC Sandbox documentation. This index helps you find the right document for your role and task.
 

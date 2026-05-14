@@ -43,10 +43,8 @@ export async function GET(
       }
     } catch (rgErr: unknown) {
       if (isArmError(rgErr) && rgErr.statusCode === 404) {
-        return NextResponse.json(
-          toErrorResponse(AppError.notFound("Deployment not found"), requestId),
-          { status: 404 }
-        );
+        // RG not yet created — Function App still processing the queue message
+        return NextResponse.json({ submissionId, status: "accepted", errorMessage: null });
       }
       throw rgErr;
     }

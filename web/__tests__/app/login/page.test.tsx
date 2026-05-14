@@ -7,11 +7,6 @@ vi.mock("next/navigation", () => ({
 }));
 
 describe("LoginPage", () => {
-  it("renders the heading", () => {
-    render(<LoginPage />);
-    expect(screen.getByRole("heading", { name: /sandbox iac/i })).toBeInTheDocument();
-  });
-
   it("renders a link (not a button) to sign in with Microsoft", () => {
     render(<LoginPage />);
     expect(

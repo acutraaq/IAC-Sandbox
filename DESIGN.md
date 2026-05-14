@@ -13,6 +13,8 @@ colors:
   error-red: "#ef4444"
   success-green: "#22c55e"
   warning-amber: "#f59e0b"
+  prompt: "#5aaef0"
+  comment: "rgba(175, 210, 245, 0.50)"
 typography:
   display:
     fontFamily: "IBM Plex Sans, system-ui, sans-serif"
@@ -134,6 +136,14 @@ A restrained strategy: deep navy surfaces with a single azure accent that signal
 - **Success Green** (`#22c55e`): Confirmed deployments, success toasts, completed steps.
 - **Warning Amber** (`#f59e0b`): Policy notices, expiry date warnings, non-blocking cautions.
 
+### Secondary Brand Accent
+- **Amber** (`#f59e0b`, token `--color-amber`): Secondary brand accent for terminal/signature surfaces only — prompt glyphs (`$`, `✓`), the home page TerminalHero, and a single glow layer behind it. Same hex as Warning Amber but separated semantically: amber decoration must never appear adjacent to a warning state in the same view, to avoid mixed signals. Used in <5% of any screen.
+- **Amber Glow** (`rgba(245, 158, 11, 0.18)`, token `--color-amber-glow`): Radial gradient backdrop for the TerminalHero panel. Not for general use.
+
+### Terminal-Native Tokens
+- **Prompt** (`#5aaef0`, token `--color-prompt`): Terminal-style prompt color. Used for the `~/` prefix in `PageEyebrow`, the `$` glyph in the login terminal panel, and other CLI-style affordances.
+- **Comment** (`rgba(175, 210, 245, 0.50)`, token `--color-comment`): Mono comment color. Used for the `#` prefix in footer meta lines and terminal comment blocks.
+
 ### Named Rules
 **The Clarity Rule.** Sky Accent (`#4a9be0`) appears only on interactive and navigational elements: links, the logo, focus rings, active states, badge fills. It is never used as a decorative color. Its presence means "something you can do."
 
@@ -251,3 +261,14 @@ The deployment proof artifact — shown in ConfirmModal after submission — ren
 - **Don't** use flashy SaaS marketing patterns: gradient fills, glassmorphism cards, hero metrics (big number + small label + gradient accent), or decorative animation. These are performative and erode trust.
 - **Don't** use neon accents, cyberpunk color treatments, or glowing dark-mode aesthetics. The palette is structured, muted, and government-adjacent enterprise.
 - **Don't** build identical card grids: same-sized cards with icon + heading + body text, repeated endlessly. Cards are a lazy answer; use them only when they're the best affordance.
+
+### Mono Boundary — Documented Exception
+
+The Mono Boundary Rule (IBM Plex Mono = machine-generated strings only) is widened to also include navigation chrome and section headers in the Terminal-Native Document treatment:
+
+- The `~/path` page eyebrow (top-of-page route indicator)
+- Section headers prefixed with `##` (e.g., `## popular-templates`)
+- Navbar wordmark (`~/sandbox`)
+- Footer single-line meta
+
+Body copy, button labels, form labels, error messages, and toast text remain IBM Plex Sans. This exception is intentional and bounded — do not extend mono further without revising this section.

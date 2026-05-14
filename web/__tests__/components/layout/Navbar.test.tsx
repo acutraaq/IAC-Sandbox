@@ -22,10 +22,22 @@ vi.mock("next/link", () => ({
   ),
 }));
 
+vi.mock("framer-motion", () => ({
+  motion: {
+    span: ({ children, ...props }: { children?: React.ReactNode; [key: string]: unknown }) => (
+      <span {...props}>{children}</span>
+    ),
+    div: ({ children, ...props }: { children?: React.ReactNode; [key: string]: unknown }) => (
+      <div {...props}>{children}</div>
+    ),
+  },
+  AnimatePresence: ({ children }: { children?: React.ReactNode }) => <>{children}</>,
+}));
+
 describe("Navbar", () => {
   it("renders the Sandbox wordmark", () => {
     render(<Navbar />);
-    expect(screen.getByText("Sandbox")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Sandbox home" })).toBeInTheDocument();
   });
 
   it("renders Home and Templates nav links", () => {
