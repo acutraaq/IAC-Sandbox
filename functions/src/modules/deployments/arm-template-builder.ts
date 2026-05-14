@@ -862,10 +862,9 @@ function buildCustomResources(
 
 export function buildArmTemplate(
   payload: DeploymentPayload,
-  opts: { tenantId: string; tags?: Record<string, string> }
+  opts: { tenantId: string; tags?: Record<string, string>; submissionId?: string }
 ): ArmTemplate {
-  const rawId = opts.tags?.["iac-submissionId"] ?? "";
-  const uniqueSuffix = rawId.replace(/-/g, "").slice(0, 8);
+  const uniqueSuffix = (opts.submissionId ?? "").replace(/-/g, "").slice(0, 8);
   const resources =
     payload.mode === "template"
       ? buildTemplateResources(payload.template, opts.tenantId, uniqueSuffix)

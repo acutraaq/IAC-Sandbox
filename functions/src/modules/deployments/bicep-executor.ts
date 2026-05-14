@@ -181,7 +181,8 @@ export async function executeBicepDeployment(
   };
   const template = buildArmTemplate(opts.payload, {
     tenantId: env.AZURE_TENANT_ID,
-    tags: fullTags,
+    tags: opts.tags,
+    submissionId: id,
   });
 
   const blockedTypes = validateTemplateAgainstPolicy(template);

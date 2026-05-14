@@ -105,11 +105,9 @@ describe("executeBicepDeployment", () => {
     expect(sent.properties.mode).toBe("Incremental");
     expect(sent.properties.template.resources.length).toBeGreaterThan(0);
     for (const r of sent.properties.template.resources) {
-      expect(r.tags).toMatchObject({
-        ...TAGS,
-        deployedBy: "user@test.com",
-        "iac-submissionId": "dep-xyz",
-      });
+      expect(r.tags).toMatchObject(TAGS);
+      expect(r.tags).not.toHaveProperty("deployedBy");
+      expect(r.tags).not.toHaveProperty("iac-submissionId");
     }
   });
 
