@@ -47,7 +47,13 @@ export async function processPoisonDeployment(
   queueItem: unknown,
   context: InvocationContext
 ): Promise<void> {
-  const rawMessage = typeof queueItem === "string" ? JSON.parse(queueItem) : queueItem;
+  let rawMessage: unknown;
+  try {
+    rawMessage = typeof queueItem === "string" ? JSON.parse(queueItem) : queueItem;
+  } catch {
+    context.error("Poison queue: message is not valid JSON — discarding");
+    return;
+  }
   const parsed = deploymentJobMessageSchema.safeParse(rawMessage);
 
   if (!parsed.success) {
@@ -67,15 +73,20 @@ export async function processPoisonDeployment(
     submissionId
   );
 
-  await createFailureRecord(env.AZURE_STORAGE_CONNECTION_STRING, {
-    submissionId,
-    resourceGroupName,
-    error: armError,
-    deployedBy,
-    failedAt: new Date().toISOString(),
-  });
-
-  context.log(`Failure recorded for ${submissionId}`);
+  try {
+    await createFailureRecord(env.AZURE_STORAGE_CONNECTION_STRING, {
+      submissionId,
+      resourceGroupName,
+      error: armError,
+      deployedBy,
+      failedAt: new Date().toISOString(),
+    });
+    context.log(`Failure recorded for ${submissionId}`);
+  } catch (err) {
+    context.error(
+      `processPoisonDeployment: failed to write failure record for ${submissionId}: ${err instanceof Error ? err.message : String(err)}`
+    );
+  }
 }
 
 app.storageQueue("processPoisonDeployment", {
