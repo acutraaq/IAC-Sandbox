@@ -20,7 +20,7 @@ No active specs or plans. All approved work is implemented; completed designs li
 **What is live and working:** Terminal-native document redesign (mono nav chrome, editorial rows, `~/path` eyebrows); see Live Deployment section below.
 **What is designed but not built:** Nothing — all approved specs implemented.
 **SSO status:** Microsoft SSO / MSAL is **on hold** — placeholder login is live and sufficient for current needs. The MSAL plumbing is fully implemented but not being activated at this time. See Authentication section.
-**What needs admin action:** Managed identity not yet enabled on Function App or App Service — ARM deployments will fail until an admin completes the setup checklist in `.claude/rules/azure-infra.md`. Verify with `GET /api/healthz/arm` → `{"status":"ok"}`.
+**What needs admin action:** Nothing — managed identity setup complete on both App Service and Function App. Verify end-to-end with a test deployment (e.g., Storage Account) and confirm resource group appears in sub-epf-sandbox-internal with all 6 ARM tags.
 
 ---
 
