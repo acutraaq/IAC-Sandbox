@@ -5,7 +5,7 @@ globs: functions/src/**
 
 # Azure Infrastructure Setup
 
-**Status: Partially complete.** Steps 2 + 4 confirmed done (App Service MI + Reader role — `/api/healthz/arm` returns ok). Step 3 confirmed done. Step 1 (Function App MI enable) unconfirmed. Step 5 (Function App env vars) unconfirmed — likely blocking queue consumption.
+**Status: All steps confirmed complete.** Steps 1–5 done: Function App MI enabled, App Service MI enabled, Contributor role on sub-epf-sandbox-internal granted to Function App MI, Reader role on sub-epf-sandbox-internal granted to App Service MI, Function App env vars set (`DEPLOYMENT_QUEUE`, `AZURE_STORAGE_CONNECTION_STRING`, `AzureWebJobsStorage`, `AZURE_SUBSCRIPTION_ID`, `AZURE_TENANT_ID`).
 
 > Once Steps 1–4 are complete, verify with `curl https://epf-experimental-sandbox-playground-cvhdbjgdcqabdjau.southeastasia-01.azurewebsites.net/api/healthz/arm` → `{"status":"ok"}`.
 

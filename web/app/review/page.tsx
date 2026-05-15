@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useDeploymentStore } from "@/store/deploymentStore";
-import { submitDeployment, getDeployment, ApiError } from "@/lib/api";
+import { submitDeployment, ApiError } from "@/lib/api";
 import { generateReport } from "@/lib/report";
 import { ReviewSection } from "@/components/review/ReviewSection";
 import { ConfirmModal } from "@/components/review/ConfirmModal";
@@ -20,12 +20,11 @@ import { PageTransition } from "@/components/layout/PageTransition";
 
 export default function ReviewPage() {
   const router = useRouter();
-  const { mode, selectedTemplate, wizardState, selectedResources, submissionId, deployedResourceGroup, deploymentStatus, deploymentError, setSubmissionResult, setDeploymentStatus, reset } = useDeploymentStore();
+  const { mode, selectedTemplate, wizardState, selectedResources, setSubmissionResult, reset } = useDeploymentStore();
 
   const [submitting, setSubmitting] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
   const [proofText, setProofText] = useState("");
-  const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const [tags, setTags] = useState<ResourceGroupTags>({
     "Cost Center": "",
     "Project ID": "",
@@ -71,33 +70,6 @@ export default function ReviewPage() {
     }
   }, [mode, router]);
 
-  useEffect(() => {
-    if (!submissionId || !modalOpen) return;
-
-    pollRef.current = setInterval(async () => {
-      try {
-        const result = await getDeployment(submissionId, deployedResourceGroup!);
-        const current = useDeploymentStore.getState();
-        if (result.status !== current.deploymentStatus || result.errorMessage !== current.deploymentError) {
-          setDeploymentStatus(result.status, result.errorMessage);
-        }
-        if (result.status === "succeeded" || result.status === "failed") {
-          clearInterval(pollRef.current!);
-          pollRef.current = null;
-        }
-      } catch {
-        // Silently ignore transient errors — keep polling
-      }
-    }, 3000);
-
-    return () => {
-      if (pollRef.current) {
-        clearInterval(pollRef.current);
-        pollRef.current = null;
-      }
-    };
-  }, [submissionId, deployedResourceGroup, modalOpen, setDeploymentStatus]);
-
   if (!mode) return null;
 
   const canSubmit =
@@ -139,7 +111,6 @@ export default function ReviewPage() {
       }, reportUser, tags, result.resourceGroup);
 
       setSubmissionResult(result.submissionId, report, result.resourceGroup);
-      setDeploymentStatus("accepted", null);
       setProofText(report);
       toast("success", "Deployment submitted successfully!");
       setModalOpen(true);
@@ -286,9 +257,6 @@ export default function ReviewPage() {
       <ConfirmModal
         open={modalOpen}
         proofText={proofText}
-        deploymentStatus={deploymentStatus}
-        deploymentError={deploymentError}
-        resourceGroup={deployedResourceGroup ?? null}
         onClose={() => setModalOpen(false)}
         onReset={handleReset}
       />

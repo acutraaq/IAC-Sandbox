@@ -27,7 +27,6 @@ vi.mock("next/link", () => ({
 
 vi.mock("@/lib/api", () => ({
   submitDeployment: vi.fn(),
-  getDeployment: vi.fn(),
   ApiError: class ApiError extends Error {
     code: string;
     constructor(code: string, message: string) {
@@ -46,16 +45,6 @@ vi.mock("@/components/ui/Toast", () => ({
 }));
 
 const mockSubmit = api.submitDeployment as ReturnType<typeof vi.fn>;
-const mockGetDeployment = api.getDeployment as ReturnType<typeof vi.fn>;
-
-// Collects every setInterval call — lets us find the 3 s polling interval
-// without being confused by Testing Library's internal 50 ms waitFor intervals.
-type IntervalEntry = { fn: () => Promise<void>; delay: number; handle: number };
-let capturedIntervals: IntervalEntry[];
-
-function getPollingCallback(): (() => Promise<void>) | undefined {
-  return capturedIntervals.find((i) => i.delay === 3000)?.fn;
-}
 
 function setupStore() {
   const store = useDeploymentStore.getState();
@@ -84,148 +73,71 @@ async function fillTagsAndSubmit(
   );
 }
 
-describe("ReviewPage — deployment status polling", () => {
+describe("ReviewPage — submission", () => {
   beforeEach(() => {
-    capturedIntervals = [];
-
-    vi.spyOn(globalThis, "setInterval").mockImplementation(
-      (fn: TimerHandler, delay?: number) => {
-        const handle = capturedIntervals.length + 1;
-        capturedIntervals.push({
-          fn: fn as () => Promise<void>,
-          delay: delay ?? 0,
-          handle,
-        });
-        return handle as unknown as ReturnType<typeof setInterval>;
-      },
-    );
-
     setupStore();
     mockSubmit.mockResolvedValue({ submissionId: "SUB-TEST-123", resourceGroup: "sandbox-rg" });
-    mockGetDeployment.mockResolvedValue({
-      submissionId: "SUB-TEST-123",
-      status: "running",
-      errorMessage: null,
-    });
   });
 
   afterEach(() => {
-    vi.restoreAllMocks();
     vi.clearAllMocks();
     useDeploymentStore.getState().reset();
   });
 
-  it("registers a 3 s polling interval after successful submission", async () => {
+  it("opens modal with proof text after successful submission", async () => {
     const user = userEvent.setup();
     const { container } = render(<ReviewPage />);
 
     await fillTagsAndSubmit(container, user);
+
     await waitFor(() =>
       expect(screen.getByRole("dialog")).toBeInTheDocument(),
     );
-
-    expect(getPollingCallback()).toBeDefined();
+    expect(screen.getByText(/MOCK PROOF TEXT/)).toBeInTheDocument();
   });
 
-  it("calls getDeployment with the submission ID when the interval fires", async () => {
+  it("shows HOD approval instruction in modal", async () => {
     const user = userEvent.setup();
     const { container } = render(<ReviewPage />);
 
     await fillTagsAndSubmit(container, user);
+
     await waitFor(() =>
       expect(screen.getByRole("dialog")).toBeInTheDocument(),
     );
-
-    await getPollingCallback()!();
-
-    expect(mockGetDeployment).toHaveBeenCalledWith("SUB-TEST-123", "sandbox-rg");
+    expect(screen.getByText(/HOD/i)).toBeInTheDocument();
   });
 
-  it("shows running status banner after the first poll", async () => {
+  it("does not start polling after submission", async () => {
+    const intervalSpy = vi.spyOn(globalThis, "setInterval");
     const user = userEvent.setup();
     const { container } = render(<ReviewPage />);
 
     await fillTagsAndSubmit(container, user);
+
     await waitFor(() =>
       expect(screen.getByRole("dialog")).toBeInTheDocument(),
     );
 
-    await getPollingCallback()!();
+    const pollingIntervals = intervalSpy.mock.calls.filter(
+      ([, delay]) => delay === 3000,
+    );
+    expect(pollingIntervals).toHaveLength(0);
 
-    await waitFor(() => {
-      const deployingLi = screen.getByText("Deploying").closest("li");
-      expect(deployingLi).toHaveAttribute("data-active");
-    });
+    intervalSpy.mockRestore();
   });
 
-  it("stops polling and shows success banner on succeeded status", async () => {
-    mockGetDeployment.mockResolvedValue({
-      submissionId: "SUB-TEST-123",
-      status: "succeeded",
-      errorMessage: null,
-    });
-
-    const clearSpy = vi.spyOn(globalThis, "clearInterval");
-
+  it("shows tag validation errors when fields are empty", async () => {
     const user = userEvent.setup();
-    const { container } = render(<ReviewPage />);
+    render(<ReviewPage />);
 
-    await fillTagsAndSubmit(container, user);
-    await waitFor(() =>
-      expect(screen.getByRole("dialog")).toBeInTheDocument(),
+    await user.click(
+      screen.getByRole("button", { name: /Submit for Deployment/i }),
     );
 
-    await getPollingCallback()!();
-
-    await waitFor(() => {
-      const completeLi = screen.getByText("Complete").closest("li");
-      expect(completeLi).toHaveAttribute("data-active");
-    });
-    expect(clearSpy).toHaveBeenCalled();
-  });
-
-  it("stops polling and shows failure banner with error on failed status", async () => {
-    mockGetDeployment.mockResolvedValue({
-      submissionId: "SUB-TEST-123",
-      status: "failed",
-      errorMessage: "ResourceGroupNotFound: The resource group was not found.",
-    });
-
-    const clearSpy = vi.spyOn(globalThis, "clearInterval");
-
-    const user = userEvent.setup();
-    const { container } = render(<ReviewPage />);
-
-    await fillTagsAndSubmit(container, user);
     await waitFor(() =>
-      expect(screen.getByRole("dialog")).toBeInTheDocument(),
+      expect(screen.getAllByRole("alert").length).toBeGreaterThan(0),
     );
-
-    await getPollingCallback()!();
-
-    await waitFor(() => {
-      const completeLi = screen.getByText("Complete").closest("li");
-      expect(completeLi).toHaveAttribute("data-failed");
-      expect(screen.getByText(/ResourceGroupNotFound/i)).toBeInTheDocument();
-    });
-    expect(clearSpy).toHaveBeenCalled();
-  });
-
-  it("clears the polling interval when the modal is closed", async () => {
-    const clearSpy = vi.spyOn(globalThis, "clearInterval");
-
-    const user = userEvent.setup();
-    const { container } = render(<ReviewPage />);
-
-    await fillTagsAndSubmit(container, user);
-    await waitFor(() =>
-      expect(screen.getByRole("dialog")).toBeInTheDocument(),
-    );
-
-    expect(getPollingCallback()).toBeDefined();
-
-    await user.click(screen.getByLabelText("Close dialog"));
-
-    expect(clearSpy).toHaveBeenCalled();
+    expect(mockSubmit).not.toHaveBeenCalled();
   });
 });
