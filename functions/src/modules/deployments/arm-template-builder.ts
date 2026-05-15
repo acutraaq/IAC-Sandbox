@@ -75,6 +75,7 @@ interface ArmTemplate {
   parameters: Record<string, unknown>;
   resources: ArmResource[];
   outputs: Record<string, unknown>;
+  _deployParameters?: Record<string, { value: string }>;
 }
 
 // ---------------------------------------------------------------------------
@@ -217,12 +218,14 @@ function buildKeyVault(
 function buildPostgresServer(
   name: string,
   location: string,
-  config: Record<string, unknown>
+  config: Record<string, unknown>,
+  deployParams: Record<string, { value: string }>
 ): ArmResource {
   const safeName = sanitizeGenericName(name, 63) || "sandbox-db";
-
   const storageSizeGB =
     typeof config.storageGB === "number" ? config.storageGB : 32;
+
+  deployParams["pgAdminPassword"] = { value: generatePassword() };
 
   return {
     type: "Microsoft.DBforPostgreSQL/flexibleServers",
@@ -238,7 +241,7 @@ function buildPostgresServer(
         geoRedundantBackup: "Disabled",
       },
       administratorLogin: "sandboxadmin",
-      administratorLoginPassword: generatePassword(),
+      administratorLoginPassword: "[parameters('pgAdminPassword')]",
       highAvailability: { mode: "Disabled" },
     },
   };
@@ -252,7 +255,8 @@ function buildSqlServer(
   serverName: string,
   dbName: string,
   location: string,
-  config: Record<string, unknown>
+  config: Record<string, unknown>,
+  deployParams: Record<string, { value: string }>
 ): ArmResource[] {
   const safeServer = sanitizeGenericName(serverName, 63) || "sandbox-sql";
   const safeDb = sanitizeGenericName(dbName, 128) || "appdb";
@@ -264,21 +268,23 @@ function buildSqlServer(
     : generatePassword();
   const dbSku = typeof config.dbSku === "string" ? config.dbSku : "Basic";
 
+  deployParams["sqlAdminPassword"] = { value: adminPassword };
+
   return [
     {
       type: "Microsoft.Sql/servers",
-      apiVersion: "2022-05-01-preview",
+      apiVersion: "2021-11-01",
       name: safeServer,
       location,
       properties: {
         administratorLogin: adminUser,
-        administratorLoginPassword: adminPassword,
+        administratorLoginPassword: "[parameters('sqlAdminPassword')]",
         version: "12.0",
       },
     },
     {
       type: "Microsoft.Sql/servers/databases",
-      apiVersion: "2022-05-01-preview",
+      apiVersion: "2021-11-01",
       name: `${safeServer}/${safeDb}`,
       location,
       dependsOn: [`[resourceId('Microsoft.Sql/servers', '${safeServer}')]`],
@@ -657,7 +663,8 @@ function buildFullStackWebApp(
   location: string,
   config: Record<string, unknown>,
   tenantId: string,
-  suffix = ""
+  suffix = "",
+  deployParams: Record<string, { value: string }>
 ): ArmResource[] {
   // Keep the base short (≤35 chars) so derived names fit within Azure limits.
   const baseName = sanitizeGenericName(name, 35) || "sandbox-app";
@@ -672,7 +679,8 @@ function buildFullStackWebApp(
       adminUser: config.sqlAdminUser,
       adminPassword: config.sqlAdminPassword,
       dbSku: config.dbSku,
-    }
+    },
+    deployParams
   );
 
   const storageResource = buildStorageAccount(baseName, location, {
@@ -693,7 +701,8 @@ function buildFullStackWebApp(
 function buildTemplateResources(
   template: { slug: string; formValues: Record<string, unknown> },
   tenantId: string,
-  suffix = ""
+  suffix = "",
+  deployParams: Record<string, { value: string }>
 ): ArmResource[] {
   const { slug, formValues } = template;
 
@@ -721,7 +730,8 @@ function buildTemplateResources(
         buildPostgresServer(
           typeof formValues.dbName === "string" ? formValues.dbName : "sandbox-db",
           location,
-          formValues
+          formValues,
+          deployParams
         ),
       ];
     case "storage-account":
@@ -799,7 +809,8 @@ function buildTemplateResources(
         location,
         formValues,
         tenantId,
-        suffix
+        suffix,
+        deployParams
       );
     default:
       throw new Error(
@@ -821,7 +832,8 @@ function buildCustomResources(
     config: Record<string, unknown>;
   }>,
   tenantId: string,
-  suffix = ""
+  suffix = "",
+  deployParams: Record<string, { value: string }>
 ): ArmResource[] {
   const armResources: ArmResource[] = [];
 
@@ -837,7 +849,7 @@ function buildCustomResources(
           `Resource type "Microsoft.Compute/virtualMachines" is blocked by subscription policy COE-Allowed-Resources.`
         );
       case "Microsoft.DBforPostgreSQL/flexibleServers":
-        armResources.push(buildPostgresServer(resource.name, location, resource.config));
+        armResources.push(buildPostgresServer(resource.name, location, resource.config, deployParams));
         break;
       case "Microsoft.Storage/storageAccounts":
         armResources.push(buildStorageAccount(resource.name, location, resource.config, suffix));
@@ -861,7 +873,7 @@ function buildCustomResources(
         armResources.push(buildEventGridTopic(resource.name, location, resource.config));
         break;
       case "Microsoft.Sql/servers":
-        armResources.push(...buildSqlServer(resource.name, "appdb", location, resource.config));
+        armResources.push(...buildSqlServer(resource.name, "appdb", location, resource.config, deployParams));
         break;
       default:
         throw new Error(
@@ -882,10 +894,12 @@ export function buildArmTemplate(
   opts: { tenantId: string; tags?: Record<string, string>; submissionId?: string }
 ): ArmTemplate {
   const uniqueSuffix = (opts.submissionId ?? "").replace(/-/g, "").slice(0, 8);
+  const deployParams: Record<string, { value: string }> = {};
+
   const resources =
     payload.mode === "template"
-      ? buildTemplateResources(payload.template, opts.tenantId, uniqueSuffix)
-      : buildCustomResources(payload.resources, opts.tenantId, uniqueSuffix);
+      ? buildTemplateResources(payload.template, opts.tenantId, uniqueSuffix, deployParams)
+      : buildCustomResources(payload.resources, opts.tenantId, uniqueSuffix, deployParams);
 
   // COE-Enforce-Tag-Resources: every individual resource must carry the 4 policy tags.
   // Clone resources to avoid mutating builder output.
@@ -893,12 +907,17 @@ export function buildArmTemplate(
     ? resources.map((r) => ({ ...r, tags: opts.tags }))
     : resources;
 
+  const parameters: Record<string, unknown> = Object.fromEntries(
+    Object.keys(deployParams).map((k) => [k, { type: "secureString" }])
+  );
+
   return {
     $schema:
       "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
     contentVersion: "1.0.0.0",
-    parameters: {},
+    parameters,
     resources: taggedResources,
     outputs: {},
+    ...(Object.keys(deployParams).length > 0 && { _deployParameters: deployParams }),
   };
 }
