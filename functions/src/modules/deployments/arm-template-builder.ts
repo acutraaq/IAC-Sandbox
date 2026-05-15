@@ -106,6 +106,13 @@ export class PolicyBlockedTemplateError extends Error {
   }
 }
 
+export class InvalidDeploymentConfigError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "InvalidDeploymentConfigError";
+  }
+}
+
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
@@ -524,6 +531,12 @@ function buildLandingZone(
     });
   }
 
+  if (resources.length === 0) {
+    throw new InvalidDeploymentConfigError(
+      "Landing zone requires at least one of: includeNetwork, includeSecurity, includeMonitoring"
+    );
+  }
+
   return resources;
 }
 
@@ -560,7 +573,7 @@ function buildLogicApp(
                 frequency: freq,
                 interval: 1,
                 timeZone: "SE Asia Standard Time",
-                startTime: `${new Date(Date.now() + 86400000).toISOString().split("T")[0]}T${time}:00Z`,
+                startTime: `${new Date(Date.now() + 86400000).toISOString().split("T")[0]}T${time}:00`,
               },
             },
           };
@@ -595,14 +608,14 @@ function buildServiceBusNamespace(
   config: Record<string, unknown>
 ): ArmResource {
   const safeName = sanitizeGenericName(name, 50) || "sandbox-servicebus";
-  const tier =
-    typeof config.tier === "string" && config.tier === "Standard"
-      ? "Standard"
+  const tier: string =
+    typeof config.tier === "string" && ["Basic", "Standard", "Premium"].includes(config.tier)
+      ? config.tier
       : "Basic";
 
   return {
     type: "Microsoft.ServiceBus/namespaces",
-    apiVersion: "2022-10-01-preview",
+    apiVersion: "2022-10-01",
     name: safeName,
     location,
     sku: { name: tier },
@@ -820,8 +833,9 @@ function buildCustomResources(
         armResources.push(...buildWebApplication(resource.name, location, resource.config));
         break;
       case "Microsoft.Compute/virtualMachines":
-        armResources.push(...buildVirtualMachine(resource.name, location, resource.config));
-        break;
+        throw new Error(
+          `Resource type "Microsoft.Compute/virtualMachines" is blocked by subscription policy COE-Allowed-Resources.`
+        );
       case "Microsoft.DBforPostgreSQL/flexibleServers":
         armResources.push(buildPostgresServer(resource.name, location, resource.config));
         break;

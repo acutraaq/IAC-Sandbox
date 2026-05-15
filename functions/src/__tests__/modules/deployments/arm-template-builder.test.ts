@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { buildArmTemplate, validateTemplateAgainstPolicy } from "../../../modules/deployments/arm-template-builder.js";
+import { buildArmTemplate, validateTemplateAgainstPolicy, InvalidDeploymentConfigError } from "../../../modules/deployments/arm-template-builder.js";
 import type { DeploymentPayload } from "../../../modules/deployments/deployment.schema.js";
 
 const TENANT_ID = "test-tenant-id";
@@ -223,36 +223,13 @@ describe("buildContainerApp", () => {
 // ---------------------------------------------------------------------------
 
 describe("buildVirtualMachine (custom mode)", () => {
-  // The `virtual-machine` template slug is blocked by subscription policy
-  // (see POLICY_BLOCKED_TEMPLATE_SLUGS). The custom-mode builder for the
-  // underlying Microsoft.Compute/virtualMachines resource type is still
-  // reachable — exercise it here.
-  it("returns 4 resources: publicIP, vnet, nic, vm", () => {
-    const t = buildArmTemplate(
-      customPayload("Microsoft.Compute/virtualMachines", "myvm"),
-      { tenantId: TENANT_ID }
-    );
-    expect(t.resources).toHaveLength(4);
-    expect(t.resources[0].type).toBe("Microsoft.Network/publicIPAddresses");
-    expect(t.resources[1].type).toBe("Microsoft.Network/virtualNetworks");
-    expect(t.resources[2].type).toBe("Microsoft.Network/networkInterfaces");
-    expect(t.resources[3].type).toBe("Microsoft.Compute/virtualMachines");
-  });
-
-  it("sanitizes name, max 15 chars", () => {
-    const t = buildArmTemplate(
-      customPayload("Microsoft.Compute/virtualMachines", "a".repeat(30)),
-      { tenantId: TENANT_ID }
-    );
-    expect(t.resources[3].name.length).toBeLessThanOrEqual(15);
-  });
-
-  it("uses fallback name when sanitized result is empty", () => {
-    const t = buildArmTemplate(
-      customPayload("Microsoft.Compute/virtualMachines", "---"),
-      { tenantId: TENANT_ID }
-    );
-    expect(t.resources[3].name).toBe("sandbox-vm");
+  it("throws policy error for Microsoft.Compute/virtualMachines in custom mode", () => {
+    expect(() =>
+      buildArmTemplate(
+        customPayload("Microsoft.Compute/virtualMachines", "myvm"),
+        { tenantId: TENANT_ID }
+      )
+    ).toThrow(/blocked by subscription policy/);
   });
 });
 
@@ -306,9 +283,10 @@ describe("buildLandingZone", () => {
     expect(t.resources).toHaveLength(3);
   });
 
-  it("returns empty resources when no flags set", () => {
-    const t = buildArmTemplate(templatePayload("landing-zone", {}), { tenantId: TENANT_ID });
-    expect(t.resources).toHaveLength(0);
+  it("throws InvalidDeploymentConfigError when no flags set", () => {
+    expect(() =>
+      buildArmTemplate(templatePayload("landing-zone", {}), { tenantId: TENANT_ID })
+    ).toThrow("Landing zone requires at least one");
   });
 });
 
@@ -438,11 +416,20 @@ describe("buildMessageQueue (message-queue template)", () => {
 
   it("falls back to Basic tier for unknown values", () => {
     const t = buildArmTemplate(
-      templatePayload("message-queue", { namespaceName: "epf-queue", tier: "Premium" }),
+      templatePayload("message-queue", { namespaceName: "epf-queue", tier: "Enterprise" }),
       { tenantId: TENANT_ID }
     );
     const sku = (t.resources[0] as Record<string, unknown>).sku as { name: string };
     expect(sku.name).toBe("Basic");
+  });
+
+  it("passes through Premium tier when explicitly set", () => {
+    const t = buildArmTemplate(
+      templatePayload("message-queue", { namespaceName: "epf-queue", tier: "Premium" }),
+      { tenantId: TENANT_ID }
+    );
+    const sku = (t.resources[0] as Record<string, unknown>).sku as { name: string };
+    expect(sku.name).toBe("Premium");
   });
 });
 
