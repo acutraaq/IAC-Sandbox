@@ -2,6 +2,7 @@ import { app, InvocationContext } from "@azure/functions";
 import { z } from "zod";
 import { executeBicepDeployment } from "../modules/deployments/bicep-executor.js";
 import { deploymentPayloadSchema } from "../modules/deployments/deployment.schema.js";
+import { InvalidDeploymentConfigError } from "../modules/deployments/arm-template-builder.js";
 import env from "../lib/env.js";
 
 const deploymentJobMessageSchema = z.object({
@@ -47,16 +48,26 @@ export async function processDeployment(
   // Any error here must propagate so the Functions runtime applies the retry
   // policy from host.json (maxDequeueCount: 3) and then routes the message
   // to deployment-jobs-poison for investigation.
-  await executeBicepDeployment({
-    subscriptionId: env.AZURE_SUBSCRIPTION_ID,
-    resourceGroupName,
-    deploymentName: submissionId,
-    payload,
-    location,
-    tags,
-    deployedBy,
-    log: (msg) => context.log(msg),
-  });
+  // Exception: InvalidDeploymentConfigError means the message itself is
+  // malformed — retrying will never succeed, so log and return (no throw).
+  try {
+    await executeBicepDeployment({
+      subscriptionId: env.AZURE_SUBSCRIPTION_ID,
+      resourceGroupName,
+      deploymentName: submissionId,
+      payload,
+      location,
+      tags,
+      deployedBy,
+      log: (msg) => context.log(msg),
+    });
+  } catch (err) {
+    if (err instanceof InvalidDeploymentConfigError) {
+      context.error(`Deployment ${submissionId} has invalid config: ${err.message}`);
+      return;
+    }
+    throw err;
+  }
 
   context.log(`Deployment ${submissionId} submitted to ARM`);
 }

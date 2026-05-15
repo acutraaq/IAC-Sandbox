@@ -97,4 +97,18 @@ describe("processDeployment handler", () => {
     const ctx = makeContext();
     await expect(processDeployment(validMessage, ctx)).rejects.toThrow("ARM deployment failed");
   });
+
+  it("returns without throwing when executor throws InvalidDeploymentConfigError", async () => {
+    const { InvalidDeploymentConfigError } = await import(
+      "../../modules/deployments/arm-template-builder.js"
+    );
+    executeBicepDeployment.mockRejectedValue(
+      new InvalidDeploymentConfigError("Landing zone requires at least one")
+    );
+    const ctx = makeContext();
+    await expect(processDeployment(validMessage, ctx)).resolves.toBeUndefined();
+    expect(ctx.error).toHaveBeenCalledWith(
+      expect.stringContaining("invalid config")
+    );
+  });
 });
