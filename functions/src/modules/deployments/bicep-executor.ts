@@ -56,9 +56,13 @@ export async function executeBicepDeployment(
     deployedBy: opts.deployedBy,
     "iac-submissionId": id,
   };
+  // Strip app-added keys so ARM resources receive only the 4 policy tags.
+  const policyTags = { ...opts.tags };
+  delete policyTags["deployedBy"];
+  delete policyTags["iac-submissionId"];
   const template = buildArmTemplate(opts.payload, {
     tenantId: env.AZURE_TENANT_ID,
-    tags: opts.tags,
+    tags: policyTags,
     submissionId: id,
   });
 
@@ -91,6 +95,8 @@ export async function executeBicepDeployment(
     `/providers/Microsoft.Resources/deployments/${id}` +
     `?api-version=${ARM_API}`;
 
+  const { _deployParameters, ...armTemplate } = template;
+
   const res = await fetch(url, {
     method: "PUT",
     headers: {
@@ -100,8 +106,8 @@ export async function executeBicepDeployment(
     body: JSON.stringify({
       properties: {
         mode: "Incremental",
-        template: template as unknown as Record<string, unknown>,
-        parameters: {},
+        template: armTemplate as unknown as Record<string, unknown>,
+        parameters: _deployParameters ?? {},
       },
     }),
   });
