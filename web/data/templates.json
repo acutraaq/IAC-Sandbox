@@ -5,7 +5,7 @@
     "description": "Deploy a ready-to-use web application with automatic scaling and built-in security.",
     "category": "compute",
     "icon": "Globe",
-    "resourceCount": 3,
+    "resourceCount": 2,
     "estimatedTime": "~5 minutes",
     "steps": [
       {
@@ -213,7 +213,7 @@
     "description": "Create a fully managed database — no server maintenance needed. Great for apps that store data.",
     "category": "data",
     "icon": "Database",
-    "resourceCount": 2,
+    "resourceCount": 1,
     "estimatedTime": "~6 minutes",
     "steps": [
       {
@@ -415,7 +415,7 @@
     "description": "Create an isolated private network so your cloud resources can communicate securely with each other.",
     "category": "network",
     "icon": "Network",
-    "resourceCount": 2,
+    "resourceCount": 1,
     "estimatedTime": "~4 minutes",
     "steps": [
       {
@@ -578,7 +578,7 @@
     "description": "Run containerized applications without managing servers — just provide your container image.",
     "category": "compute",
     "icon": "Box",
-    "resourceCount": 3,
+    "resourceCount": 2,
     "estimatedTime": "~6 minutes",
     "steps": [
       {
@@ -667,7 +667,7 @@
     "description": "A complete foundation setup — includes a private network, security controls, and monitoring for your project.",
     "category": "landing-zone",
     "icon": "LayoutGrid",
-    "resourceCount": 8,
+    "resourceCount": 3,
     "estimatedTime": "~12 minutes",
     "steps": [
       {

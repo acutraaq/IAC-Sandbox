@@ -151,6 +151,27 @@
         "min": 32,
         "max": 16384,
         "helpText": "Start with 32 GB — you can increase this later."
+      },
+      {
+        "name": "engineVersion",
+        "label": "Which database engine version?",
+        "type": "select",
+        "required": true,
+        "helpText": "PostgreSQL is the most versatile choice for most projects.",
+        "options": [
+          {
+            "label": "PostgreSQL 16 — Recommended",
+            "value": "16"
+          },
+          {
+            "label": "PostgreSQL 15",
+            "value": "15"
+          },
+          {
+            "label": "PostgreSQL 14",
+            "value": "14"
+          }
+        ]
       }
     ]
   },
@@ -202,6 +223,27 @@
             "value": "Cool"
           }
         ]
+      },
+      {
+        "name": "redundancy",
+        "label": "How many copies should we keep?",
+        "type": "select",
+        "required": true,
+        "helpText": "More copies means better protection against data loss.",
+        "options": [
+          {
+            "label": "3 copies in the same location — Basic protection",
+            "value": "LRS"
+          },
+          {
+            "label": "6 copies across 2 locations — Better protection",
+            "value": "ZRS"
+          },
+          {
+            "label": "6 copies across distant locations — Best protection",
+            "value": "GRS"
+          }
+        ]
       }
     ]
   },
@@ -244,6 +286,22 @@
         "required": true,
         "placeholder": "10.0.0.0/16",
         "helpText": "The default works for most setups. Leave it as-is if you're unsure."
+      },
+      {
+        "name": "subnetName",
+        "label": "What should the first subnet be called?",
+        "type": "text",
+        "required": true,
+        "placeholder": "default",
+        "helpText": "Subnets help you organize and isolate groups of resources."
+      },
+      {
+        "name": "subnetRange",
+        "label": "What IP range should this subnet use?",
+        "type": "text",
+        "required": true,
+        "placeholder": "10.0.1.0/24",
+        "helpText": "Must be within your network's address range. The default works for most cases."
       }
     ]
   },
@@ -285,6 +343,47 @@
         "type": "toggle",
         "required": false,
         "helpText": "Recommended. Lets you recover accidentally deleted secrets within 90 days."
+      },
+      {
+        "name": "purgeProtection",
+        "label": "Prevent permanent deletion?",
+        "type": "toggle",
+        "required": false,
+        "helpText": "Prevents anyone from permanently deleting secrets until the recovery period ends."
+      },
+      {
+        "name": "kvSku",
+        "label": "Which Key Vault tier?",
+        "type": "select",
+        "required": true,
+        "helpText": "Premium supports HSM-backed keys.",
+        "options": [
+          {
+            "label": "Standard",
+            "value": "standard"
+          },
+          {
+            "label": "Premium (HSM-backed)",
+            "value": "premium"
+          }
+        ]
+      },
+      {
+        "name": "accessModel",
+        "label": "How should applications access secrets?",
+        "type": "select",
+        "required": true,
+        "helpText": "Role-based access is the modern and recommended approach.",
+        "options": [
+          {
+            "label": "Role-based access — Recommended",
+            "value": "rbac"
+          },
+          {
+            "label": "Vault access policies — Legacy approach",
+            "value": "vault"
+          }
+        ]
       }
     ]
   },
@@ -310,6 +409,43 @@
         "required": true,
         "placeholder": "nginx:latest",
         "helpText": "The Docker image name, e.g. myregistry/myapp:v1.0"
+      },
+      {
+        "name": "region",
+        "label": "Where should it run?",
+        "type": "select",
+        "required": true,
+        "helpText": "Choose a location close to your users.",
+        "options": [
+          {
+            "label": "Malaysia (Malaysia West)",
+            "value": "malaysiawest"
+          },
+          {
+            "label": "Asia Pacific (Southeast Asia)",
+            "value": "southeastasia"
+          }
+        ]
+      },
+      {
+        "name": "minReplicas",
+        "label": "Minimum number of running copies?",
+        "type": "number",
+        "required": true,
+        "placeholder": "1",
+        "min": 0,
+        "max": 10,
+        "helpText": "Set to 0 to scale down to zero when not in use (saves cost, but adds startup delay)."
+      },
+      {
+        "name": "maxReplicas",
+        "label": "Maximum number of copies during high traffic?",
+        "type": "number",
+        "required": true,
+        "placeholder": "3",
+        "min": 1,
+        "max": 30,
+        "helpText": "The app will automatically create more copies when traffic increases, up to this limit."
       },
       {
         "name": "externalAccess",
@@ -412,6 +548,14 @@
             "value": "southeastasia"
           }
         ]
+      },
+      {
+        "name": "topicName",
+        "label": "What should we call this event hub?",
+        "type": "text",
+        "required": true,
+        "placeholder": "member-events-topic",
+        "helpText": "Use a name that describes the events it will carry."
       },
       {
         "name": "inputSchema",

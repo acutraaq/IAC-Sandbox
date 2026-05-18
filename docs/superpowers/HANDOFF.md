@@ -8,7 +8,7 @@
 
 ## TL;DR
 
-**Reliability fixes completed and committed.** All 6 `functions/` pipeline hardening commits are on `main` (sanitize guards, secureString passwords, landing-zone validation, poison handler safety). **Web-layer hardening committed** (`c3ea152`): API route validation, double-submit prevention, blob data Zod validation, a11y labels, Modal `aria-labelledby`. **Docs updated** (`CLAUDE.md` v2.5.0, `HANDOFF.md` v1.9.0). **Stale branches cleaned up.** All 308 tests pass (193 web + 115 functions). Waiting on admin to configure Function App env vars before end-to-end queue consumption can be verified.
+**Reliability fixes completed and committed.** All 6 `functions/` pipeline hardening commits are on `main` (sanitize guards, secureString passwords, landing-zone validation, poison handler safety). **Web-layer hardening committed** (`c3ea152`): API route validation, double-submit prevention, blob data Zod validation, a11y labels, Modal `aria-labelledby`. **Docs updated** (`CLAUDE.md` v2.5.0, `HANDOFF.md` v1.9.0). **Stale branches cleaned up.** All 308 tests pass (193 web + 115 functions). Managed identity roles are set: App Service = Reader, Function App = Contributor on `sub-epf-sandbox-internal`. Waiting on admin to configure Function App env vars before end-to-end queue consumption can be verified.
 
 ---
 

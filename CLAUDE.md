@@ -21,7 +21,7 @@ No active specs or plans. All approved work is implemented; completed designs li
 **Latest commit:** `c3ea152` — web-layer hardening (API route validation, double-submit prevention, blob data validation, a11y labels).
 **What is designed but not built:** Nothing — all approved specs implemented.
 **SSO status:** Microsoft SSO / MSAL is **on hold** — placeholder login is live and sufficient for current needs. The MSAL plumbing is fully implemented but not being activated at this time. See Authentication section.
-**What needs admin action:** Configure `epf-sandbox-functions` environment variables in Azure Portal (`DEPLOYMENT_QUEUE`, `AZURE_STORAGE_CONNECTION_STRING`, `AzureWebJobsStorage`, `AZURE_SUBSCRIPTION_ID`, `AZURE_TENANT_ID`) so the Function App can consume queue messages. Managed identity setup is complete on both App Service and Function App. After env vars are set, verify end-to-end with a test deployment (e.g., Storage Account) and confirm the resource group appears in `sub-epf-sandbox-internal` with all 6 ARM tags.
+**What needs admin action:** Configure `epf-sandbox-functions` environment variables in Azure Portal (`DEPLOYMENT_QUEUE`, `AZURE_STORAGE_CONNECTION_STRING`, `AzureWebJobsStorage`, `AZURE_SUBSCRIPTION_ID`, `AZURE_TENANT_ID`) so the Function App can consume queue messages. Managed identity setup is complete: App Service MI has **Reader** on `sub-epf-sandbox-internal`, Function App MI has **Contributor** on `sub-epf-sandbox-internal`. After env vars are set, verify end-to-end with a test deployment (e.g., Storage Account) and confirm the resource group appears in `sub-epf-sandbox-internal` with all 6 ARM tags.
 
 ---
 
@@ -69,7 +69,7 @@ Both Template and Custom Builder flows converge at a shared Review & Submit page
 | `AZURE_FUNCTIONAPP_PUBLISH_PROFILE` | Function App deployment (download from Azure Portal → `epf-sandbox-functions` → Get publish profile) |
 
 > CI/CD workflow details (standalone assembly, oryx config, zip steps): see `.claude/rules/cicd.md` — auto-loads when editing `.github/`.  
-> Managed identity setup checklist: see `.claude/rules/azure-infra.md` — auto-loads when editing `functions/src/`. Both App Service and Function App Managed Identities need roles on `sub-epf-sandbox-internal`.
+> Managed identity setup: see `.claude/rules/azure-infra.md` — auto-loads when editing `functions/src/`. Both services use System-Assigned Managed Identity with roles on `sub-epf-sandbox-internal`: **App Service = Reader** (polls ARM status, lists RGs by tag), **Function App = Contributor** (creates RGs, deploys ARM templates).
 
 ---
 

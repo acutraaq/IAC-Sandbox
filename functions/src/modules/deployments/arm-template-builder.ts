@@ -842,38 +842,85 @@ function buildCustomResources(
 
     switch (resource.type) {
       case "Microsoft.Web/sites":
-        armResources.push(...buildWebApplication(resource.name, location, resource.config));
+        armResources.push(...buildWebApplication(
+          typeof resource.config.appName === "string" ? resource.config.appName : resource.name,
+          location,
+          resource.config
+        ));
         break;
       case "Microsoft.Compute/virtualMachines":
         throw new Error(
           `Resource type "Microsoft.Compute/virtualMachines" is blocked by subscription policy COE-Allowed-Resources.`
         );
       case "Microsoft.DBforPostgreSQL/flexibleServers":
-        armResources.push(buildPostgresServer(resource.name, location, resource.config, deployParams));
+        armResources.push(buildPostgresServer(
+          typeof resource.config.dbName === "string" ? resource.config.dbName : resource.name,
+          location,
+          resource.config,
+          deployParams
+        ));
         break;
       case "Microsoft.Storage/storageAccounts":
-        armResources.push(buildStorageAccount(resource.name, location, resource.config, suffix));
+        armResources.push(buildStorageAccount(
+          typeof resource.config.storageName === "string" ? resource.config.storageName : resource.name,
+          location,
+          resource.config,
+          suffix
+        ));
         break;
       case "Microsoft.Network/virtualNetworks":
-        armResources.push(buildVirtualNetwork(resource.name, location, resource.config));
+        armResources.push(buildVirtualNetwork(
+          typeof resource.config.vnetName === "string" ? resource.config.vnetName : resource.name,
+          location,
+          resource.config
+        ));
         break;
       case "Microsoft.KeyVault/vaults":
-        armResources.push(buildKeyVault(resource.name, location, resource.config, tenantId, suffix));
+        armResources.push(buildKeyVault(
+          typeof resource.config.vaultName === "string" ? resource.config.vaultName : resource.name,
+          location,
+          resource.config,
+          tenantId,
+          suffix
+        ));
         break;
       case "Microsoft.App/containerApps":
-        armResources.push(...buildContainerApp(resource.name, location, resource.config));
+        armResources.push(...buildContainerApp(
+          typeof resource.config.appName === "string" ? resource.config.appName : resource.name,
+          location,
+          resource.config
+        ));
         break;
       case "Microsoft.Logic/workflows":
-        armResources.push(buildLogicApp(resource.name, location, resource.config, "http"));
+        armResources.push(buildLogicApp(
+          typeof resource.config.workflowName === "string" ? resource.config.workflowName : resource.name,
+          location,
+          resource.config,
+          "http"
+        ));
         break;
       case "Microsoft.ServiceBus/namespaces":
-        armResources.push(buildServiceBusNamespace(resource.name, location, resource.config));
+        armResources.push(buildServiceBusNamespace(
+          typeof resource.config.namespaceName === "string" ? resource.config.namespaceName : resource.name,
+          location,
+          resource.config
+        ));
         break;
       case "Microsoft.EventGrid/topics":
-        armResources.push(buildEventGridTopic(resource.name, location, resource.config));
+        armResources.push(buildEventGridTopic(
+          typeof resource.config.topicName === "string" ? resource.config.topicName : resource.name,
+          location,
+          resource.config
+        ));
         break;
       case "Microsoft.Sql/servers":
-        armResources.push(...buildSqlServer(resource.name, "appdb", location, resource.config, deployParams));
+        armResources.push(...buildSqlServer(
+          typeof resource.config.sqlServerName === "string" ? resource.config.sqlServerName : resource.name,
+          "appdb",
+          location,
+          resource.config,
+          deployParams
+        ));
         break;
       default:
         throw new Error(

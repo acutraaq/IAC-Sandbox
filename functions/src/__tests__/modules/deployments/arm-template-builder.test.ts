@@ -349,6 +349,173 @@ describe("buildArmTemplate — custom mode", () => {
 });
 
 // ---------------------------------------------------------------------------
+// Custom mode — name resolution (config field overrides catalog name)
+// ---------------------------------------------------------------------------
+
+describe("buildArmTemplate — custom mode name resolution", () => {
+  it("uses config.appName over catalog name for Web App", () => {
+    const t = buildArmTemplate(
+      customPayload("Microsoft.Web/sites", "CatalogName", { appName: "my-real-app" }),
+      { tenantId: TENANT_ID }
+    );
+    expect(t.resources[1].name).toBe("my-real-app");
+  });
+
+  it("falls back to catalog name when config.appName is missing", () => {
+    const t = buildArmTemplate(
+      customPayload("Microsoft.Web/sites", "fallback-app", {}),
+      { tenantId: TENANT_ID }
+    );
+    expect(t.resources[1].name).toBe("fallback-app");
+  });
+
+  it("uses config.dbName over catalog name for PostgreSQL", () => {
+    const t = buildArmTemplate(
+      customPayload("Microsoft.DBforPostgreSQL/flexibleServers", "CatalogName", { dbName: "my-real-db" }),
+      { tenantId: TENANT_ID }
+    );
+    expect(t.resources[0].name).toBe("my-real-db");
+  });
+
+  it("uses config.storageName over catalog name for Storage Account", () => {
+    const t = buildArmTemplate(
+      customPayload("Microsoft.Storage/storageAccounts", "CatalogName", { storageName: "myrealstore" }),
+      { tenantId: TENANT_ID }
+    );
+    expect(t.resources[0].name).toBe("myrealstore");
+  });
+
+  it("uses config.vnetName over catalog name for VNet", () => {
+    const t = buildArmTemplate(
+      customPayload("Microsoft.Network/virtualNetworks", "CatalogName", { vnetName: "my-real-vnet" }),
+      { tenantId: TENANT_ID }
+    );
+    expect(t.resources[0].name).toBe("my-real-vnet");
+  });
+
+  it("uses config.vaultName over catalog name for Key Vault", () => {
+    const t = buildArmTemplate(
+      customPayload("Microsoft.KeyVault/vaults", "CatalogName", { vaultName: "my-real-kv" }),
+      { tenantId: TENANT_ID }
+    );
+    expect(t.resources[0].name).toBe("my-real-kv");
+  });
+
+  it("uses config.appName over catalog name for Container App", () => {
+    const t = buildArmTemplate(
+      customPayload("Microsoft.App/containerApps", "CatalogName", { appName: "my-real-ca" }),
+      { tenantId: TENANT_ID }
+    );
+    expect(t.resources[1].name).toBe("my-real-ca");
+  });
+
+  it("uses config.workflowName over catalog name for Logic App", () => {
+    const t = buildArmTemplate(
+      customPayload("Microsoft.Logic/workflows", "CatalogName", { workflowName: "my-real-wf" }),
+      { tenantId: TENANT_ID }
+    );
+    expect(t.resources[0].name).toBe("my-real-wf");
+  });
+
+  it("uses config.namespaceName over catalog name for Service Bus", () => {
+    const t = buildArmTemplate(
+      customPayload("Microsoft.ServiceBus/namespaces", "CatalogName", { namespaceName: "my-real-sb" }),
+      { tenantId: TENANT_ID }
+    );
+    expect(t.resources[0].name).toBe("my-real-sb");
+  });
+
+  it("uses config.topicName over catalog name for Event Grid", () => {
+    const t = buildArmTemplate(
+      customPayload("Microsoft.EventGrid/topics", "CatalogName", { topicName: "my-real-topic" }),
+      { tenantId: TENANT_ID }
+    );
+    expect(t.resources[0].name).toBe("my-real-topic");
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Custom mode — field parity tests
+// ---------------------------------------------------------------------------
+
+describe("buildArmTemplate — custom mode field parity", () => {
+  it("applies engineVersion from config for PostgreSQL", () => {
+    const t = buildArmTemplate(
+      customPayload("Microsoft.DBforPostgreSQL/flexibleServers", "my-db", { dbName: "my-db", engineVersion: "15" }),
+      { tenantId: TENANT_ID }
+    );
+    const props = (t.resources[0] as Record<string, unknown>).properties as { version: string };
+    expect(props.version).toBe("15");
+  });
+
+  it("applies redundancy from config for Storage Account", () => {
+    const t = buildArmTemplate(
+      customPayload("Microsoft.Storage/storageAccounts", "my-store", { storageName: "my-store", redundancy: "ZRS" }),
+      { tenantId: TENANT_ID }
+    );
+    const sku = (t.resources[0] as Record<string, unknown>).sku as { name: string };
+    expect(sku.name).toBe("Standard_ZRS");
+  });
+
+  it("applies subnetName and subnetRange from config for VNet", () => {
+    const t = buildArmTemplate(
+      customPayload("Microsoft.Network/virtualNetworks", "my-vnet", {
+        vnetName: "my-vnet",
+        subnetName: "apps",
+        subnetRange: "10.0.5.0/24",
+      }),
+      { tenantId: TENANT_ID }
+    );
+    const props = (t.resources[0] as Record<string, unknown>).properties as { subnets: Array<{ name: string; properties: { addressPrefix: string } }> };
+    expect(props.subnets[0].name).toBe("apps");
+    expect(props.subnets[0].properties.addressPrefix).toBe("10.0.5.0/24");
+  });
+
+  it("applies kvSku, purgeProtection and accessModel from config for Key Vault", () => {
+    const t = buildArmTemplate(
+      customPayload("Microsoft.KeyVault/vaults", "my-kv", {
+        vaultName: "my-kv",
+        kvSku: "premium",
+        purgeProtection: true,
+        accessModel: "rbac",
+      }),
+      { tenantId: TENANT_ID }
+    );
+    const props = (t.resources[0] as Record<string, unknown>).properties as {
+      sku: { name: string };
+      enablePurgeProtection: boolean;
+      enableRbacAuthorization: boolean;
+    };
+    expect(props.sku.name).toBe("premium");
+    expect(props.enablePurgeProtection).toBe(true);
+    expect(props.enableRbacAuthorization).toBe(true);
+  });
+
+  it("applies minReplicas, maxReplicas and region from config for Container App", () => {
+    const t = buildArmTemplate(
+      customPayload("Microsoft.App/containerApps", "my-ca", {
+        appName: "my-ca",
+        containerImage: "nginx:latest",
+        region: "southeastasia",
+        minReplicas: 0,
+        maxReplicas: 5,
+        externalAccess: true,
+      }),
+      { tenantId: TENANT_ID }
+    );
+    expect(t.resources[0].location).toBe("southeastasia");
+    expect(t.resources[1].location).toBe("southeastasia");
+    const props = (t.resources[1] as Record<string, unknown>).properties as {
+      template: { scale: { minReplicas: number; maxReplicas: number } };
+      configuration: { ingress: { external: boolean } };
+    };
+    expect(props.template.scale.minReplicas).toBe(0);
+    expect(props.template.scale.maxReplicas).toBe(5);
+    expect(props.configuration.ingress.external).toBe(true);
+  });
+});
+
+// ---------------------------------------------------------------------------
 // New EPF business-user template builders
 // ---------------------------------------------------------------------------
 
