@@ -140,8 +140,6 @@ export interface DeploymentState {
   submissionId: string | null;
   deployedResourceGroup: string | null;
   deploymentSummary: string | null;
-  deploymentStatus: DeploymentStatus | null;
-  deploymentError: string | null;
 
   // Actions
   setMode: (mode: "template" | "custom" | "custom-request") => void;
@@ -152,7 +150,6 @@ export interface DeploymentState {
   addResource: (resource: SelectedResource) => boolean;
   removeResource: (type: string) => void;
   setSubmissionResult: (id: string, summary: string, resourceGroup: string) => void;
-  setDeploymentStatus: (status: DeploymentStatus, error?: string | null) => void;
   resetCustomRequest: () => void;
   reset: () => void;
 }

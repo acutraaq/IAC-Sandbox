@@ -119,18 +119,16 @@ describe("deploymentStore", () => {
     expect(useDeploymentStore.getState().wizardState.currentStep).toBe(2);
   });
 
-  it("setDeploymentStatus updates status and error", () => {
-    useDeploymentStore.getState().setDeploymentStatus("failed", "ARM error occurred");
-    const state = useDeploymentStore.getState();
-    expect(state.deploymentStatus).toBe("failed");
-    expect(state.deploymentError).toBe("ARM error occurred");
-  });
+  it("resetCustomRequest clears template and wizard state", () => {
+    useDeploymentStore.getState().selectTemplate(mockTemplate);
+    useDeploymentStore.getState().setFormValues({ appName: "test" });
+    useDeploymentStore.getState().setMode("custom-request");
 
-  it("reset clears deploymentStatus and deploymentError", () => {
-    useDeploymentStore.getState().setDeploymentStatus("running");
-    useDeploymentStore.getState().reset();
+    useDeploymentStore.getState().resetCustomRequest();
+
     const state = useDeploymentStore.getState();
-    expect(state.deploymentStatus).toBeNull();
-    expect(state.deploymentError).toBeNull();
+    expect(state.mode).toBeNull();
+    expect(state.selectedTemplate).toBeNull();
+    expect(state.wizardState.formValues).toEqual({});
   });
 });

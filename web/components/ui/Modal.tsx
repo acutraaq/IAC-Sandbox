@@ -90,7 +90,7 @@ export function Modal({ open, onClose, title, children }: ModalProps) {
             ref={dialogRef}
             role="dialog"
             aria-modal="true"
-            aria-label={title}
+            aria-labelledby="dialog-title"
             initial={{ opacity: 0, scale: 0.95, y: 10 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 10 }}
@@ -98,7 +98,7 @@ export function Modal({ open, onClose, title, children }: ModalProps) {
             className="relative z-10 flex max-h-[calc(100dvh-2rem)] w-full max-w-[clamp(32rem,70vw,56rem)] flex-col rounded-xl border border-border bg-surface-elevated shadow-2xl sm:max-h-[calc(100dvh-3rem)]"
           >
             <div className="flex shrink-0 items-center justify-between border-b border-border px-5 py-3 sm:px-6 sm:py-4">
-              <h2 className="text-lg font-semibold text-text">{title}</h2>
+              <h2 id="dialog-title" className="text-lg font-semibold text-text">{title}</h2>
               <button
                 onClick={onClose}
                 aria-label="Close dialog"

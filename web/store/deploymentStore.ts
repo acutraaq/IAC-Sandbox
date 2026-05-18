@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import type { DeploymentState, DeploymentStatus, Template, SelectedResource } from "@/types";
+import type { DeploymentState, Template, SelectedResource } from "@/types";
 
 const initialWizardState = {
   currentStep: 0,
@@ -15,8 +15,6 @@ export const useDeploymentStore = create<DeploymentState>((set, get) => ({
   submissionId: null,
   deployedResourceGroup: null,
   deploymentSummary: null,
-  deploymentStatus: null,
-  deploymentError: null,
 
   setMode: (mode) => set({ mode }),
 
@@ -71,18 +69,15 @@ export const useDeploymentStore = create<DeploymentState>((set, get) => ({
   setSubmissionResult: (id: string, summary: string, resourceGroup: string) =>
     set({ submissionId: id, deploymentSummary: summary, deployedResourceGroup: resourceGroup }),
 
-  setDeploymentStatus: (status: DeploymentStatus, error?: string | null) =>
-    set({ deploymentStatus: status, deploymentError: error ?? null }),
-
   resetCustomRequest: () =>
     set({
       mode: null,
+      selectedTemplate: null,
+      wizardState: { ...initialWizardState },
       selectedResources: [],
       submissionId: null,
       deployedResourceGroup: null,
       deploymentSummary: null,
-      deploymentStatus: null,
-      deploymentError: null,
     }),
 
   reset: () =>
@@ -94,7 +89,5 @@ export const useDeploymentStore = create<DeploymentState>((set, get) => ({
       submissionId: null,
       deployedResourceGroup: null,
       deploymentSummary: null,
-      deploymentStatus: null,
-      deploymentError: null,
     }),
 }));

@@ -72,7 +72,8 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       maxAge: 60 * 60 * 24,
     });
     return res;
-  } catch {
+  } catch (e) {
+    console.error("[GET /api/auth/callback/azure-ad] token exchange failed:", e);
     return failRedirect(url);
   }
 }

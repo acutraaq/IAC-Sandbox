@@ -1,5 +1,6 @@
 import { BlobServiceClient } from "@azure/storage-blob";
 import { serverEnv } from "@/lib/server-env";
+import { z } from "zod";
 
 const CONTAINER_NAME = "deployment-failures";
 
@@ -11,6 +12,14 @@ export interface FailureRecord {
   failedAt: string;
 }
 
+const failureRecordSchema = z.object({
+  submissionId: z.string(),
+  resourceGroupName: z.string(),
+  error: z.string(),
+  deployedBy: z.string(),
+  failedAt: z.string(),
+});
+
 export async function getFailureRecord(submissionId: string): Promise<FailureRecord | null> {
   try {
     const client = BlobServiceClient.fromConnectionString(
@@ -20,7 +29,8 @@ export async function getFailureRecord(submissionId: string): Promise<FailureRec
     const blob = container.getBlockBlobClient(`${submissionId}.json`);
     const download = await blob.download(0);
     const text = await streamToString(download.readableStreamBody);
-    return JSON.parse(text) as FailureRecord;
+    const parsed = failureRecordSchema.safeParse(JSON.parse(text));
+    return parsed.success ? parsed.data : null;
   } catch {
     return null;
   }

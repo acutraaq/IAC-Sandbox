@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { listMyDeployments, ApiError } from "@/lib/api";
 import { PageEyebrow } from "@/components/layout/PageEyebrow";
+import { getPublicAzureEnv } from "@/lib/env-public";
 import { ExternalLink } from "lucide-react";
 import type { MyDeploymentItem } from "@/types";
 
@@ -116,7 +117,7 @@ export default function MyDeploymentsPage() {
                     {statusLabel(item.status)}
                   </span>
                   <a
-                    href={`https://portal.azure.com/#@/resource/subscriptions/${process.env.NEXT_PUBLIC_AZURE_SUBSCRIPTION_ID ?? ""}/resourceGroups/${item.resourceGroup}/overview`}
+                    href={`https://portal.azure.com/#@/resource/subscriptions/${getPublicAzureEnv().subscriptionId}/resourceGroups/${item.resourceGroup}/overview`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="flex h-8 w-8 items-center justify-center rounded-full text-text-muted opacity-0 transition-all hover:bg-surface-highlight hover:text-text group-hover:opacity-100"

@@ -48,7 +48,10 @@ export function decodePendingState(
   }
 }
 
+let _msalClient: ConfidentialClientApplication | null = null;
+
 function getMsalClient(): ConfidentialClientApplication {
+  if (_msalClient) return _msalClient;
   const clientId = process.env.AZURE_AD_CLIENT_ID;
   const clientSecret = process.env.AZURE_AD_CLIENT_SECRET;
   const tenantId = process.env.AZURE_TENANT_ID;
@@ -57,13 +60,14 @@ function getMsalClient(): ConfidentialClientApplication {
       "MSAL not configured: AZURE_AD_CLIENT_ID, AZURE_AD_CLIENT_SECRET, and AZURE_TENANT_ID must be set"
     );
   }
-  return new ConfidentialClientApplication({
+  _msalClient = new ConfidentialClientApplication({
     auth: {
       clientId,
       clientSecret,
       authority: `https://login.microsoftonline.com/${tenantId}`,
     },
   });
+  return _msalClient;
 }
 
 export async function buildAuthCodeUrl(params: {

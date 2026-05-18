@@ -6,6 +6,7 @@ import { getFailureRecord } from "@/lib/deployments/failure-lookup";
 import { getCurrentUser } from "@/lib/auth";
 
 const RG_NAME_REGEX = /^[a-zA-Z0-9_.()-]+$/;
+const SUBMISSION_ID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 export async function GET(
   request: Request,
@@ -13,6 +14,11 @@ export async function GET(
 ) {
   const requestId = crypto.randomUUID();
   const { submissionId } = await params;
+
+  if (!SUBMISSION_ID_REGEX.test(submissionId)) {
+    const err = AppError.validation("Invalid submissionId");
+    return NextResponse.json(toErrorResponse(err, requestId), { status: 400 });
+  }
   const { searchParams } = new URL(request.url);
   const rg = searchParams.get("rg");
 

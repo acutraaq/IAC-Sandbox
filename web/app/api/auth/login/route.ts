@@ -33,7 +33,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
         upn: "demo@sandbox.local",
         displayName: "Demo User",
       });
-      const redirectTarget = new URL(next, request.url).toString();
+      const redirectTarget = new URL(next, request.nextUrl.origin);
       const res = NextResponse.redirect(redirectTarget, { status: 302 });
       res.cookies.set({
         name: SESSION_COOKIE_NAME,
@@ -68,12 +68,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
   } catch (err) {
     console.error("[GET /api/auth/login] unhandled error:", err);
     return NextResponse.json(
-      {
-        error: {
-          code: "INTERNAL_ERROR",
-          message: err instanceof Error ? err.message : "Login failed",
-        },
-      },
+      { error: { code: "INTERNAL_ERROR", message: "Login failed" } },
       { status: 500 }
     );
   }

@@ -10,7 +10,8 @@ const PAGE_SIZE = 20;
 export async function GET(request: Request) {
   const requestId = crypto.randomUUID();
   const { searchParams } = new URL(request.url);
-  const top = Math.min(parseInt(searchParams.get("top") ?? String(PAGE_SIZE), 10), PAGE_SIZE);
+  const rawTop = parseInt(searchParams.get("top") ?? "", 10);
+  const top = Number.isFinite(rawTop) && rawTop > 0 ? Math.min(rawTop, PAGE_SIZE) : PAGE_SIZE;
 
   try {
     const user = await getCurrentUser();
@@ -23,7 +24,7 @@ export async function GET(request: Request) {
     const items: MyDeploymentItem[] = [];
 
     const rgIterator = client.resourceGroups.list({
-      filter: `tagName eq 'deployedBy' and tagValue eq '${user.upn}'`,
+      filter: `tagName eq 'deployedBy' and tagValue eq '${user.upn.replace(/'/g, "''")}'`,
       top,
     });
 

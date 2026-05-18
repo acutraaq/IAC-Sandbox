@@ -61,6 +61,7 @@ export function sanitise(name: string, reserve: number = 0): string {
     .replace(/\.+$/, "")
     .replace(/^[^a-z0-9]+/, "")
     .replace(/-+$/, "")
-    .slice(0, maxLen);
+    .slice(0, maxLen)
+    .replace(/[-_.]+$/, "");
   return result || "sandbox";
 }

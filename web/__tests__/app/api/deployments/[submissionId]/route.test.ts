@@ -1,5 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
+const SUBMISSION_ID = "a1b2c3d4-e5f6-7890-abcd-ef1234567890";
+
 const mockDeploymentsGet = vi.fn();
 const mockResourceGroupsGet = vi.fn();
 const mockGetFailureRecord = vi.fn();
@@ -25,7 +27,7 @@ beforeEach(() => {
   mockResourceGroupsGet.mockResolvedValue({
     name: "my-rg",
     location: "southeastasia",
-    tags: { deployedBy: "demo@sandbox.local", "iac-submissionId": "sub-id" },
+    tags: { deployedBy: "demo@sandbox.local", "iac-submissionId": SUBMISSION_ID },
   });
 });
 
@@ -51,7 +53,7 @@ describe("GET /api/deployments/[submissionId]", () => {
     mockDeploymentsGet.mockRejectedValueOnce({ statusCode: 404 });
     mockGetFailureRecord.mockResolvedValueOnce(null);
     const { GET } = await import("@/app/api/deployments/[submissionId]/route");
-    const res = await GET(makeRequest("sub-id", "my-rg"), makeParams("sub-id"));
+    const res = await GET(makeRequest(SUBMISSION_ID, "my-rg"), makeParams(SUBMISSION_ID));
     expect(res.status).toBe(200);
     const body = await res.json();
     expect(body.status).toBe("accepted");
@@ -60,14 +62,14 @@ describe("GET /api/deployments/[submissionId]", () => {
   it("returns failed when ARM returns 404 and a failure record exists (poisoned)", async () => {
     mockDeploymentsGet.mockRejectedValueOnce({ statusCode: 404 });
     mockGetFailureRecord.mockResolvedValueOnce({
-      submissionId: "sub-id",
+      submissionId: SUBMISSION_ID,
       resourceGroupName: "my-rg",
       error: "ARM deployment state: Failed — exhausted retries",
       deployedBy: "user@test.com",
       failedAt: "2026-04-30T00:00:00.000Z",
     });
     const { GET } = await import("@/app/api/deployments/[submissionId]/route");
-    const res = await GET(makeRequest("sub-id", "my-rg"), makeParams("sub-id"));
+    const res = await GET(makeRequest(SUBMISSION_ID, "my-rg"), makeParams(SUBMISSION_ID));
     expect(res.status).toBe(200);
     const body = await res.json();
     expect(body.status).toBe("failed");
@@ -79,7 +81,7 @@ describe("GET /api/deployments/[submissionId]", () => {
       properties: { provisioningState: "Succeeded" },
     });
     const { GET } = await import("@/app/api/deployments/[submissionId]/route");
-    const res = await GET(makeRequest("sub-id", "my-rg"), makeParams("sub-id"));
+    const res = await GET(makeRequest(SUBMISSION_ID, "my-rg"), makeParams(SUBMISSION_ID));
     const body = await res.json();
     expect(body.status).toBe("succeeded");
   });
@@ -89,7 +91,7 @@ describe("GET /api/deployments/[submissionId]", () => {
       properties: { provisioningState: "Running" },
     });
     const { GET } = await import("@/app/api/deployments/[submissionId]/route");
-    const res = await GET(makeRequest("sub-id", "my-rg"), makeParams("sub-id"));
+    const res = await GET(makeRequest(SUBMISSION_ID, "my-rg"), makeParams(SUBMISSION_ID));
     const body = await res.json();
     expect(body.status).toBe("running");
   });
@@ -102,7 +104,7 @@ describe("GET /api/deployments/[submissionId]", () => {
       },
     });
     const { GET } = await import("@/app/api/deployments/[submissionId]/route");
-    const res = await GET(makeRequest("sub-id", "my-rg"), makeParams("sub-id"));
+    const res = await GET(makeRequest(SUBMISSION_ID, "my-rg"), makeParams(SUBMISSION_ID));
     const body = await res.json();
     expect(body.status).toBe("failed");
     expect(body.errorMessage).toContain("ResourceNotFound");
@@ -111,7 +113,7 @@ describe("GET /api/deployments/[submissionId]", () => {
   it("returns 500 when ARM throws a non-404 error", async () => {
     mockDeploymentsGet.mockRejectedValueOnce(new Error("ARM unavailable"));
     const { GET } = await import("@/app/api/deployments/[submissionId]/route");
-    const res = await GET(makeRequest("sub-id", "my-rg"), makeParams("sub-id"));
+    const res = await GET(makeRequest(SUBMISSION_ID, "my-rg"), makeParams(SUBMISSION_ID));
     expect(res.status).toBe(500);
   });
 });

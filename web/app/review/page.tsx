@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useDeploymentStore } from "@/store/deploymentStore";
 import { submitDeployment, ApiError } from "@/lib/api";
@@ -25,6 +25,7 @@ export default function ReviewPage() {
   const [submitting, setSubmitting] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
   const [proofText, setProofText] = useState("");
+  const submittingRef = useRef(false);
   const [tags, setTags] = useState<ResourceGroupTags>({
     "Cost Center": "",
     "Project ID": "",
@@ -71,6 +72,10 @@ export default function ReviewPage() {
   }, [mode, router]);
 
   if (!mode) return null;
+  if (mode === "custom-request") {
+    router.replace("/request");
+    return null;
+  }
 
   const canSubmit =
     mode === "template"
@@ -80,6 +85,8 @@ export default function ReviewPage() {
   async function handleSubmit() {
     if (!canSubmit) return;
     if (!validateTags()) return;
+    if (submittingRef.current) return;
+    submittingRef.current = true;
 
     setSubmitting(true);
     try {
@@ -121,6 +128,7 @@ export default function ReviewPage() {
         toast("error", "Something went wrong. Please try again.");
       }
     } finally {
+      submittingRef.current = false;
       setSubmitting(false);
     }
   }
@@ -130,9 +138,10 @@ export default function ReviewPage() {
     setModalOpen(false);
   }
 
-  const backHref = mode === "template" && selectedTemplate
-    ? `/templates/${selectedTemplate.slug}`
-    : "/builder";
+  const backHref =
+    mode === "template" && selectedTemplate
+      ? `/templates/${selectedTemplate.slug}`
+      : "/builder";
 
   return (
     <PageTransition>

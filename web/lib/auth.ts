@@ -24,6 +24,10 @@ export async function getCurrentUser(): Promise<SessionUser | null> {
   }
   // Fallback to demo user when SSO is on hold or no valid session exists.
   // The proxy.ts middleware is the actual gate; this fallback ensures the
-  // app remains usable for local development without requiring login.
+  // app remains usable without requiring login during the placeholder phase.
+  // WARNING (SSO activation): remove this fallback when activating MSAL so
+  // API routes enforce auth independently of middleware. Without this change,
+  // all API operations will be attributed to demo@sandbox.local regardless
+  // of the real caller's identity.
   return { upn: "demo@sandbox.local", displayName: "Demo User" };
 }
