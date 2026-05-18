@@ -1,7 +1,7 @@
 # Deployment Pipeline Reliability Fixes
 
 **Date:** 2026-05-15  
-**Status:** Approved  
+**Status:** Approved → Implemented  
 **Scope:** `functions/src/` only — zero web-layer changes
 
 ---

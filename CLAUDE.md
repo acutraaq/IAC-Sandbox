@@ -1,6 +1,6 @@
 # CLAUDE.md — Project Conventions & Developer Guidance
 
-> **Version:** 2.4.0 | **Last updated:** 2026-05-14 | **Status:** Active  
+> **Version:** 2.5.0 | **Last updated:** 2026-05-18 | **Status:** Active  
 > **Purpose:** Single source of truth for project conventions, tech stack, and development patterns  
 > **Owner:** All engineers | **Review cadence:** On every convention or pattern change  
 > **Related docs:** [Documentation Index](docs/README.md) | [Complete Spec](docs/project/SPEC.md) | [Glossary](docs/GLOSSARY.md) | [HANDOFF](docs/superpowers/HANDOFF.md)
@@ -17,10 +17,11 @@ Before starting any work, check `docs/superpowers/specs/` for any active (non-ar
 
 No active specs or plans. All approved work is implemented; completed designs live under `docs/superpowers/archive/`.
 
-**What is live and working:** Terminal-native document redesign (mono nav chrome, editorial rows, `~/path` eyebrows); see Live Deployment section below.
+**What is live and working:** Terminal-native document redesign (mono nav chrome, editorial rows, `~/path` eyebrows); see Live Deployment section below.  
+**Latest commit:** `c3ea152` — web-layer hardening (API route validation, double-submit prevention, blob data validation, a11y labels).
 **What is designed but not built:** Nothing — all approved specs implemented.
 **SSO status:** Microsoft SSO / MSAL is **on hold** — placeholder login is live and sufficient for current needs. The MSAL plumbing is fully implemented but not being activated at this time. See Authentication section.
-**What needs admin action:** Nothing — managed identity setup complete on both App Service and Function App. Verify end-to-end with a test deployment (e.g., Storage Account) and confirm resource group appears in sub-epf-sandbox-internal with all 6 ARM tags.
+**What needs admin action:** Configure `epf-sandbox-functions` environment variables in Azure Portal (`DEPLOYMENT_QUEUE`, `AZURE_STORAGE_CONNECTION_STRING`, `AzureWebJobsStorage`, `AZURE_SUBSCRIPTION_ID`, `AZURE_TENANT_ID`) so the Function App can consume queue messages. Managed identity setup is complete on both App Service and Function App. After env vars are set, verify end-to-end with a test deployment (e.g., Storage Account) and confirm the resource group appears in `sub-epf-sandbox-internal` with all 6 ARM tags.
 
 ---
 
