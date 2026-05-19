@@ -36,10 +36,10 @@ export function Navbar({ user }: NavbarProps = {}) {
   return (
     <nav
       aria-label="Main navigation"
-      className={`fixed top-0 left-0 right-0 z-50 h-16 transition-all duration-150 ${
+      className={`fixed top-0 left-0 right-0 z-50 h-16 transition-all duration-200 ${
         scrolled
-          ? "bg-surface/90 backdrop-blur-md border-b border-border"
-          : "bg-surface border-b border-transparent"
+          ? "bg-surface/80 backdrop-blur-md border-b border-border/50"
+          : "bg-transparent border-b border-transparent"
       }`}
     >
       <div className="mx-auto flex h-full max-w-7xl items-center justify-between px-6 md:px-8">
@@ -62,7 +62,7 @@ export function Navbar({ user }: NavbarProps = {}) {
                 key={href}
                 href={href}
                 aria-current={active ? "page" : undefined}
-                className={`relative rounded-lg px-3 py-2 text-sm font-medium transition-colors duration-150 ${
+                className={`relative rounded-lg px-3 py-2 text-[15px] font-medium tracking-tight transition-colors duration-150 ${
                   active
                     ? "text-text"
                     : "text-text-muted hover:text-text"
@@ -74,6 +74,9 @@ export function Navbar({ user }: NavbarProps = {}) {
                     layoutId="nav-underline"
                     aria-hidden="true"
                     className="absolute -bottom-0.5 left-2 right-2 h-0.5 rounded-full bg-accent"
+                    style={{
+                      boxShadow: "0 0 6px rgba(11,189,232,0.35)",
+                    }}
                     transition={{ duration: 0.15, ease: [0.22, 1, 0.36, 1] }}
                   />
                 )}

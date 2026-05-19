@@ -38,7 +38,7 @@ export default async function TemplatePage({ params }: Props) {
   }
 
   return (
-    <div className="mx-auto max-w-5xl px-6 py-10">
+    <div className="mx-auto max-w-5xl px-6 py-12 md:py-16">
       <Breadcrumb
         items={[
           { label: "Home", href: "/" },
@@ -46,7 +46,7 @@ export default async function TemplatePage({ params }: Props) {
           { label: template.name },
         ]}
       />
-      <div className="mb-8">
+      <div className="mb-10">
         <Link
           href="/templates"
           className="mb-4 inline-flex items-center gap-1.5 text-sm text-text-muted hover:text-text focus-visible:underline"
@@ -54,8 +54,8 @@ export default async function TemplatePage({ params }: Props) {
           <ArrowLeft className="h-4 w-4" />
           All templates
         </Link>
-        <h1 className="text-3xl font-bold text-text">{template.name}</h1>
-        <p className="mt-1 text-text-muted">{template.description}</p>
+        <h1 className="text-[clamp(2rem,4vw,3rem)] font-bold text-text">{template.name}</h1>
+        <p className="mt-2 text-base text-text-muted">{template.description}</p>
       </div>
 
       <TemplateWizardClient template={template} />

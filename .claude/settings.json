@@ -109,7 +109,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python .claude/hooks/secret-leak-guard.py"
+            "command": "python C:/Users/AB3968/Git/IAC-Sandbox/.claude/hooks/secret-leak-guard.py"
           }
         ]
       }
@@ -124,5 +124,5 @@
         ]
       }
     ]
-    }
+  }
 }

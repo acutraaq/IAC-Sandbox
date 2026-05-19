@@ -14,7 +14,6 @@ import { tagsSchema } from "@/lib/deployments/schema";
 import type { ResourceGroupTags, SessionUser } from "@/types";
 import Link from "next/link";
 import { PageEyebrow } from "@/components/layout/PageEyebrow";
-import { MonoSectionHeader } from "@/components/ui/MonoSectionHeader";
 import { DocumentDivider } from "@/components/ui/DocumentDivider";
 import { PageTransition } from "@/components/layout/PageTransition";
 
@@ -150,13 +149,13 @@ export default function ReviewPage() {
       <div className="mb-6">
         <Link
           href={backHref}
-          className="mb-3 inline-flex items-center gap-1.5 text-sm text-text-muted hover:text-text"
+          className="mb-3 inline-flex items-center gap-1.5 text-sm text-text-muted hover:text-accent"
         >
           <ArrowLeft className="h-4 w-4" />
           {mode === "template" ? "Back to setup" : "Back to builder"}
         </Link>
-        <h1 className="font-mono text-[clamp(1.5rem,3vw,2rem)] font-medium text-text">
-          <span className="text-text-faint"># </span>review-your-setup
+        <h1 className="font-sans text-xl md:text-2xl font-bold text-text">
+          Review your setup
         </h1>
         <p className="mt-1 text-sm text-text-muted">
           Check everything looks right before submitting.
@@ -175,10 +174,8 @@ export default function ReviewPage() {
       <DocumentDivider label="tags" />
 
       <div className="mt-6 rounded-xl border border-border bg-surface p-5">
-        <MonoSectionHeader
-          title="resource-group-tags"
-          description="Required by subscription policy. All four tags must be provided."
-        />
+        <h2 className="text-base font-semibold text-text mb-4">Required tags</h2>
+        <p className="text-sm text-text-muted mb-4">These labels help EPF track costs and ownership. All four are required.</p>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           {(["Cost Center", "Project ID", "Project Owner"] as const).map((field) => {
             const fieldId = `tag-${field.toLowerCase().replace(/\s+/g, "-")}`;
@@ -201,7 +198,7 @@ export default function ReviewPage() {
                     setTags((prev) => ({ ...prev, [field]: e.target.value }));
                     if (tagErrors[field]) setTagErrors((prev) => ({ ...prev, [field]: undefined }));
                   }}
-                  className={`w-full rounded-lg border bg-bg px-3 h-11 text-sm text-text placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-accent ${tagErrors[field] ? "border-error" : "border-border"}`}
+                  className={`w-full rounded-lg border bg-surface px-3 h-11 text-sm text-text placeholder:text-text-muted focus:outline-none focus:ring-1 focus:ring-accent/40 ${tagErrors[field] ? "border-error" : "border-border"}`}
                   placeholder={field}
                 />
                 {tagErrors[field] && (
@@ -227,7 +224,7 @@ export default function ReviewPage() {
                 setTags((prev) => ({ ...prev, "Expiry Date": e.target.value }));
                 if (tagErrors["Expiry Date"]) setTagErrors((prev) => ({ ...prev, "Expiry Date": undefined }));
               }}
-              className={`w-full rounded-lg border bg-bg px-3 h-11 text-sm text-text focus:outline-none focus:ring-2 focus:ring-accent ${tagErrors["Expiry Date"] ? "border-error" : "border-border"}`}
+              className={`w-full rounded-lg border bg-surface px-3 h-11 text-sm text-text focus:outline-none focus:ring-1 focus:ring-accent/40 ${tagErrors["Expiry Date"] ? "border-error" : "border-border"}`}
             />
             {tagErrors["Expiry Date"] && (
               <p id="tag-expiry-date-error" role="alert" className="mt-1 text-xs text-error">{tagErrors["Expiry Date"]}</p>

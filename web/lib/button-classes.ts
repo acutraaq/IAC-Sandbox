@@ -1,19 +1,21 @@
-export type ButtonVariant = "primary" | "secondary" | "ghost";
+export type ButtonVariant = "primary" | "secondary" | "ghost" | "outline-glow";
 export type ButtonSize = "sm" | "md" | "lg";
 
 const variantClasses: Record<ButtonVariant, string> = {
   primary:
-    "bg-accent text-white hover:bg-accent-hover active:scale-[0.98]",
+    "bg-accent text-on-primary hover:bg-accent-hover active:scale-[0.98]",
   secondary:
     "border border-border bg-transparent text-text hover:bg-surface-elevated active:scale-[0.98]",
   ghost:
     "bg-transparent text-text-muted hover:text-text hover:bg-surface-elevated active:scale-[0.98]",
+  "outline-glow":
+    "border border-border-glow bg-transparent text-accent hover:bg-accent-glow hover:text-accent-hover active:scale-[0.98] glow-border hover:glow-border-hover",
 };
 
 const sizeClasses: Record<ButtonSize, string> = {
-  sm: "h-9 px-4 text-sm",
+  sm: "h-11 px-4 text-sm",
   md: "h-11 px-6 text-sm",
-  lg: "h-12 px-8 text-base",
+  lg: "h-14 px-10 text-base",
 };
 
 const baseClasses =

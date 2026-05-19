@@ -1,34 +1,54 @@
 @import "tailwindcss";
 
-/* ── DESIGN.md color tokens ── */
+/* ── DESIGN.md color tokens — cream retro ── */
 :root {
-  --color-bg: #22324a;
-  --color-surface: #2c4262;
-  --color-surface-elevated: #375577;
-  --color-surface-highlight: #304e6e;
-  --color-border: rgba(44, 127, 212, 0.25);
-  --color-border-strong: rgba(74, 155, 224, 0.40);
-  --color-border-glow: rgba(74, 155, 224, 0.55);
-  --color-text: #e0eaf8;
-  --color-text-muted: rgba(175, 210, 245, 0.82);
-  --color-text-faint: rgba(175, 210, 245, 0.50);
-  --color-primary: #2b7fd4;
-  --color-primary-hover: #3a8ee3;
-  --color-accent: #4a9be0;
-  --color-accent-hover: #5aaef0;
-  --color-accent-glow: rgba(74, 155, 224, 0.35);
-  --color-error: #ef4444;
-  --color-success: #22c55e;
-  --color-warning: #f59e0b;
-  --color-prompt: #5aaef0;
-  --color-comment: rgba(175, 210, 245, 0.50);
-  --color-amber: #f59e0b;
-  --color-amber-glow: rgba(245, 158, 11, 0.18);
+  /* Backgrounds — warm cream paper */
+  --color-bg: #F7F2E8;
+  --color-bg-deep: #EEE8D8;
+  --color-surface: #EDE6D6;
+  --color-surface-elevated: #E4DCCB;
+  --color-surface-highlight: #E8E1D0;
+
+  /* Borders — warm sepia hairlines */
+  --color-border: rgba(90, 65, 30, 0.12);
+  --color-border-strong: rgba(90, 65, 30, 0.24);
+  --color-border-glow: rgba(90, 65, 30, 0.40);
+
+  /* Text — deep warm charcoal */
+  --color-text: #1C1710;
+  --color-text-muted: rgba(55, 42, 22, 0.62);
+  --color-text-faint: rgba(55, 42, 22, 0.32);
+
+  /* Primary — burnt sienna / terracotta */
+  --color-primary: #A8430E;
+  --color-primary-hover: #C45018;
+
+  /* Accent */
+  --color-accent: #A8430E;
+  --color-accent-hover: #C45018;
+  --color-accent-glow: rgba(168, 67, 14, 0.14);
+
+  /* Secondary — muted sage */
+  --color-coral: #4E7A55;
+  --color-coral-hover: #3D6344;
+
+  /* Semantic */
+  --color-error: #B91C1C;
+  --color-success: #2D6A35;
+  --color-warning: #B45309;
+
+  /* Terminal chrome — keep warm amber for mono glyphs */
+  --color-prompt: #A8430E;
+  --color-comment: rgba(90, 65, 30, 0.45);
+  --color-amber: #B45309;
+  --color-amber-glow: rgba(180, 83, 9, 0.12);
+  --color-on-primary: #FDF8F0;
 }
 
 /* ── Tailwind v4 theme tokens ── */
 @theme inline {
   --color-bg: var(--color-bg);
+  --color-bg-deep: var(--color-bg-deep);
   --color-surface: var(--color-surface);
   --color-surface-elevated: var(--color-surface-elevated);
   --color-surface-highlight: var(--color-surface-highlight);
@@ -43,6 +63,8 @@
   --color-accent: var(--color-accent);
   --color-accent-hover: var(--color-accent-hover);
   --color-accent-glow: var(--color-accent-glow);
+  --color-coral: var(--color-coral);
+  --color-coral-hover: var(--color-coral-hover);
   --color-error: var(--color-error);
   --color-success: var(--color-success);
   --color-warning: var(--color-warning);
@@ -50,6 +72,7 @@
   --color-comment: var(--color-comment);
   --color-amber: var(--color-amber);
   --color-amber-glow: var(--color-amber-glow);
+  --color-on-primary: var(--color-on-primary);
   --font-sans: var(--font-sans), system-ui, sans-serif;
   --font-mono: var(--font-mono), monospace;
 }
@@ -59,6 +82,8 @@ body {
   background-color: var(--color-bg);
   color: var(--color-text);
   font-family: var(--font-sans);
+  font-size: 17px;
+  line-height: 1.7;
 }
 
 /* ── Subtle noise texture overlay ── */
@@ -89,6 +114,133 @@ body::before {
 @keyframes fade-in {
   from { opacity: 0; transform: translateY(4px); }
   to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fade-in-up {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes scale-in {
+  from { opacity: 0; transform: scale(0.96); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+@keyframes slide-in-right {
+  from { opacity: 0; transform: translateX(16px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes ring-spin {
+  from { stroke-dashoffset: 32; }
+  to   { stroke-dashoffset: 0; }
+}
+
+@keyframes ring-breathe {
+  0%, 100% { opacity: 0.6; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.08); }
+}
+
+@keyframes check-draw {
+  from { stroke-dashoffset: 18; }
+  to   { stroke-dashoffset: 0; }
+}
+
+@keyframes fade-breathe {
+  0%, 100% { opacity: 0.15; }
+  50% { opacity: 0.4; }
+}
+
+@keyframes float-fragment {
+  0%, 100% { transform: translateY(0); opacity: 0.035; }
+  50% { transform: translateY(-6px); opacity: 0.06; }
+}
+
+@keyframes marquee-scroll {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+@keyframes terminal-cursor-blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+/* ── Animation utilities (motion-safe) ── */
+.animate-fade-in-up {
+  animation: fade-in-up 0.42s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.animate-scale-in {
+  animation: scale-in 0.35s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.animate-slide-in-right {
+  animation: slide-in-right 0.35s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.animate-ring-spin {
+  animation: ring-spin 1.2s linear infinite;
+}
+
+.animate-ring-breathe {
+  animation: ring-breathe 2s ease-in-out infinite;
+}
+
+.animate-check-draw {
+  animation: check-draw 0.35s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.animate-fade-breathe {
+  animation: fade-breathe 3s ease-in-out infinite;
+}
+
+.animate-float-fragment {
+  animation: float-fragment 6s ease-in-out infinite;
+}
+
+.animate-marquee {
+  animation: marquee-scroll 40s linear infinite;
+}
+
+.animate-shimmer {
+  animation: shimmer 3s linear infinite;
+}
+
+.animate-terminal-cursor-blink {
+  animation: terminal-cursor-blink 1s step-end infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-fade-in-up,
+  .animate-scale-in,
+  .animate-slide-in-right,
+  .animate-ring-spin,
+  .animate-ring-breathe,
+  .animate-check-draw,
+  .animate-fade-breathe,
+  .animate-float-fragment,
+  .animate-marquee,
+  .animate-shimmer,
+  .animate-terminal-cursor-blink {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
+}
+
+/* ── Glow border utility ── */
+.glow-border {
+  box-shadow: 0 0 0 1px rgba(11, 189, 232, 0.12), 0 0 24px rgba(11, 189, 232, 0.04);
+}
+
+.glow-border-hover:hover {
+  box-shadow: 0 0 0 1px rgba(11, 189, 232, 0.18), 0 0 32px rgba(11, 189, 232, 0.08);
 }
 
 /* ── Focus visible ring ── */
@@ -129,7 +281,7 @@ body::before {
   font-size: 11px;
   line-height: 28px;
   color: var(--color-text-faint);
-  opacity: 0.18;
+  opacity: 0.22;
   pointer-events: none;
   user-select: none;
   z-index: 0;

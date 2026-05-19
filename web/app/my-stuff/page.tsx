@@ -24,7 +24,7 @@ function SkeletonCard() {
   return (
     <div
       data-testid="skeleton-row"
-      className="h-24 rounded-md bg-surface-highlight animate-pulse motion-reduce:animate-none"
+      className="h-24 rounded-md bg-surface animate-pulse motion-reduce:animate-none"
     />
   );
 }
@@ -52,12 +52,8 @@ export default function MyDeploymentsPage() {
       <h1 className="font-mono text-[clamp(1.75rem,3.5vw,2.5rem)] font-medium text-text">
         <span className="text-text-faint"># </span>My Deployments
       </h1>
-      <p className="mt-2 mb-4 text-sm text-text-muted md:text-base">
-        Resource groups you have deployed through this portal.
-      </p>
-      <p className="font-mono text-xs text-text-muted mb-8">
-        <span className="text-comment"># </span>
-        filtered by deployedBy=demo@sandbox.local
+      <p className="mt-2 mb-8 text-sm text-text-muted md:text-base">
+        All the Azure environments you have set up through Sandbox.
       </p>
 
       {loading && (
@@ -75,11 +71,9 @@ export default function MyDeploymentsPage() {
       )}
 
       {!loading && !error && items.length === 0 && (
-        <div className="flex flex-col items-center gap-4 py-20">
-          <p className="text-sm text-text-muted">No deployments found.</p>
-          <p className="text-xs text-text-faint">
-            Deployments you submit will appear here.
-          </p>
+        <div className="rounded-lg border border-border bg-surface px-8 py-16 text-center">
+          <p className="text-base font-semibold text-text">No deployments yet</p>
+          <p className="mt-2 text-sm text-text-muted">You haven&apos;t deployed anything yet. Browse templates to get started.</p>
         </div>
       )}
 
@@ -88,7 +82,7 @@ export default function MyDeploymentsPage() {
           {items.map((item) => (
             <li
               key={item.resourceGroup}
-              className="group rounded-md border border-border bg-surface p-5 transition-colors duration-150 hover:border-border-strong hover:bg-surface-elevated"
+              className="group rounded-lg border border-border bg-surface p-5 transition-colors duration-150 hover:bg-surface-highlight hover:border-border-strong"
             >
               <div className="flex items-start justify-between gap-4">
                 <div className="min-w-0">
@@ -120,7 +114,7 @@ export default function MyDeploymentsPage() {
                     href={`https://portal.azure.com/#@/resource/subscriptions/${getPublicAzureEnv().subscriptionId}/resourceGroups/${item.resourceGroup}/overview`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex h-8 w-8 items-center justify-center rounded-full text-text-muted opacity-0 transition-all hover:bg-surface-highlight hover:text-text group-hover:opacity-100"
+                    className="flex h-8 w-8 items-center justify-center rounded-full text-text-muted opacity-0 transition-all hover:bg-surface-elevated hover:text-text group-hover:opacity-100"
                     aria-label="Open in Azure Portal"
                   >
                     <ExternalLink className="h-4 w-4" />

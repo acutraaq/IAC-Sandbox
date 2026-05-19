@@ -95,7 +95,7 @@ export function Modal({ open, onClose, title, children }: ModalProps) {
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 10 }}
             transition={{ duration: 0.15, ease: [0.22, 1, 0.36, 1] }}
-            className="relative z-10 flex max-h-[calc(100dvh-2rem)] w-full max-w-[clamp(32rem,70vw,56rem)] flex-col rounded-xl border border-border bg-surface-elevated shadow-2xl sm:max-h-[calc(100dvh-3rem)]"
+            className="relative z-10 flex max-h-[calc(100dvh-2rem)] w-full max-w-[clamp(32rem,70vw,56rem)] flex-col rounded-2xl border border-border-glow bg-surface-elevated shadow-2xl sm:max-h-[calc(100dvh-3rem)] glow-border"
           >
             <div className="flex shrink-0 items-center justify-between border-b border-border px-5 py-3 sm:px-6 sm:py-4">
               <h2 id="dialog-title" className="text-lg font-semibold text-text">{title}</h2>

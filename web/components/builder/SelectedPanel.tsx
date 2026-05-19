@@ -19,9 +19,9 @@ export function SelectedPanel({ resources, onRemove }: SelectedPanelProps) {
     >
       <div className="mb-4 flex shrink-0 items-center justify-between">
         <h2 className="flex items-center gap-2 text-sm font-semibold text-text">
-          Your Setup
+          Your Selection
           {resources.length > 0 && (
-            <span className="flex h-5 w-5 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-white">
+            <span className="flex h-5 w-5 items-center justify-center rounded-full bg-accent text-[10px] font-bold text-on-primary">
               {resources.length}
             </span>
           )}
@@ -35,9 +35,8 @@ export function SelectedPanel({ resources, onRemove }: SelectedPanelProps) {
               <PackageOpen className="h-6 w-6 text-text-faint" />
             </div>
             <p className="text-xs text-text-muted">
-              No resources added yet.
+              Nothing added yet. Pick resources from the list on the left to build your setup.
             </p>
-            <p className="text-[10px] text-text-faint">Choose from the catalog.</p>
           </div>
         ) : (
           <div className="space-y-2">

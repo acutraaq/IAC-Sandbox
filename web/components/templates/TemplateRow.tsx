@@ -1,53 +1,86 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowRight } from "lucide-react";
+import { Lock, ArrowRight } from "lucide-react";
+import { getIcon } from "@/lib/icons";
 import type { Template } from "@/types";
 
 interface TemplateRowProps {
   template: Template;
-  index: number; // 1-based, formatted as 01..16
+  index: number;
 }
 
-const categoryLabels: Record<string, string> = {
-  compute: "compute",
-  data: "data",
-  network: "network",
-  security: "security",
-  "landing-zone": "landing-zone",
-  automation: "automation",
-  integration: "integration",
+const CATEGORY_LABELS: Record<string, string> = {
+  compute:        "Web & Apps",
+  data:           "Storage & Databases",
+  network:        "Networking",
+  security:       "Security",
+  "landing-zone": "Starter Kits",
+  automation:     "Automation",
+  integration:    "Messaging",
 };
 
-export function TemplateRow({ template, index }: TemplateRowProps) {
-  const num = String(index).padStart(2, "0");
-  const cat = categoryLabels[template.category] ?? template.category;
+export function TemplateRow({ template }: TemplateRowProps) {
+  const Icon    = getIcon(template.icon);
+  const catName = CATEGORY_LABELS[template.category] ?? template.category;
+  const locked  = template.policyBlocked === true;
+
+  if (locked) {
+    return (
+      <div
+        aria-disabled="true"
+        className="flex flex-col rounded-xl border border-border bg-surface p-5 opacity-60 cursor-not-allowed select-none"
+      >
+        <div className="mb-3 flex items-start justify-between gap-2">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-surface-elevated">
+            <Lock className="h-4 w-4 text-text-faint" />
+          </div>
+          <span className="rounded-full border border-error/20 bg-error/8 px-2 py-0.5 text-[10px] font-semibold text-error">
+            Not available
+          </span>
+        </div>
+        <p className="text-sm font-semibold text-text">{template.name}</p>
+        <p className="mt-1 text-sm leading-relaxed text-text-muted">
+          {template.description}
+        </p>
+        <p className="mt-3 text-[11px] text-text-faint">
+          Not available in this environment
+        </p>
+      </div>
+    );
+  }
 
   return (
     <Link
       href={`/templates/${template.slug}`}
-      className="group grid grid-cols-[2.5rem_auto_1fr_auto] items-center gap-x-4 gap-y-1 border-b border-border px-2 py-4 transition-colors hover:bg-surface-elevated/60 sm:grid-cols-[2.5rem_14rem_1fr_8rem_2rem]"
+      className="group flex flex-col rounded-xl border border-border bg-surface p-5 transition-all duration-150 hover:border-border-strong hover:bg-surface-highlight"
     >
-      <span className="font-mono text-xs text-text-faint">{num}</span>
-
-      <span className="font-mono text-xs text-prompt">
-        {cat}/{template.slug}
-      </span>
-
-      <div className="col-span-2 sm:col-span-1">
-        <p className="text-sm font-semibold text-text">{template.name}</p>
-        <p className="mt-0.5 line-clamp-1 text-xs text-text-muted">
-          {template.description}
-        </p>
+      {/* Header row */}
+      <div className="mb-3 flex items-start justify-between gap-2">
+        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-bg border border-border">
+          <Icon className="h-4 w-4 text-accent" />
+        </div>
+        <span className="rounded-full border border-border bg-bg px-2 py-0.5 text-[10px] font-medium text-text-muted">
+          {catName}
+        </span>
       </div>
 
-      <span className="hidden text-[11px] uppercase tracking-[0.075em] font-semibold text-text-muted sm:inline">
-        {template.resourceCount} res · {template.estimatedTime}
-      </span>
+      {/* Content */}
+      <p className="text-sm font-semibold text-text">{template.name}</p>
+      <p className="mt-1.5 flex-1 text-sm leading-relaxed text-text-muted">
+        {template.description}
+      </p>
 
-      <span className="hidden justify-self-end opacity-0 transition-opacity group-hover:opacity-100 sm:inline">
-        <ArrowRight className="h-4 w-4 text-accent" />
-      </span>
+      {/* Footer */}
+      <div className="mt-4 flex items-center justify-between border-t border-border pt-3">
+        <span className="text-[11px] text-text-faint">
+          {template.resourceCount} {template.resourceCount === 1 ? "resource" : "resources"} · {template.estimatedTime}
+        </span>
+        <span className="flex items-center gap-1 text-[11px] font-medium text-accent opacity-0 transition-opacity group-hover:opacity-100">
+          Get started
+          <ArrowRight className="h-3 w-3 transition-transform group-hover:translate-x-0.5" />
+        </span>
+      </div>
     </Link>
   );
 }

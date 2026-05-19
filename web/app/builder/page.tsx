@@ -44,17 +44,16 @@ export default function BuilderPage() {
     <div className="mx-auto max-w-7xl px-6 py-8 md:px-8 md:py-12">
       <PageEyebrow path="builder" />
 
-      <h1 className="font-mono text-[clamp(1.75rem,3.5vw,2.5rem)] font-medium text-text mb-2">
-        <span className="text-text-faint"># </span>builder
+      <h1 className="font-sans text-2xl md:text-3xl font-bold text-text mb-2">
+        Custom Builder
       </h1>
       <p className="mt-2 mb-8 text-sm text-text-muted md:text-base">
-        Choose Azure resources one at a time and configure each one. Review
-        your complete setup before submitting.
+        Pick the Azure resources you need, configure each one, then review your full setup before submitting.
       </p>
 
       <div className="grid gap-8 lg:grid-cols-[1fr_300px]">
         <div>
-          <MonoSectionHeader title="available-resources" />
+          <MonoSectionHeader title="choose-your-resources" />
           <ResourceCatalog
             resources={resources as AzureResource[]}
             selectedTypes={selectedTypes}

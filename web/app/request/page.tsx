@@ -41,18 +41,14 @@ export default function RequestPage() {
 
   return (
     <PageTransition>
-      <div className="mx-auto max-w-6xl px-6 py-12">
-        <div className="mb-8 flex flex-col items-start justify-between gap-4 border-b border-border pb-6 sm:flex-row sm:items-end">
+      <div className="mx-auto max-w-7xl px-6 py-8 md:py-12">
+        <div className="mb-8 flex flex-col items-start justify-between gap-4 border-b border-border pb-4 sm:flex-row sm:items-end">
           <div className="flex flex-col">
-            <span className="mb-2 text-[10px] font-semibold uppercase tracking-widest text-text-muted">
-              Custom Setup Request
-            </span>
-            <h1 className="font-sans text-3xl font-extrabold tracking-tight text-text">
+            <h1 className="font-sans text-2xl font-bold text-text">
               Request a Custom Setup
             </h1>
             <p className="mt-2 text-sm text-text-muted">
-              Select the resources you need. We will review your request and
-              provision them after HOD approval.
+              Select what you need. Our team will review and set everything up after HOD approval — no cloud expertise required.
             </p>
           </div>
         </div>

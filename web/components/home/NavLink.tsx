@@ -4,10 +4,12 @@ import Link from "next/link";
 import { useDeploymentStore } from "@/store/deploymentStore";
 import { Button } from "@/components/ui/Button";
 
+import type { ButtonVariant } from "@/lib/button-classes";
+
 interface NavLinkProps {
   href: string;
   mode: "template" | "custom" | "custom-request";
-  variant?: "primary" | "secondary" | "ghost";
+  variant?: ButtonVariant;
   size?: "sm" | "md" | "lg";
   children: React.ReactNode;
 }
