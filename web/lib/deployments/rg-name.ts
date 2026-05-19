@@ -14,7 +14,7 @@ export const SLUG_PRIMARY_FIELD: Record<string, string> = {
   "virtual-network":    "vnetName",
   "key-vault":          "vaultName",
   "container-app":      "appName",
-  "landing-zone":       "projectName",
+  "landing-zone":       "namingPrefix",
   "approval-workflow":  "workflowName",
   "scheduled-automation": "workflowName",
   "message-queue":      "namespaceName",
