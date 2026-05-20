@@ -1,5 +1,5 @@
 ---
-description: Design tokens, color values, typography, and component rules for IAC Sandbox frontend. Matches DESIGN.md exactly.
+description: Design tokens, color values, typography, and component rules for IAC Sandbox frontend. Updated for rig.ai-inspired aesthetic with brighter, readable tokens.
 globs: web/**
 ---
 
@@ -7,62 +7,76 @@ globs: web/**
 
 ## Overview
 
-Internal tool for non-technical EPF staff provisioning Azure infrastructure. Aesthetic: "The Structured Guide."
+Internal tool for non-technical EPF staff provisioning Azure infrastructure. Aesthetic: "The Structured Guide" — rig.ai-inspired.
 
 Key characteristics:
 - Tonal depth over shadow hierarchy: three surface layers (Foundation, Surface, Elevated), no card shadows
 - Pill-shaped interactive affordances: buttons and badges use `rounded-full`; containers use `rounded-md` or `rounded-xl`
-- IBM Plex Mono reserved exclusively for machine-generated strings (IDs, resource names, proof text)
+- IBM Plex Mono reserved exclusively for machine-generated strings (IDs, resource names, proof text) and chrome elements (eyebrows, section headers)
 - Staggered fade-up animations on page entry; state transitions only on components
 - Subtle grid background pattern reinforces infrastructure / technical register
+- Brighter, readable dark navy palette (not OLED near-black) for comfortable reading
 
 ## Colors
 
 ### Primary
 | Name | Hex | Usage |
 |------|-----|-------|
-| Clarity Blue | `#2b7fd4` | Primary action color: active nav underline, avatar background, primary interactive signals |
-| Clarity Blue Hover | `#3a8ee3` | Hover state for Clarity Blue elements, 150ms ease-out |
-| Sky Accent | `#4a9be0` | Links, logo, focus rings, interactive highlights |
-| Sky Accent Hover | `#5aaef0` | Hover state for Sky Accent elements, 150ms ease-out |
+| Electric Cyan | `#0BBDE8` | Primary action color: active nav underline, primary interactive signals |
+| Electric Cyan Hover | `#14D0FF` | Hover state for Electric Cyan elements, 150ms ease-out |
 
 ### Neutral
 | Name | Hex | Usage |
 |------|-----|-------|
-| Azure Foundation | `#22324a` | Page background |
-| Azure Surface | `#2c4262` | Card backgrounds, navbar fill, mobile menu |
-| Azure Elevated | `#375577` | Modals, popovers, ghost/secondary button hover background |
-| Frost Text | `#e0eaf8` | All primary readable content |
-| Muted Text | `rgba(175, 210, 245, 0.82)` | Secondary labels, placeholders, nav links at rest |
-| Faint Text | `rgba(140, 180, 230, 0.45)` | Tertiary / disabled text |
+| Navy Foundation | `#0C1525` | Page background |
+| Navy Deep | `#080E1A` | Section bands (problem, comparison, terminal) |
+| Navy Surface | `#141E2E` | Card backgrounds, navbar, content containers |
+| Navy Elevated | `#1C2739` | Modals, popovers, hover states |
+| Navy Highlight | `#182232` | Skeleton states, subtle highlights |
+| Ice Text | `#F0F7FF` | All primary readable content |
+| Muted Text | `rgba(180,210,235,0.78)` | Secondary labels, placeholders, nav links at rest |
+| Faint Text | `rgba(120,170,210,0.40)` | Tertiary / disabled text |
+
+### Borders
+| Name | Value | Usage |
+|------|-------|-------|
+| Border | `rgba(12,200,240,0.10)` | Default card/list borders |
+| Border Strong | `rgba(12,200,240,0.22)` | Hover/active borders |
+| Border Glow | `rgba(12,200,240,0.45)` | Elevated borders, premium cards |
 
 ### Semantic
 | Name | Hex | Usage |
 |------|-----|-------|
-| Error Red | `#ef4444` | Validation errors, failed deployment states |
-| Success Green | `#22c55e` | Confirmed deployments, success toasts |
-| Warning Amber | `#f59e0b` | Policy notices, expiry date warnings |
+| Error Red | `#FF7A7A` | Validation errors, failed deployment states |
+| Success Green | `#4ADE80` | Confirmed deployments, success toasts |
+| Warning Amber | `#FBBF24` | Policy notices, expiry date warnings |
 
 ### CSS Token Mapping
 | CSS Variable | Value | Usage |
 |--------------|-------|-------|
-| `--color-bg` | `#22324a` | Page background |
-| `--color-surface` | `#2c4262` | Card backgrounds, navbar |
-| `--color-surface-elevated` | `#375577` | Modals, popovers, hover states |
-| `--color-border` | `rgba(44, 127, 212, 0.25)` | Default borders |
-| `--color-border-strong` | `rgba(74, 155, 224, 0.40)` | Hover/active borders |
-| `--color-text` | `#e0eaf8` | Primary text |
-| `--color-text-muted` | `rgba(175, 210, 245, 0.82)` | Secondary text |
-| `--color-text-faint` | `rgba(140, 180, 230, 0.45)` | Tertiary text |
-| `--color-primary` | `#4a9be0` | Buttons, active states |
-| `--color-primary-hover` | `#5aaef0` | Primary hover |
-| `--color-accent` | `#4a9be0` | Links, highlights |
-| `--color-accent-hover` | `#5aaef0` | Accent hover |
-| `--color-error` | `#ef4444` | Errors |
-| `--color-success` | `#22c55e` | Success |
-| `--color-warning` | `#f59e0b` | Warnings |
-| `--color-prompt` | `#5aaef0` | Terminal-style prompt glyphs (`~/`, `$`) |
-| `--color-comment` | `rgba(175, 210, 245, 0.50)` | Mono comment prefix color (`#`) |
+| `--color-bg` | `#0C1525` | Page background |
+| `--color-bg-deep` | `#080E1A` | Dark section bands |
+| `--color-surface` | `#141E2E` | Card backgrounds, navbar |
+| `--color-surface-elevated` | `#1C2739` | Modals, popovers, hover states |
+| `--color-surface-highlight` | `#182232` | Skeleton/loading states |
+| `--color-border` | `rgba(12,200,240,0.10)` | Default borders |
+| `--color-border-strong` | `rgba(12,200,240,0.22)` | Hover/active borders |
+| `--color-border-glow` | `rgba(12,200,240,0.45)` | Premium/glow borders |
+| `--color-text` | `#F0F7FF` | Primary text |
+| `--color-text-muted` | `rgba(180,210,235,0.78)` | Secondary text |
+| `--color-text-faint` | `rgba(120,170,210,0.40)` | Tertiary text |
+| `--color-primary` | `#0BBDE8` | Buttons, active states |
+| `--color-primary-hover` | `#14D0FF` | Primary hover |
+| `--color-accent` | `#0BBDE8` | Links, highlights |
+| `--color-accent-hover` | `#14D0FF` | Accent hover |
+| `--color-accent-glow` | `rgba(11,189,232,0.20)` | Glow backgrounds |
+| `--color-coral` | `#7E70EE` | Headline accent (indigo) |
+| `--color-coral-hover` | `#9A8CFF` | Coral hover |
+| `--color-error` | `#FF7A7A` | Errors |
+| `--color-success` | `#4ADE80` | Success |
+| `--color-warning` | `#FBBF24` | Warnings |
+| `--color-prompt` | `#00DFFF` | Terminal-style prompt glyphs (`~/`, `$`) |
+| `--color-comment` | `rgba(11,189,232,0.50)` | Mono comment prefix color (`#`) |
 
 ## Typography
 
@@ -86,6 +100,7 @@ Key characteristics:
 | `rounded-md` | `6px` | Cards, inputs, pre blocks |
 | `rounded-lg` | `8px` | Larger containers |
 | `rounded-xl` | `12px` | Modals, toasts |
+| `rounded-2xl` | `16px` | CTA sections, premium cards |
 | `rounded-full` | `9999px` | Buttons, badges exclusively |
 
 ## Spacing
@@ -102,9 +117,9 @@ Key characteristics:
 ## Elevation
 
 Three tonal layers only:
-1. **Foundation** — `--color-bg` (#22324a) — page background
-2. **Surface** — `--color-surface` (#2c4262) — cards, navbar, content containers
-3. **Elevated** — `--color-surface-elevated` (#375577) — modals, popovers, hover states
+1. **Foundation** — `--color-bg` (#0C1525) — page background
+2. **Surface** — `--color-surface` (#141E2E) — cards, navbar, content containers
+3. **Elevated** — `--color-surface-elevated` (#1C2739) — modals, popovers, hover states
 
 ### Shadows (floating UI only)
 | Token | Value | Usage |
@@ -115,50 +130,54 @@ Three tonal layers only:
 ## Components
 
 ### Buttons
-Pill shape (`rounded-full`). Three variants:
-- **Primary:** Sky Accent fill (`#4a9be0`), white text, 44px height, 24px horizontal padding. Hover: Sky Accent Hover (`#5aaef0`).
-- **Secondary:** Transparent fill, Frost Text, `1px solid rgba(44, 127, 212, 0.25)` border. Hover: Azure Elevated background.
-- **Ghost:** Transparent fill, Muted Text at rest, Frost Text on hover, Azure Elevated background on hover.
-- Focus: 2px Sky Accent outline, 2px offset. Disabled: 50% opacity.
+Pill shape (`rounded-full`). Four variants:
+- **Primary:** Electric Cyan fill (`#0BBDE8`), white text, 44px height, 24px horizontal padding. Hover: `#14D0FF`.
+- **Secondary:** Transparent fill, Frost Text, `1px solid rgba(12,200,240,0.10)` border. Hover: Navy Elevated background.
+- **Ghost:** Transparent fill, Muted Text at rest, Text on hover, Elevated background on hover.
+- **Outline-Glow:** Transparent fill, Cyan text, Cyan glow border. Hover: Cyan at ~10% background.
+- Focus: 2px Electric Cyan outline, 2px offset. Disabled: 50% opacity.
 
 ### Badges
 Pill shape (`rounded-full`), 12px font, 500 weight. Semantic colors at 15% opacity background with full-opacity text. No solid-fill badges.
 
 ### Cards
-- `rounded-md` (6px), Azure Surface background, `1px solid rgba(44, 127, 212, 0.25)` border, 24px padding.
-- Hoverable: border transitions to `rgba(74, 155, 224, 0.25)`, background to Azure Elevated, 150ms ease-out.
+- `rounded-xl` (12px) or `rounded-2xl` (16px), Navy Surface background, `1px solid rgba(12,200,240,0.10)` border, 24-32px padding.
+- Hoverable: border transitions to `rgba(12,200,240,0.22)`, background to Navy Elevated, 150ms ease-out.
+- Optional `glow-border-hover` for premium card elevation.
 - **No shadows.**
 
 ### Inputs / Fields
-- Transparent or surface-tinted background, `1px solid rgba(44, 127, 212, 0.25)` border, 6-8px radius.
-- Focus: border brightens to Sky Accent, 2px outline ring at 2px offset.
+- Transparent or surface-tinted background, `1px solid rgba(12,200,240,0.10)` border, 6-8px radius.
+- Focus: border brightens to Electric Cyan, 2px outline ring at 2px offset.
 - Error: Error Red border + Error Red message below.
 
 ### Navigation
-- Fixed top bar, 64px height, Azure Surface background, `1px solid rgba(44, 127, 212, 0.25)` bottom border.
-- On scroll (> 4px): structural `backdrop-blur-md`, Surface at 90% opacity.
-- Active link: Frost Text, 2px Clarity Blue underline at `bottom: -2px`, Framer Motion `layoutId`.
-- Inactive links: Muted Text at rest, Frost Text on hover.
+- Fixed top bar, 64px height, transparent → glassmorphism on scroll.
+- On scroll (> 4px): `bg-surface-glass/80 backdrop-blur-xl border-b border-border/50`.
+- Active link: Frost Text, 2px Electric Cyan underline with glow.
+- Inactive links: Muted Text at rest, Text on hover.
 
 ### Modals
-- `rounded-xl` (12px), Azure Elevated background, `shadow-2xl`, `1px solid rgba(44, 127, 212, 0.25)` border.
+- `rounded-2xl` (16px), Navy Elevated background, `shadow-2xl`, `1px solid rgba(12,200,240,0.45)` border.
 - Backdrop: `rgba(0, 0, 0, 0.6)`.
-- Header: 48-56px, `1px solid rgba(44, 127, 212, 0.25)` bottom border.
+- Header: 48-56px, `1px solid rgba(12,200,240,0.10)` bottom border.
 
 ### Toasts
-- `rounded-xl` (12px), `shadow-lg`, Azure Elevated background, bottom-right, 24px from viewport edges.
+- `rounded-xl` (12px), `shadow-lg`, Navy Elevated background, bottom-right, 24px from viewport edges.
 
 ## Do's and Don'ts
 
 ### Do:
 - Use tonal layering (Foundation → Surface → Elevated) for depth.
 - Use `rounded-full` exclusively for buttons and badges.
-- Use IBM Plex Mono for machine-generated strings only.
+- Use IBM Plex Mono for machine-generated strings and chrome only.
 - Write Label-level text in uppercase with 0.075em tracking for taxonomy.
 - Keep body copy under 65 characters per line.
 - Use semantic badge colors (success, warning, error) at 15% opacity background.
 - Animate with ease-out exponential curves (`cubic-bezier(0.22, 1, 0.36, 1)`). State transitions: 150ms. Page entry: 420ms.
 - Scope shadows to modals (`shadow-2xl`) and toasts (`shadow-lg`) only.
+- Use brighter Navy (#0C1525) over near-black (#060A12) for comfortable reading.
+- Ensure borders are visible enough to distinguish card edges from backgrounds.
 
 ### Don't:
 - Use gradient text (`background-clip: text`). All text is single solid color.
@@ -167,7 +186,7 @@ Pill shape (`rounded-full`), 12px font, 500 weight. Semantic colors at 15% opaci
 - Invent a fourth surface layer. Foundation, Surface, Elevated are complete.
 - Apply box-shadows to cards, section containers, or nav elements.
 - Use sharp corners or fully square buttons — pill shape is the affordance signal.
-- Use IBM Plex Mono for UI copy, headings, or labels.
+- Use IBM Plex Mono for UI copy, headings, or labels (except chrome).
 - Use flashy SaaS patterns: gradient fills, hero metrics, decorative animation.
 - Use neon accents, cyberpunk aesthetics, or glowing dark-mode treatments.
 - Build identical card grids (same icon + heading + body text repeated endlessly).
@@ -181,5 +200,6 @@ The Mono Boundary Rule (IBM Plex Mono = machine-generated strings only) is widen
 - Section headers prefixed with `##` (e.g., `## popular-templates`)
 - Navbar wordmark (`~/sandbox`)
 - Footer single-line meta
+- Numbered labels (`01`, `02`, etc.) in FAQ and problem blocks
 
 Body copy, button labels, form labels, error messages, and toast text remain IBM Plex Sans. This exception is intentional and bounded — do not extend mono further without revising this section.
