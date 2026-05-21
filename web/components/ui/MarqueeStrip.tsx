@@ -1,5 +1,6 @@
 "use client";
 
+import { useMemo } from "react";
 import { cn } from "@/lib/utils";
 
 interface MarqueeStripProps {
@@ -15,7 +16,7 @@ export function MarqueeStrip({
   pauseOnHover = true,
   className,
 }: MarqueeStripProps) {
-  const doubled = [...items, ...items];
+  const doubled = useMemo(() => [...items, ...items], [items]);
 
   return (
     <div
@@ -30,7 +31,8 @@ export function MarqueeStrip({
       <div
         className={cn(
           "flex w-max items-center gap-8",
-          pauseOnHover && "hover:[animation-play-state:paused]"
+          pauseOnHover && "hover:[animation-play-state:paused]",
+          "motion-reduce:[animation-play-state:paused]"
         )}
         style={{
           animation: `marquee-scroll ${speed}s linear infinite`,
@@ -39,6 +41,7 @@ export function MarqueeStrip({
         {doubled.map((item, i) => (
           <span
             key={`${item}-${i}`}
+            aria-hidden={i >= items.length ? "true" : undefined}
             className="flex shrink-0 items-center gap-2 whitespace-nowrap font-mono text-xs uppercase tracking-[0.1em] text-text-muted"
           >
             <span

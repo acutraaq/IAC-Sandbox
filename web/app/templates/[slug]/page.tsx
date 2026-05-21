@@ -4,6 +4,7 @@ import type { Template } from "@/types";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { Breadcrumb } from "@/components/layout/Breadcrumb";
+import { PageEyebrow } from "@/components/layout/PageEyebrow";
 
 interface Props {
   params: Promise<{ slug: string }>;
@@ -38,7 +39,8 @@ export default async function TemplatePage({ params }: Props) {
   }
 
   return (
-    <div className="mx-auto max-w-5xl px-6 py-12 md:py-16">
+    <div className="mx-auto max-w-5xl px-6 md:px-8 py-12 md:py-16">
+      <PageEyebrow path={`templates/${template.slug}`} />
       <Breadcrumb
         items={[
           { label: "Home", href: "/" },

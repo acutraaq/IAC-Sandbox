@@ -19,10 +19,13 @@ import {
   Zap,
   MessageSquare,
   Radio,
+  GitBranch,
+  Clock,
+  ArrowLeftRight,
   type LucideIcon,
 } from "lucide-react";
 
-const iconMap: Record<string, LucideIcon> = {
+const iconMap = {
   Globe,
   Monitor,
   Database,
@@ -43,8 +46,14 @@ const iconMap: Record<string, LucideIcon> = {
   Zap,
   MessageSquare,
   Radio,
-};
+  GitBranch,
+  Clock,
+  ArrowLeftRight,
+} as const;
+
+/** Valid icon name keys exported for type-safe usage. */
+export type IconName = keyof typeof iconMap;
 
 export function getIcon(name: string): LucideIcon {
-  return iconMap[name] ?? Cloud;
+  return iconMap[name as IconName] ?? Cloud;
 }

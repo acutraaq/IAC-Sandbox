@@ -5,6 +5,7 @@ import { ResourceCatalog } from "@/components/builder/ResourceCatalog";
 import { ResourceDrawer } from "@/components/builder/ResourceDrawer";
 import { RequestDocument } from "@/components/request/RequestDocument";
 import { Breadcrumb } from "@/components/layout/Breadcrumb";
+import { PageEyebrow } from "@/components/layout/PageEyebrow";
 import { PageTransition } from "@/components/layout/PageTransition";
 import { Button } from "@/components/ui/Button";
 import { useDeploymentStore } from "@/store/deploymentStore";
@@ -41,7 +42,8 @@ export default function RequestPage() {
 
   return (
     <PageTransition>
-      <div className="mx-auto max-w-7xl px-6 py-8 md:py-12">
+      <div className="mx-auto max-w-7xl px-6 py-8 md:px-8 md:py-12">
+        <PageEyebrow path="request" />
         <div className="mb-8 flex flex-col items-start justify-between gap-4 border-b border-border pb-4 sm:flex-row sm:items-end">
           <div className="flex flex-col">
             <h1 className="font-sans text-2xl font-bold text-text">

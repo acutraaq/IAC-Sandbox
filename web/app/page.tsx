@@ -215,7 +215,7 @@ export default function Home() {
             <motion.span
               variants={fadeUpVariant}
               transition={easeOutTransition}
-              className="inline-flex items-center gap-2 rounded-full border border-accent/15 bg-accent/5 px-3 py-1 text-[11px] font-semibold tracking-wide text-accent"
+              className="inline-flex items-center gap-2 rounded-full border border-accent/15 bg-accent/5 px-3 py-1 text-xs font-semibold tracking-wide text-accent"
             >
               <span
                 aria-hidden="true"
@@ -579,7 +579,7 @@ export default function Home() {
                     key={meta.label}
                     className="rounded-lg border border-border bg-surface p-4"
                   >
-                    <p className="text-[10px] uppercase tracking-wider text-text-faint">
+                    <p className="text-xs uppercase tracking-wider text-text-faint">
                       {meta.label}
                     </p>
                     <p className="mt-1 text-sm font-semibold text-text">

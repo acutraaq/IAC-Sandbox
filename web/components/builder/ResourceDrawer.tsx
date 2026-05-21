@@ -8,6 +8,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { buildSchema } from "@/lib/schema";
 import { DynamicIcon } from "@/components/ui/DynamicIcon";
 import { Button } from "@/components/ui/Button";
+import { acquireInert, releaseInert } from "@/lib/modal-inert";
 import type { AzureResource, SelectedResource } from "@/types";
 
 interface ResourceDrawerProps {
@@ -64,6 +65,7 @@ export function ResourceDrawer({
       previousFocusRef.current = document.activeElement as HTMLElement;
       document.addEventListener("keydown", handleKeyDown);
       document.body.style.overflow = "hidden";
+      acquireInert();
       requestAnimationFrame(() => {
         const firstInput = drawerRef.current?.querySelector<HTMLElement>(
           "input, select, button",
@@ -76,6 +78,9 @@ export function ResourceDrawer({
     return () => {
       document.removeEventListener("keydown", handleKeyDown);
       document.body.style.overflow = "";
+      if (isOpen) {
+        releaseInert();
+      }
     };
   }, [isOpen, handleKeyDown]);
 

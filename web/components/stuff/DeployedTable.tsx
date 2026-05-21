@@ -98,7 +98,7 @@ export function DeployedTable() {
               <td className="px-6 py-4 text-text">{item.project}</td>
               <td className="px-6 py-4 font-mono text-xs">{item.ticket}</td>
               <td className="px-6 py-4 text-right">
-                <span className="inline-flex items-center justify-center rounded border border-success/20 bg-success/10 px-2 py-1 text-[10px] font-bold uppercase tracking-widest text-success">
+                <span className="inline-flex items-center justify-center rounded border border-success/20 bg-success/10 px-2 py-1 text-xs font-bold uppercase tracking-widest text-success">
                   {item.status}
                 </span>
               </td>

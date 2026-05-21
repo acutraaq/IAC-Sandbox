@@ -72,7 +72,7 @@ export function ConfirmModal({
         >
           <pre
             id="proof-text"
-            className="max-h-48 overflow-auto rounded-md border border-border bg-bg p-3 font-mono text-[11px] leading-relaxed text-text sm:max-h-64 sm:p-4 sm:text-xs"
+            className="max-h-48 overflow-auto rounded-md border border-border bg-bg p-3 font-mono text-xs leading-relaxed text-text sm:max-h-64 sm:p-4"
           >
             {proofText}
           </pre>
@@ -97,7 +97,7 @@ export function ConfirmModal({
               {copied ? (
                 <>
                   <Check className="h-4 w-4 text-success" />
-                  Copied!
+                  <span aria-live="polite">Copied!</span>
                 </>
               ) : (
                 <>

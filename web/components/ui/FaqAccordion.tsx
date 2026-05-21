@@ -26,13 +26,17 @@ export function FaqAccordion({ items, className }: FaqAccordionProps) {
       {items.map((item, i) => {
         const num = String(i + 1).padStart(2, "0");
         const isOpen = openIdx === i;
+        const panelId = `faq-panel-${i}`;
+        const buttonId = `faq-btn-${i}`;
 
         return (
           <div key={i} className="py-7">
             <button
+              id={buttonId}
               onClick={() => toggle(i)}
               className="flex w-full items-baseline gap-3 text-left"
               aria-expanded={isOpen}
+              aria-controls={panelId}
             >
               <span
                 className="shrink-0 font-mono text-sm font-medium text-text-faint"
@@ -48,6 +52,9 @@ export function FaqAccordion({ items, className }: FaqAccordionProps) {
             <AnimatePresence initial={false}>
               {isOpen && (
                 <motion.div
+                  id={panelId}
+                  role="region"
+                  aria-labelledby={buttonId}
                   initial={{ height: 0, opacity: 0 }}
                   animate={{ height: "auto", opacity: 1 }}
                   exit={{ height: 0, opacity: 0 }}

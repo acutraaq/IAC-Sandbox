@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { listMyDeployments, ApiError } from "@/lib/api";
 import { PageEyebrow } from "@/components/layout/PageEyebrow";
+import { PageTransition } from "@/components/layout/PageTransition";
 import { getPublicAzureEnv } from "@/lib/env-public";
 import { ExternalLink } from "lucide-react";
 import type { MyDeploymentItem } from "@/types";
@@ -20,14 +21,14 @@ function statusClass(status: MyDeploymentItem["status"]): string {
   }
 }
 
-function SkeletonCard() {
-  return (
-    <div
-      data-testid="skeleton-row"
-      className="h-24 rounded-md bg-surface animate-pulse motion-reduce:animate-none"
-    />
-  );
-}
+  function SkeletonCard() {
+    return (
+      <div
+        data-testid="skeleton-row"
+        className="h-24 rounded-lg bg-surface animate-pulse motion-reduce:animate-none"
+      />
+    );
+  }
 
 export default function MyDeploymentsPage() {
   const [items, setItems] = useState<MyDeploymentItem[]>([]);
@@ -46,7 +47,8 @@ export default function MyDeploymentsPage() {
   }, []);
 
   return (
-    <div className="mx-auto max-w-[clamp(48rem,80vw,80rem)] px-6 py-8 md:px-8 md:py-12">
+    <PageTransition>
+      <div className="mx-auto max-w-[clamp(48rem,80vw,80rem)] px-6 py-8 md:px-8 md:py-12">
       <PageEyebrow path="my-stuff" />
 
       <h1 className="font-mono text-[clamp(1.75rem,3.5vw,2.5rem)] font-medium text-text">
@@ -149,5 +151,6 @@ export default function MyDeploymentsPage() {
         </ul>
       )}
     </div>
+    </PageTransition>
   );
 }

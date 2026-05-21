@@ -1,6 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
+import { reducedMotionEnabled } from "@/lib/motion";
 
 const CODE_FRAGMENTS = [
   '{ "type": "Microsoft.Web/sites", "name": "sandbox-api" }',
@@ -61,7 +62,7 @@ export function AmbientBackground() {
         fill="none"
         stroke="rgba(90,65,30,0.18)"
         strokeWidth="1"
-        animate={{ opacity: [0.5, 0.85, 0.5] }}
+        animate={reducedMotionEnabled ? undefined : { opacity: [0.5, 0.85, 0.5] }}
         transition={{ duration: 9, repeat: Infinity, ease: "easeInOut" }}
       >
         <path d="M0 24 L0 0 L24 0" />
@@ -76,7 +77,7 @@ export function AmbientBackground() {
         fill="none"
         stroke="rgba(90,65,30,0.18)"
         strokeWidth="1"
-        animate={{ opacity: [0.45, 0.8, 0.45] }}
+        animate={reducedMotionEnabled ? undefined : { opacity: [0.45, 0.8, 0.45] }}
         transition={{ duration: 11, repeat: Infinity, ease: "easeInOut", delay: 2 }}
       >
         <path d="M0 24 L0 0 L24 0" />
@@ -93,20 +94,24 @@ export function AmbientBackground() {
           return (
             <motion.div
               key={i}
-              className="absolute whitespace-nowrap select-none font-mono text-[11px] leading-[28px]"
+              className="absolute whitespace-nowrap select-none font-mono text-xs leading-[28px]"
               style={{
                 top: `${row * 2.5}%`,
                 left: `${col * 8}%`,
                 color: "rgba(90,65,30,0.25)",
               }}
-              animate={{
-                y: [0, -4, 0],
-                opacity: [
-                  0.04 + (i % 3) * 0.01,
-                  0.08 + (i % 3) * 0.01,
-                  0.04 + (i % 3) * 0.01,
-                ],
-              }}
+              animate={
+                reducedMotionEnabled
+                  ? undefined
+                  : {
+                      y: [0, -4, 0],
+                      opacity: [
+                        0.04 + (i % 3) * 0.01,
+                        0.08 + (i % 3) * 0.01,
+                        0.04 + (i % 3) * 0.01,
+                      ],
+                    }
+              }
               transition={{
                 duration: 5 + (i % 4),
                 repeat: Infinity,

@@ -52,7 +52,14 @@ export function ComparisonBar({
             <span className="text-xs tabular-nums text-text-faint">{leftMeta}</span>
           )}
         </div>
-        <div className="relative h-2.5 w-full overflow-hidden rounded-full bg-surface-elevated">
+        <div
+          className="relative h-2.5 w-full overflow-hidden rounded-full bg-surface-elevated"
+          role="progressbar"
+          aria-valuemin={0}
+          aria-valuemax={100}
+          aria-valuenow={Math.round(leftPct * 100)}
+          aria-label={`${leftLabel}: ${leftValue}%`}
+        >
           <motion.div
             className="absolute inset-y-0 left-0 origin-left rounded-full"
             style={{ width: `${leftPct * 100}%`, backgroundColor: "var(--color-text-faint)" }}
@@ -73,7 +80,7 @@ export function ComparisonBar({
             )}
             {improvement && (
               <motion.span
-                className="rounded-full px-2 py-0.5 text-[10px] font-semibold"
+                className="rounded-full px-2 py-0.5 text-xs font-semibold"
                 style={{
                   backgroundColor: "var(--color-accent-glow)",
                   color: "var(--color-accent)",
@@ -87,7 +94,14 @@ export function ComparisonBar({
             )}
           </div>
         </div>
-        <div className="relative h-2.5 w-full overflow-hidden rounded-full bg-surface-elevated">
+        <div
+          className="relative h-2.5 w-full overflow-hidden rounded-full bg-surface-elevated"
+          role="progressbar"
+          aria-valuemin={0}
+          aria-valuemax={100}
+          aria-valuenow={Math.round(rightPct * 100)}
+          aria-label={`${rightLabel}: ${rightValue}%`}
+        >
           <motion.div
             className="absolute inset-y-0 left-0 origin-left rounded-full"
             style={{ width: `${rightPct * 100}%`, backgroundColor: "var(--color-accent)" }}

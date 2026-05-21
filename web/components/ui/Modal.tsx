@@ -4,6 +4,7 @@ import { useEffect, useRef, useCallback, useSyncExternalStore } from "react";
 import { createPortal } from "react-dom";
 import { X } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
+import { acquireInert, releaseInert } from "@/lib/modal-inert";
 
 const subscribe = () => () => {};
 const getMounted = () => true;
@@ -54,6 +55,7 @@ export function Modal({ open, onClose, title, children }: ModalProps) {
       previousFocusRef.current = document.activeElement as HTMLElement;
       document.addEventListener("keydown", handleKeyDown);
       document.body.style.overflow = "hidden";
+      acquireInert();
 
       requestAnimationFrame(() => {
         const firstFocusable = dialogRef.current?.querySelector<HTMLElement>(
@@ -68,6 +70,7 @@ export function Modal({ open, onClose, title, children }: ModalProps) {
       document.body.style.overflow = "";
       if (open) {
         previousFocusRef.current?.focus();
+        releaseInert();
       }
     };
   }, [open, handleKeyDown]);

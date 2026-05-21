@@ -8,13 +8,21 @@ interface StatusIndicatorProps {
   size?: "sm" | "md";
 }
 
+const statusLabelMap: Record<string, string> = {
+  succeeded: "Succeeded",
+  failed: "Failed",
+  running: "Deploying",
+  queued: "Queued",
+  accepted: "Submitted",
+};
+
 export function StatusIndicator({ status, size = "sm" }: StatusIndicatorProps) {
   const dim = size === "md" ? "h-4 w-4" : "h-2.5 w-2.5";
 
   switch (status) {
     case "succeeded":
       return (
-        <div className={`relative ${dim}`}>
+        <div className={`relative ${dim}`} aria-label={statusLabelMap[status]} role="img">
           <svg viewBox="0 0 16 16" fill="none" className="h-full w-full">
             <circle cx="8" cy="8" r="7" className="fill-success/15" />
             <motion.path
@@ -39,6 +47,8 @@ export function StatusIndicator({ status, size = "sm" }: StatusIndicatorProps) {
           initial={{ scale: 0.5, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           transition={{ type: "spring", stiffness: 400, damping: 18 }}
+          aria-label={statusLabelMap[status]}
+          role="img"
         >
           <svg viewBox="0 0 16 16" fill="none" className="h-full w-full p-0.5">
             <motion.path
@@ -57,7 +67,7 @@ export function StatusIndicator({ status, size = "sm" }: StatusIndicatorProps) {
 
     case "running":
       return (
-        <div className={`relative ${dim}`}>
+        <div className={`relative ${dim}`} aria-label={statusLabelMap[status]} role="img">
           <svg viewBox="0 0 16 16" fill="none" className="h-full w-full animate-spin motion-reduce:animate-none">
             <circle cx="8" cy="8" r="7" className="stroke-accent/15" strokeWidth="1.5" />
             <path
@@ -72,16 +82,24 @@ export function StatusIndicator({ status, size = "sm" }: StatusIndicatorProps) {
 
     default: // queued / accepted
       return (
-        <div className={`relative ${dim}`}>
+        <div className={`relative ${dim}`} aria-label={statusLabelMap[status] ?? status} role="img">
           <motion.div
             className="h-full w-full rounded-full bg-warning/20"
-            animate={{ scale: [1, 1.3, 1], opacity: [0.6, 1, 0.6] }}
+            animate={
+              globalThis.window?.matchMedia?.("(prefers-reduced-motion: reduce)").matches
+                ? undefined
+                : { scale: [1, 1.3, 1], opacity: [0.6, 1, 0.6] }
+            }
             transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
           />
           <motion.div
             className="absolute inset-0 m-auto rounded-full bg-warning"
             style={{ width: "40%", height: "40%" }}
-            animate={{ scale: [0.8, 1, 0.8], opacity: [0.5, 1, 0.5] }}
+            animate={
+              globalThis.window?.matchMedia?.("(prefers-reduced-motion: reduce)").matches
+                ? undefined
+                : { scale: [0.8, 1, 0.8], opacity: [0.5, 1, 0.5] }
+            }
             transition={{ duration: 2, repeat: Infinity, ease: "easeInOut", delay: 0.3 }}
           />
         </div>

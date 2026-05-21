@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { CheckCircle, XCircle, AlertTriangle, X } from "lucide-react";
 
@@ -70,17 +70,27 @@ function ToastItem({
   toast: ToastMessage;
   onDismiss: (id: string) => void;
 }) {
+  const [hovered, setHovered] = useState(false);
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
   useEffect(() => {
-    const timer = setTimeout(() => onDismiss(t.id), 5000);
-    return () => clearTimeout(timer);
-  }, [t.id, onDismiss]);
+    if (!hovered) {
+      timerRef.current = setTimeout(() => onDismiss(t.id), 5000);
+    }
+    return () => {
+      if (timerRef.current) clearTimeout(timerRef.current);
+    };
+  }, [t.id, onDismiss, hovered]);
 
   return (
     <motion.div
       initial={{ opacity: 0, x: 40 }}
       animate={{ opacity: 1, x: 0 }}
       exit={{ opacity: 0, x: 40 }}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
       className={`flex items-center gap-3 rounded-xl border ${borderClasses[t.type]} bg-surface-elevated px-4 py-3 shadow-lg`}
+      role={t.type === "error" ? "alert" : "status"}
     >
       {icons[t.type]}
       <span className="text-sm font-medium text-text">{t.message}</span>

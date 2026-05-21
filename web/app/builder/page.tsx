@@ -5,6 +5,7 @@ import { ResourceCatalog } from "@/components/builder/ResourceCatalog";
 import { ResourceDrawer } from "@/components/builder/ResourceDrawer";
 import { SelectedPanel } from "@/components/builder/SelectedPanel";
 import { PageEyebrow } from "@/components/layout/PageEyebrow";
+import { PageTransition } from "@/components/layout/PageTransition";
 import { MonoSectionHeader } from "@/components/ui/MonoSectionHeader";
 import { useDeploymentStore } from "@/store/deploymentStore";
 import resources from "@/data/resources.json";
@@ -41,7 +42,8 @@ export default function BuilderPage() {
   }
 
   return (
-    <div className="mx-auto max-w-7xl px-6 py-8 md:px-8 md:py-12">
+    <PageTransition>
+      <div className="mx-auto max-w-7xl px-6 py-8 md:px-8 md:py-12">
       <PageEyebrow path="builder" />
 
       <h1 className="font-sans text-2xl md:text-3xl font-bold text-text mb-2">
@@ -74,5 +76,6 @@ export default function BuilderPage() {
         onAdd={handleAdd}
       />
     </div>
+    </PageTransition>
   );
 }

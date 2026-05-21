@@ -19,7 +19,7 @@ export function Footer() {
             <span className="font-mono text-sm font-medium text-text">
               <span className="text-prompt">~/</span>sandbox
             </span>
-            <p className="font-mono text-[11px] text-text-faint">
+            <p className="font-mono text-xs text-text-faint">
               v1.0.0 · sub-epf-sandbox-internal · southeastasia
             </p>
           </div>
@@ -49,7 +49,7 @@ export function Footer() {
         </div>
 
         <div className="mt-10 border-t border-border/20 pt-6">
-          <p className="text-center font-mono text-[10px] text-text-faint/60">
+          <p className="text-center font-mono text-xs text-text-faint/60">
             <span className="text-comment/60" aria-hidden="true"># </span>
             All systems local &middot; Built for EPF teams
           </p>

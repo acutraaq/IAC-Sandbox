@@ -199,13 +199,13 @@ export function TerminalHero() {
         </div>
 
         {/* Session title */}
-        <span className="flex-1 text-center font-mono text-[11px]" style={{ color: "#7A6040" }}>
+        <span className="flex-1 text-center font-mono text-xs" style={{ color: "#7A6040" }}>
           epf@sandbox — bash
         </span>
 
         {/* Status pill */}
         <span
-          className="font-mono text-[10px] px-2 py-0.5 rounded"
+          className="font-mono text-xs px-2 py-0.5 rounded"
           style={{ background: "rgba(180,100,20,0.12)", color: paused ? "#7A6040" : "#C47820" }}
         >
           {paused ? "paused" : "● live"}
@@ -229,7 +229,7 @@ export function TerminalHero() {
               aria-selected={active}
               aria-controls="terminal-output"
               onClick={() => handleTabClick(i)}
-              className="relative shrink-0 px-4 py-2 font-mono text-[11px] transition-colors duration-150"
+              className="relative shrink-0 px-4 py-2 font-mono text-xs transition-colors duration-150"
               style={{
                 color: active ? "#EAD9C0" : "#5A4028",
                 background: active ? "#1E1208" : "transparent",
@@ -330,7 +330,7 @@ export function TerminalHero() {
         className="flex items-center justify-between border-t px-4 py-1.5"
         style={{ background: "#160E05", borderColor: "rgba(160,100,40,0.15)" }}
       >
-        <span className="font-mono text-[10px]" style={{ color: "#4A3018" }}>
+        <span className="font-mono text-xs" style={{ color: "#4A3018" }}>
           sub-epf-sandbox-internal · southeastasia
         </span>
 
@@ -341,7 +341,7 @@ export function TerminalHero() {
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.2 }}
-              className="font-mono text-[10px] px-2 py-0.5 rounded"
+              className="font-mono text-xs px-2 py-0.5 rounded"
               style={{ background: "rgba(100,140,40,0.12)", color: "#7A9A40" }}
             >
               ● ARM running
@@ -351,7 +351,7 @@ export function TerminalHero() {
               key="idle"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              className="font-mono text-[10px]"
+              className="font-mono text-xs"
               style={{ color: "#4A3018" }}
             >
               {done ? "complete" : "deploying..."}

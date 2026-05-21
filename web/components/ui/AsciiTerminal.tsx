@@ -37,7 +37,7 @@ export function AsciiTerminal({ title, lines, asciiArt, className }: AsciiTermin
           <span aria-hidden="true" className="h-3 w-3 rounded-full" style={{ background: "#28C840" }} />
         </div>
         {title && (
-          <span className="font-mono text-[11px]" style={{ color: "#7A6040" }}>
+          <span className="font-mono text-xs" style={{ color: "#7A6040" }}>
             {title}
           </span>
         )}

@@ -21,7 +21,7 @@ export function SelectedPanel({ resources, onRemove }: SelectedPanelProps) {
         <h2 className="flex items-center gap-2 text-sm font-semibold text-text">
           Your Selection
           {resources.length > 0 && (
-            <span className="flex h-5 w-5 items-center justify-center rounded-full bg-accent text-[10px] font-bold text-on-primary">
+            <span className="flex h-5 w-5 items-center justify-center rounded-full bg-accent text-xs font-bold text-on-primary">
               {resources.length}
             </span>
           )}

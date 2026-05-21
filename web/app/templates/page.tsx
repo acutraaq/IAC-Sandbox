@@ -3,6 +3,8 @@
 import { useState } from "react";
 import Link from "next/link";
 import templatesData from "@/data/templates.json";
+import { PageEyebrow } from "@/components/layout/PageEyebrow";
+import { PageTransition } from "@/components/layout/PageTransition";
 import { TemplateRow } from "@/components/templates/TemplateRow";
 import { FilterPills } from "@/components/templates/FilterPills";
 import { ArrowRight } from "lucide-react";
@@ -30,12 +32,14 @@ export default function TemplatesPage() {
   ).filter((t) => !t.policyBlocked);
 
   return (
-    <div className="mx-auto max-w-7xl px-6 py-8 md:px-8 md:py-12">
-      {/* Page header */}
-      <header className="mb-8">
-        <h1 className="font-sans text-2xl font-bold text-text md:text-3xl">
-          What do you want to deploy?
-        </h1>
+    <PageTransition>
+      <div className="mx-auto max-w-7xl px-6 py-8 md:px-8 md:py-12">
+        <PageEyebrow path="templates" />
+        {/* Page header */}
+        <header className="mb-8">
+          <h1 className="font-sans text-2xl font-bold text-text md:text-3xl">
+            What do you want to deploy?
+          </h1>
         <p className="mt-2 max-w-[60ch] text-sm text-text-muted md:text-base">
           Pick a template to get started. Each one walks you through the setup step by step — no cloud knowledge needed.
         </p>
@@ -91,5 +95,6 @@ export default function TemplatesPage() {
         </div>
       </section>
     </div>
+    </PageTransition>
   );
 }

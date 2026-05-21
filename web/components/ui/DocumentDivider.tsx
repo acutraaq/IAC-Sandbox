@@ -8,7 +8,7 @@ export function DocumentDivider({ label, className = "" }: DocumentDividerProps)
     <div className={`my-6 flex items-center gap-3 ${className}`} role="separator">
       <span className="font-mono text-xs text-text-faint">---</span>
       {label && (
-        <span className="font-mono text-[11px] uppercase tracking-[0.1em] text-text-faint">
+        <span className="font-mono text-xs uppercase tracking-[0.1em] text-text-faint">
           {label}
         </span>
       )}
