@@ -64,7 +64,7 @@ describe("POST /api/deployments", () => {
     await POST(makeRequest(validPayload));
     expect(mockSendMessage).toHaveBeenCalledOnce();
     const [message] = mockSendMessage.mock.calls[0] as [string];
-    const decoded = JSON.parse(message);
+    const decoded = JSON.parse(Buffer.from(message, "base64").toString("utf-8"));
     expect(decoded.payload.mode).toBe("template");
   });
 
@@ -104,7 +104,7 @@ describe("POST /api/deployments", () => {
   it("includes deployedBy from the current user in the queue message", async () => {
     await POST(makeRequest(validPayload));
     const [message] = mockSendMessage.mock.calls[0] as [string];
-    const decoded = JSON.parse(message) as {
+    const decoded = JSON.parse(Buffer.from(message, "base64").toString("utf-8")) as {
       deployedBy: string;
     };
     expect(decoded.deployedBy).toBe("user@epf.gov.my");

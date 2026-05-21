@@ -79,7 +79,9 @@ export async function POST(request: Request) {
       deployedBy: user.upn,
     };
 
-    await getQueueClient().sendMessage(JSON.stringify(message));
+    await getQueueClient().sendMessage(
+      Buffer.from(JSON.stringify(message)).toString("base64")
+    );
 
     return NextResponse.json({ submissionId, resourceGroup: resourceGroupName, requestId }, { status: 201 });
   } catch (err) {
