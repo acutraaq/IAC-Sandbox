@@ -1,6 +1,4 @@
-/* eslint-disable react-hooks/static-components */
-// DynamicIcon renders a Lucide icon by name. Lucide icons are stateless
-// pure components, so the React Compiler concern about state reset does not apply.
+import { createElement } from "react";
 import { getIcon } from "@/lib/icons";
 
 interface DynamicIconProps {
@@ -9,6 +7,5 @@ interface DynamicIconProps {
 }
 
 export function DynamicIcon({ name, className }: DynamicIconProps) {
-  const Icon = getIcon(name);
-  return <Icon className={className} />;
+  return createElement(getIcon(name), { className });
 }

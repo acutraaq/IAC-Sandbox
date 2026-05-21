@@ -1,5 +1,6 @@
 "use client";
 
+import { createElement } from "react";
 import Link from "next/link";
 import { Lock, ArrowRight } from "lucide-react";
 import { getIcon } from "@/lib/icons";
@@ -21,7 +22,6 @@ const CATEGORY_LABELS: Record<string, string> = {
 };
 
 export function TemplateRow({ template }: TemplateRowProps) {
-  const Icon    = getIcon(template.icon);
   const catName = CATEGORY_LABELS[template.category] ?? template.category;
   const locked  = template.policyBlocked === true;
 
@@ -58,7 +58,7 @@ export function TemplateRow({ template }: TemplateRowProps) {
       {/* Header row */}
       <div className="mb-3 flex items-start justify-between gap-2">
         <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-bg border border-border">
-          <Icon className="h-4 w-4 text-accent" />
+          {createElement(getIcon(template.icon), { className: "h-4 w-4 text-accent" })}
         </div>
         <span className="rounded-full border border-border bg-bg px-2 py-0.5 text-[10px] font-medium text-text-muted">
           {catName}
