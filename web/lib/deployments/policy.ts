@@ -33,6 +33,7 @@ const ALLOWED_RESOURCE_TYPES = new Set([
   "Microsoft.OperationalInsights/workspaces",
   "Microsoft.ApiManagement/service",
   "Microsoft.Logic/workflows",
+  "Microsoft.Insights/diagnosticSettings",
 ]);
 
 // Only slugs that have ARM builders in arm-template-builder.ts and are not policy-blocked

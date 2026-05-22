@@ -14,6 +14,74 @@ function generatePassword(): string {
 }
 
 // ---------------------------------------------------------------------------
+// Shared supporting-resource builders (observability + security)
+// Every production deployment gets a Log Analytics workspace and a Key Vault
+// alongside its primary resources. Diagnostic settings route logs/metrics to
+// the workspace. Only resource types listed in POLICY_ALLOWED_RESOURCE_TYPES
+// are emitted — blocked types are silently skipped, not injected.
+// ---------------------------------------------------------------------------
+
+function createLogAnalyticsWorkspace(name: string, location: string): ArmResource {
+  return {
+    type: "Microsoft.OperationalInsights/workspaces",
+    apiVersion: "2023-09-01",
+    name,
+    location,
+    properties: {
+      retentionInDays: 30,
+      sku: { name: "PerGB2018" },
+    },
+  };
+}
+
+/**
+ * Build a diagnostic-settings resource for an Azure resource type.
+ * Returns null if the resource type is not allowed by subscription policy,
+ * so we never silently inject something that will fail at ARM time.
+ */
+function createDiagnosticSettings(
+  resourceName: string,
+  resourceType: string,
+  lawName: string,
+  logCategories: string[],
+  metricCategories: string[]
+): ArmResource | null {
+  if (!POLICY_ALLOWED_RESOURCE_TYPES.has("Microsoft.Insights/diagnosticSettings")) {
+    return null;
+  }
+  return {
+    type: "Microsoft.Insights/diagnosticSettings",
+    apiVersion: "2021-05-01-preview",
+    name: `${resourceName}-diag`,
+    scope: `[resourceId('${resourceType}', '${resourceName}')]`,
+    dependsOn: [`[resourceId('${resourceType}', '${resourceName}')]`],
+    properties: {
+      workspaceId: `[resourceId('Microsoft.OperationalInsights/workspaces', '${lawName}')]`,
+      logs: logCategories.map((category) => ({
+        category,
+        enabled: true,
+        retentionPolicy: { days: 0, enabled: false },
+      })),
+      metrics: metricCategories.map((category) => ({
+        category,
+        enabled: true,
+        retentionPolicy: { days: 0, enabled: false },
+      })),
+    },
+  };
+}
+
+function makeLawName(prefix: string): string {
+  const base = sanitizeGenericName(prefix, 43) || "sandbox";
+  return `${base}-law`;
+}
+
+function makeKvName(prefix: string, suffix = ""): string {
+  const base = (sanitizeKeyVaultName(prefix) || "sandbox-kv").slice(0, 16).replace(/-+$/, "");
+  return suffix ? `${base}${suffix.slice(0, 8)}` : base;
+}
+
+// ---------------------------------------------------------------------------
 // Subscription policy: COE-Allowed-Resources
 // Deny effect — any resource type NOT in this list will be rejected by Azure.
 // ---------------------------------------------------------------------------
@@ -65,7 +133,7 @@ interface ArmResource {
   type: string;
   apiVersion: string;
   name: string;
-  location: string;
+  location?: string;
   [key: string]: unknown;
 }
 
@@ -943,16 +1011,51 @@ export function buildArmTemplate(
   const uniqueSuffix = (opts.submissionId ?? "").replace(/-/g, "").slice(0, 8);
   const deployParams: Record<string, { value: string }> = {};
 
-  const resources =
+  const primaryResources =
     payload.mode === "template"
       ? buildTemplateResources(payload.template, opts.tenantId, uniqueSuffix, deployParams)
       : buildCustomResources(payload.resources, opts.tenantId, uniqueSuffix, deployParams);
 
+  // ---------------------------------------------------------------------------
+  // Supporting resources
+  // Every deployment gets a Log Analytics workspace (centralised logs/metrics)
+  // and a Key Vault (secrets governance) within the same resource group.
+  // Type-level guards prevent double-injection when the primary set already
+  // contains a workspace or vault.
+  // ---------------------------------------------------------------------------
+  const primaryTypes = new Set(primaryResources.map((r) => r.type));
+  const hasLaw = primaryTypes.has("Microsoft.OperationalInsights/workspaces");
+  const hasKv = primaryTypes.has("Microsoft.KeyVault/vaults");
+
+  const supporting: ArmResource[] = [];
+  if (primaryResources.length > 0) {
+    const firstName = primaryResources[0].name as string;
+    const location = primaryResources[0].location as string;
+    const lawName = makeLawName(firstName);
+    const kvName = makeKvName(firstName, uniqueSuffix);
+
+    if (!hasLaw) {
+      supporting.push(createLogAnalyticsWorkspace(lawName, location));
+    }
+    if (!hasKv) {
+      supporting.push(
+        buildKeyVault(
+          kvName,
+          location,
+          { softDelete: true, purgeProtection: false, accessModel: "rbac" },
+          opts.tenantId,
+          ""
+        )
+      );
+    }
+  }
+
+  const allResources = [...primaryResources, ...supporting];
+
   // COE-Enforce-Tag-Resources: every individual resource must carry the 4 policy tags.
-  // Clone resources to avoid mutating builder output.
   const taggedResources = opts.tags
-    ? resources.map((r) => ({ ...r, tags: opts.tags }))
-    : resources;
+    ? allResources.map((r) => ({ ...r, tags: opts.tags }))
+    : allResources;
 
   const parameters: Record<string, unknown> = Object.fromEntries(
     Object.keys(deployParams).map((k) => [k, { type: "secureString" }])

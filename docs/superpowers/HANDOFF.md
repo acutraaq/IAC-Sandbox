@@ -1,6 +1,6 @@
-# Session Handoff — 2026-05-18
+# Session Handoff — 2026-05-22
 
-> **Version:** 1.9.0 | **Last updated:** 2026-05-18 | **Status:** Active
+> **Version:** 2.0.0 | **Last updated:** 2026-05-22 | **Status:** Active
 > **Purpose:** Context for engineers starting a new session
 > **Related docs:** [Project Index](../README.md) | [CLAUDE.md](../../CLAUDE.md) | [Complete Spec](../project/SPEC.md)
 >
@@ -8,39 +8,46 @@
 
 ## TL;DR
 
-**Reliability fixes completed and committed.** All 6 `functions/` pipeline hardening commits are on `main` (sanitize guards, secureString passwords, landing-zone validation, poison handler safety). **Web-layer hardening committed** (`c3ea152`): API route validation, double-submit prevention, blob data Zod validation, a11y labels, Modal `aria-labelledby`. **Docs updated** (`CLAUDE.md` v2.5.0, `HANDOFF.md` v1.9.0). **Stale branches cleaned up.** All 308 tests pass (193 web + 115 functions). Managed identity roles are set: App Service = Reader, Function App = Contributor on `sub-epf-sandbox-internal`. Waiting on admin to configure Function App env vars before end-to-end queue consumption can be verified.
+**Supporting-resource bundling implemented.** Every template and custom-builder resource now auto-deploys a Log Analytics workspace and a Key Vault alongside its primary resources. Web descriptions and resource counts updated. All 323 tests pass (193 web + 130 functions). Functions/` `arm-template-builder.test.ts` assertions updated to reflect new resource counts (1→3 for single-resource templates, 2→4 for paired templates, 6→7 for full-stack). Policy allow-lists already included LAW/KV so no new types were needed.
 
 ---
 
-## What was done in this session (2026-05-18)
+## What was done in this session (2026-05-22)
 
-### Web-layer hardening committed (`c3ea152`)
-- `web/app/api/deployments/[submissionId]/route.ts` — UUID format validation on `submissionId`; returns 400 for invalid IDs
-- `web/app/api/my-deployments/route.ts` — escapes `'` in user UPN for ARM OData filter; safer `top` param parsing
-- `web/lib/deployments/failure-lookup.ts` — Zod schema validation for blob JSON before returning `FailureRecord`
-- `web/lib/deployments/rg-name.ts` — strips trailing `-_.` after length clamp (prevents invalid Azure RG names)
-- `web/components/ui/Modal.tsx` — `aria-label` → `aria-labelledby="dialog-title"` + `<h2 id="dialog-title">` for screen readers
-- `web/app/review/page.tsx` — `submittingRef` prevents double-submit race; redirects `custom-request` mode away from `/review`
-- `web/store/deploymentStore.ts` + `web/types/index.ts` — removed stale `deploymentStatus`/`deploymentError` fields
-- `web/app/my-stuff/page.tsx` — switched to `getPublicAzureEnv()` for subscription ID
-- `.claude/settings.json` — reverted hook path from absolute to relative (portable across machines)
+### Supporting-resource bundling: LAW + KV auto-injected
+- **`functions/src/modules/deployments/arm-template-builder.ts`**
+  - Added `createLogAnalyticsWorkspace()` and `makeLawName()` / `makeKvName()` helpers
+  - Updated `buildArmTemplate()` to inject LAW + KV after primary resources are built
+  - Added type-level deduplication: skips LAW injection if primary set already contains a workspace; skips KV injection if primary set already contains a vault (`landing-zone` and `full-stack-web-app` already include these, so they don't duplicate)
+  - Tags are applied to all resources (primary + supporting) after assembly
+- **`web/lib/deployments/policy.ts`** — verified LAW + KV already in `ALLOWED_RESOURCE_TYPES`; policy file stayed in sync without changes
+- **`web/data/templates.json`** — updated all 12 deployable template descriptions to mention LAW + KV inclusion; updated `resourceCount` where counts changed
+- **`web/data/resources.json`** — updated all 9 deployable custom-builder resource descriptions to mention LAW + KV inclusion
+- **`functions/src/__tests__/modules/deployments/arm-template-builder.test.ts`** — updated all exact-count assertions:
+  - `web-application`: 2 → 4 (plan + site + law + kv)
+  - `database`: 1 → 3
+  - `storage-account`: 1 → 3
+  - `virtual-network`: 1 → 3
+  - `key-vault`: 1 → 2 (kv deduped)
+  - `container-app`: 2 → 4 (env + app + law + kv)
+  - `approval-workflow`: 1 → 3
+  - `scheduled-automation`: 1 → 3
+  - `message-queue`: 1 → 3
+  - `event-broadcaster`: 1 → 3
+  - `full-stack-web-app`: 6 → 7 (6 primary + law; kv already in primary set)
+  - `landing-zone`: unchanged (3 primary, law + kv already inside; no dupes)
 
-### Functions reliability fixes already on `main` (from 2026-05-15)
-All 6 commits from the `2026-05-15-deployment-pipeline-reliability` spec are merged:
-- Sanitize min-length guards (`fa181b8`)
-- Landing-zone `InvalidDeploymentConfigError` (`44b351a`)
-- SQL/PostgreSQL `secureString` parameters + SQL API GA (`0650dd7`)
-- `bicep-executor` strips `_deployParameters` (`ed62b21`)
-- `processDeployment` catches config errors without retry (`7779d85`)
-- Poison handler never throws (`2fe78d0`)
+### Test results
+- `functions/`  npx vitest run  →  **130 passed**
+- `web/`        npx vitest run  →  **193 passed**
+- Total: **323 passed**
 
-### Docs maintenance
-- `CLAUDE.md` → v2.5.0: latest commit note, admin-action refresh, version bump
-- `HANDOFF.md` → v1.9.0: this entry
-- Reliability spec and plan moved to `docs/superpowers/archive/`
-
-### Branch hygiene
-- Deleted stale remote branches: `feature/formal-proof-labels`, `feature/remove-deployment-status-polling` (both already merged to `main`)
+### What is NOT done (next session candidates)
+- **Deploy to Azure** — commit and push to `main` to deploy to App Service + Function App
+- **End-to-end verification** — test a real template submission via frontend and confirm RG + LAW + KV appear in `sub-epf-sandbox-internal`
+- **CLAUDE.md v2.5.1** — update the Template Catalog table to reflect new resource counts and descriptions
+- **Resource count display** — some templates show `"resourceCount": 4` (e.g., `web-application`) but user asked to keep counts accurate; verify UI renders the updated numbers correctly
+- **Builder page** — the custom builder (`/builder`) now also produces +2 supporting resources per resource. Confirm the summary panel and review page reflect this correctly.
 
 ---
 

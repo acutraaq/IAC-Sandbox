@@ -2,10 +2,10 @@
   {
     "slug": "web-application",
     "name": "Web Application",
-    "description": "Deploy a ready-to-use web application with automatic scaling and built-in security.",
+    "description": "Deploy a ready-to-use web application with automatic scaling and built-in security. Includes a Log Analytics workspace and a Key Vault for observability and secrets governance.",
     "category": "compute",
     "icon": "Globe",
-    "resourceCount": 2,
+    "resourceCount": 4,
     "estimatedTime": "~5 minutes",
     "steps": [
       {
@@ -210,10 +210,10 @@
   {
     "slug": "database",
     "name": "Managed Database",
-    "description": "Create a fully managed database — no server maintenance needed. Great for apps that store data.",
+    "description": "Create a fully managed database — no server maintenance needed. Great for apps that store data. Also deploys a Log Analytics workspace and Key Vault for observability and secrets governance.",
     "category": "data",
     "icon": "Database",
-    "resourceCount": 1,
+    "resourceCount": 3,
     "estimatedTime": "~6 minutes",
     "steps": [
       {
@@ -309,10 +309,10 @@
   {
     "slug": "storage-account",
     "name": "File Storage",
-    "description": "Store files, documents, images, and data securely in the cloud — accessible from anywhere.",
+    "description": "Store files, documents, images, and data securely in the cloud — accessible from anywhere. Also deploys a Log Analytics workspace and Key Vault for observability and secrets governance.",
     "category": "data",
     "icon": "HardDrive",
-    "resourceCount": 1,
+    "resourceCount": 3,
     "estimatedTime": "~3 minutes",
     "steps": [
       {
@@ -412,10 +412,10 @@
   {
     "slug": "virtual-network",
     "name": "Private Network",
-    "description": "Create an isolated private network so your cloud resources can communicate securely with each other.",
+    "description": "Create an isolated private network so your cloud resources can communicate securely with each other. Also deploys a Log Analytics workspace and Key Vault for observability and secrets governance.",
     "category": "network",
     "icon": "Network",
-    "resourceCount": 1,
+    "resourceCount": 3,
     "estimatedTime": "~4 minutes",
     "steps": [
       {
@@ -490,10 +490,10 @@
   {
     "slug": "key-vault",
     "name": "Secret Manager",
-    "description": "Safely store passwords, API keys, certificates, and encryption keys — away from your code.",
+    "description": "Safely store passwords, API keys, certificates, and encryption keys — away from your code. Also deploys a Log Analytics workspace and Key Vault for observability and secrets governance.",
     "category": "security",
     "icon": "KeyRound",
-    "resourceCount": 1,
+    "resourceCount": 2,
     "estimatedTime": "~3 minutes",
     "steps": [
       {
@@ -575,10 +575,10 @@
   {
     "slug": "container-app",
     "name": "Container Application",
-    "description": "Run containerized applications without managing servers — just provide your container image.",
+    "description": "Run containerized applications without managing servers — just provide your container image. Also deploys a Log Analytics workspace and Key Vault for observability and secrets governance.",
     "category": "compute",
     "icon": "Box",
-    "resourceCount": 2,
+    "resourceCount": 4,
     "estimatedTime": "~6 minutes",
     "steps": [
       {
@@ -664,7 +664,7 @@
   {
     "slug": "landing-zone",
     "name": "Landing Zone Starter",
-    "description": "A complete foundation setup — includes a private network, security controls, and monitoring for your project.",
+    "description": "A complete foundation setup — includes a private network, security controls, and monitoring for your project. Already includes a Log Analytics workspace and Key Vault.",
     "category": "landing-zone",
     "icon": "LayoutGrid",
     "resourceCount": 3,
@@ -747,10 +747,10 @@
   {
     "slug": "approval-workflow",
     "name": "Automated Approval Workflow",
-    "description": "Set up an automated approval chain — for leave requests, expense claims, or document sign-off — that runs when someone submits a form or calls a URL.",
+    "description": "Set up an automated approval chain — for leave requests, expense claims, or document sign-off — that runs when someone submits a form or calls a URL. Also deploys a Log Analytics workspace and Key Vault for observability and secrets governance.",
     "category": "automation",
     "icon": "GitBranch",
-    "resourceCount": 1,
+    "resourceCount": 3,
     "estimatedTime": "~3 minutes",
     "steps": [
       {
@@ -825,10 +825,10 @@
   {
     "slug": "scheduled-automation",
     "name": "Scheduled Task Runner",
-    "description": "Run an automated task on a schedule — daily reports, weekly data syncs, or overnight batch jobs — without anyone needing to remember to do it.",
+    "description": "Run an automated task on a schedule — daily reports, weekly data syncs, or overnight batch jobs — without anyone needing to remember to do it. Also deploys a Log Analytics workspace and Key Vault for observability and secrets governance.",
     "category": "automation",
     "icon": "Clock",
-    "resourceCount": 1,
+    "resourceCount": 3,
     "estimatedTime": "~3 minutes",
     "steps": [
       {
@@ -919,10 +919,10 @@
   {
     "slug": "message-queue",
     "name": "Reliable Message Queue",
-    "description": "Create a reliable message channel between two systems so they do not need to talk to each other directly. Useful for connecting a legacy system to a new one, or handling bursts of requests without overloading a backend.",
+    "description": "Create a reliable message channel between two systems so they do not need to talk to each other directly. Useful for connecting a legacy system to a new one, or handling bursts of requests without overloading a backend. Also deploys a Log Analytics workspace and Key Vault for observability and secrets governance.",
     "category": "integration",
     "icon": "ArrowLeftRight",
-    "resourceCount": 1,
+    "resourceCount": 3,
     "estimatedTime": "~3 minutes",
     "steps": [
       {
@@ -984,10 +984,10 @@
   {
     "slug": "event-broadcaster",
     "name": "Event Notification Hub",
-    "description": "Publish events — like 'member record updated' or 'claim approved' — and let multiple systems react independently without needing to call each one individually.",
+    "description": "Publish events — like 'member record updated' or 'claim approved' — and let multiple systems react independently without needing to call each one individually. Also deploys a Log Analytics workspace and Key Vault for observability and secrets governance.",
     "category": "integration",
     "icon": "Radio",
-    "resourceCount": 1,
+    "resourceCount": 3,
     "estimatedTime": "~3 minutes",
     "steps": [
       {
@@ -1049,10 +1049,10 @@
   {
     "slug": "full-stack-web-app",
     "name": "Full-Stack Web App",
-    "description": "App Service + Azure SQL + Storage + Key Vault — a complete production-ready web stack.",
+    "description": "App Service + Azure SQL + Storage + Key Vault — a complete production-ready web stack. Also deploys a Log Analytics workspace and Key Vault for observability and secrets governance.",
     "category": "compute",
     "icon": "Layers",
-    "resourceCount": 6,
+    "resourceCount": 7,
     "estimatedTime": "~8 minutes",
     "policyBlocked": false,
     "steps": [

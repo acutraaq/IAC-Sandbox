@@ -1,6 +1,6 @@
 # CLAUDE.md — Project Conventions & Developer Guidance
 
-> **Version:** 2.5.0 | **Last updated:** 2026-05-18 | **Status:** Active  
+> **Version:** 2.5.1 | **Last updated:** 2026-05-22 | **Status:** Active  
 > **Purpose:** Single source of truth for project conventions, tech stack, and development patterns  
 > **Owner:** All engineers | **Review cadence:** On every convention or pattern change  
 > **Related docs:** [Documentation Index](docs/README.md) | [Complete Spec](docs/project/SPEC.md) | [Glossary](docs/GLOSSARY.md) | [HANDOFF](docs/superpowers/HANDOFF.md)
@@ -17,8 +17,8 @@ Before starting any work, check `docs/superpowers/specs/` for any active (non-ar
 
 No active specs or plans. All approved work is implemented; completed designs live under `docs/superpowers/archive/`.
 
-**What is live and working:** Terminal-native document redesign (mono nav chrome, editorial rows, `~/path` eyebrows); see Live Deployment section below.  
-**Latest commit:** `c3ea152` — web-layer hardening (API route validation, double-submit prevention, blob data validation, a11y labels).
+**What is live and working:** Terminal-native document redesign (mono nav chrome, editorial rows, `~/path` eyebrows); supporting-resource bundling (LAW + KV auto-injected into every deployment); see Live Deployment section below.  
+**Latest commit:** supporting-resource bundling — every template and custom-builder resource now auto-deploys a Log Analytics workspace and a Key Vault alongside its primary resources.
 **What is designed but not built:** Nothing — all approved specs implemented.
 **SSO status:** Microsoft SSO / MSAL is **on hold** — placeholder login is live and sufficient for current needs. The MSAL plumbing is fully implemented but not being activated at this time. See Authentication section.
 **What needs admin action:** Configure `epf-sandbox-functions` environment variables in Azure Portal (`DEPLOYMENT_QUEUE`, `AZURE_STORAGE_CONNECTION_STRING`, `AzureWebJobsStorage`, `AZURE_SUBSCRIPTION_ID`, `AZURE_TENANT_ID`) so the Function App can consume queue messages. Managed identity setup is complete: App Service MI has **Reader** on `sub-epf-sandbox-internal`, Function App MI has **Contributor** on `sub-epf-sandbox-internal`. After env vars are set, verify end-to-end with a test deployment (e.g., Storage Account) and confirm the resource group appears in `sub-epf-sandbox-internal` with all 6 ARM tags.
@@ -114,24 +114,24 @@ The core cookie signing/verification logic lives in `web/lib/auth-core.ts`, whic
 - Malaysia (Malaysia West) — default
 - Asia Pacific (Southeast Asia)
 
-| Category | Slug | Resource Type |
-|----------|------|---------------|
-| compute | `web-application` | `Microsoft.Web/serverfarms` + `Microsoft.Web/sites` |
-| compute | `virtual-machine` | `Microsoft.Compute/virtualMachines` — policy-blocked, shows lock UI |
-| compute | `container-app` | `Microsoft.App/managedEnvironments` + `Microsoft.App/containerApps` |
-| compute | `full-stack-web-app` | App Service + Azure SQL + Storage + Key Vault (6 resources) |
-| compute | `microservices-platform` | Container Apps + Service Bus — policy-blocked |
-| data | `database` | `Microsoft.DBforPostgreSQL/flexibleServers` |
-| data | `storage-account` | `Microsoft.Storage/storageAccounts` |
-| data | `data-pipeline` | policy-blocked |
-| security | `key-vault` | `Microsoft.KeyVault/vaults` |
-| network | `virtual-network` | `Microsoft.Network/virtualNetworks` |
-| compute | `secure-api-backend` | policy-blocked |
-| landing-zone | `landing-zone` | VNet + Key Vault + Log Analytics (conditional) |
-| automation | `approval-workflow` | `Microsoft.Logic/workflows` (HTTP trigger) |
-| automation | `scheduled-automation` | `Microsoft.Logic/workflows` (recurrence trigger) |
-| integration | `message-queue` | `Microsoft.ServiceBus/namespaces` |
-| integration | `event-broadcaster` | `Microsoft.EventGrid/topics` |
+| Category | Slug | Resource Type | Count |
+|----------|------|---------------|-------|
+| compute | `web-application` | App Service + Log Analytics + Key Vault | 4 |
+| compute | `virtual-machine` | `Microsoft.Compute/virtualMachines` — policy-blocked, shows lock UI | 4 |
+| compute | `container-app` | Container App + Log Analytics + Key Vault | 4 |
+| compute | `full-stack-web-app` | App Service + Azure SQL + Storage + Key Vault + Log Analytics | 7 |
+| compute | `microservices-platform` | Container Apps + Service Bus — policy-blocked | 4 |
+| data | `database` | PostgreSQL + Log Analytics + Key Vault | 3 |
+| data | `storage-account` | Storage + Log Analytics + Key Vault | 3 |
+| data | `data-pipeline` | policy-blocked | 4 |
+| security | `key-vault` | Key Vault + Log Analytics (vault deduplicated) | 2 |
+| network | `virtual-network` | VNet + Log Analytics + Key Vault | 3 |
+| compute | `secure-api-backend` | policy-blocked | 5 |
+| landing-zone | `landing-zone` | VNet + Key Vault + Log Analytics (already bundled) | 3 |
+| automation | `approval-workflow` | Logic App + Log Analytics + Key Vault | 3 |
+| automation | `scheduled-automation` | Logic App + Log Analytics + Key Vault | 3 |
+| integration | `message-queue` | Service Bus + Log Analytics + Key Vault | 3 |
+| integration | `event-broadcaster` | Event Grid + Log Analytics + Key Vault | 3 |
 
 Policy-blocked slugs (enforced server-side at `POST /api/deployments` → 403):
 - `virtual-machine`, `microservices-platform`, `data-pipeline`, `secure-api-backend`

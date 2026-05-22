@@ -2,7 +2,7 @@
   {
     "type": "Microsoft.Web/sites",
     "name": "Web Application",
-    "description": "Host a website or web API that scales automatically with your traffic.",
+    "description": "Host a website or web API that scales automatically with your traffic. Also deploys a Log Analytics workspace and Key Vault for observability and secrets governance.",
     "category": "compute",
     "icon": "Globe",
     "fields": [
@@ -113,7 +113,7 @@
   {
     "type": "Microsoft.DBforPostgreSQL/flexibleServers",
     "name": "Managed Database",
-    "description": "A fully managed database — no maintenance needed. Store and query structured data for your applications.",
+    "description": "A fully managed database — no maintenance needed. Store and query structured data for your applications. Also deploys a Log Analytics workspace and Key Vault for observability and secrets governance.",
     "category": "data",
     "icon": "Database",
     "fields": [
@@ -178,7 +178,7 @@
   {
     "type": "Microsoft.Storage/storageAccounts",
     "name": "File Storage",
-    "description": "Store files, documents, images, and data securely — accessible from anywhere in the world.",
+    "description": "Store files, documents, images, and data securely — accessible from anywhere in the world. Also deploys a Log Analytics workspace and Key Vault for observability and secrets governance.",
     "category": "data",
     "icon": "HardDrive",
     "fields": [
@@ -250,7 +250,7 @@
   {
     "type": "Microsoft.Network/virtualNetworks",
     "name": "Private Network",
-    "description": "An isolated private network so your cloud resources can communicate securely without going through the internet.",
+    "description": "An isolated private network so your cloud resources can communicate securely without going through the internet. Also deploys a Log Analytics workspace and Key Vault for observability and secrets governance.",
     "category": "network",
     "icon": "Network",
     "fields": [
@@ -308,7 +308,7 @@
   {
     "type": "Microsoft.KeyVault/vaults",
     "name": "Secret Manager",
-    "description": "A secure vault for storing passwords, API keys, certificates, and encryption keys — separate from your code.",
+    "description": "A secure vault for storing passwords, API keys, certificates, and encryption keys — separate from your code. Also deploys a Log Analytics workspace and Key Vault for observability and secrets governance.",
     "category": "security",
     "icon": "KeyRound",
     "fields": [
@@ -390,7 +390,7 @@
   {
     "type": "Microsoft.App/containerApps",
     "name": "Container Application",
-    "description": "Run a containerized application without managing any servers — just provide your Docker image.",
+    "description": "Run a containerized application without managing any servers — just provide your Docker image. Also deploys a Log Analytics workspace and Key Vault for observability and secrets governance.",
     "category": "compute",
     "icon": "Box",
     "fields": [
@@ -459,7 +459,7 @@
   {
     "type": "Microsoft.Logic/workflows",
     "name": "Automation Workflow",
-    "description": "A visual workflow that automates processes by connecting services. Triggered by an HTTP call — no code required.",
+    "description": "A visual workflow that automates processes by connecting services. Triggered by an HTTP call — no code required. Also deploys a Log Analytics workspace and Key Vault for observability and secrets governance.",
     "category": "automation",
     "icon": "Zap",
     "fields": [
@@ -485,7 +485,7 @@
   {
     "type": "Microsoft.ServiceBus/namespaces",
     "name": "Message Queue",
-    "description": "A reliable message broker that decouples services — send messages from one system and process them in another at any pace.",
+    "description": "A reliable message broker that decouples services — send messages from one system and process them in another at any pace. Also deploys a Log Analytics workspace and Key Vault for observability and secrets governance.",
     "category": "integration",
     "icon": "MessageSquare",
     "fields": [
@@ -528,7 +528,7 @@
   {
     "type": "Microsoft.EventGrid/topics",
     "name": "Event Broadcaster",
-    "description": "Publish events from your application and let multiple subscribers react to them independently in real time.",
+    "description": "Publish events from your application and let multiple subscribers react to them independently in real time. Also deploys a Log Analytics workspace and Key Vault for observability and secrets governance.",
     "category": "integration",
     "icon": "Radio",
     "fields": [
