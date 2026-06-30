@@ -45,7 +45,7 @@ export async function executeBicepDeployment(
     log?.(`[${id}] ARM token acquired (expires ${probe.expiresOnTimestamp})`);
   } catch (tokenErr) {
     const msg = tokenErr instanceof Error ? tokenErr.message : String(tokenErr);
-    throw new Error(`[${id}] Failed to acquire ARM token: ${msg}`);
+    throw new Error(`[${id}] Failed to acquire ARM token: ${msg}`, { cause: tokenErr });
   }
 
   // Build and validate ARM template against subscription policy before

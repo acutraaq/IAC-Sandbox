@@ -15,33 +15,6 @@ function generatePassword(): string {
 
 // ---------------------------------------------------------------------------
 // Shared supporting-resource builders (observability + security)
-// Every production deployment gets a Log Analytics workspace and a Key Vault
-// alongside its primary resources.
-// ---------------------------------------------------------------------------
-
-function createLogAnalyticsWorkspace(name: string, location: string): ArmResource {
-  return {
-    type: "Microsoft.OperationalInsights/workspaces",
-    apiVersion: "2023-09-01",
-    name,
-    location,
-    properties: {
-      retentionInDays: 30,
-      sku: { name: "PerGB2018" },
-    },
-  };
-}
-
-function makeLawName(prefix: string): string {
-  const base = sanitizeGenericName(prefix, 43) || "sandbox";
-  return `${base}-law`;
-}
-
-function makeKvName(prefix: string, suffix = ""): string {
-  const base = (sanitizeKeyVaultName(prefix) || "sandbox-kv").slice(0, 16).replace(/-+$/, "");
-  return suffix ? `${base}${suffix.slice(0, 8)}` : base;
-}
-
 // ---------------------------------------------------------------------------
 // Subscription policy: COE-Allowed-Resources
 // Deny effect — any resource type NOT in this list will be rejected by Azure.
@@ -417,56 +390,6 @@ function buildContainerApp(
     },
   ];
 }
-
-
-function buildLandingZone(
-  config: Record<string, unknown>,
-  location: string,
-  tenantId: string,
-  suffix = ""
-): ArmResource[] {
-  const prefix =
-    typeof config.namingPrefix === "string" ? config.namingPrefix : "proj";
-  const resources: ArmResource[] = [];
-
-  if (config.includeNetwork === true) {
-    resources.push(
-      buildVirtualNetwork(`${prefix}-vnet`, location, {
-        addressSpace: "10.0.0.0/16",
-        subnetName: "default",
-        subnetRange: "10.0.1.0/24",
-      })
-    );
-  }
-
-  if (config.includeSecurity === true) {
-    resources.push(
-      buildKeyVault(`${prefix}-kv`, location, { softDelete: true, purgeProtection: true, accessModel: "rbac" }, tenantId, suffix)
-    );
-  }
-
-  if (config.includeMonitoring === true) {
-    resources.push({
-      type: "Microsoft.OperationalInsights/workspaces",
-      apiVersion: "2023-09-01",
-      name: `${prefix}-law`,
-      location,
-      properties: {
-        retentionInDays: 30,
-        sku: { name: "PerGB2018" },
-      },
-    });
-  }
-
-  if (resources.length === 0) {
-    throw new InvalidDeploymentConfigError(
-      "Landing zone requires at least one of: includeNetwork, includeSecurity, includeMonitoring"
-    );
-  }
-
-  return resources;
-}
-
 // ---------------------------------------------------------------------------
 // Logic App builder
 // ---------------------------------------------------------------------------
@@ -602,57 +525,11 @@ function buildEventGridTopic(
 }
 
 // ---------------------------------------------------------------------------
-// Full-stack web app bundle: App Service + Azure SQL + Storage + Key Vault
-// ---------------------------------------------------------------------------
-
-function buildFullStackWebApp(
-  name: string,
-  location: string,
-  config: Record<string, unknown>,
-  tenantId: string,
-  suffix = "",
-  deployParams: Record<string, { value: string }>
-): ArmResource[] {
-  // Keep the base short (≤35 chars) so derived names fit within Azure limits.
-  const baseName = sanitizeGenericName(name, 35) || "sandbox-app";
-
-  const appResources = buildWebApplication(baseName, location, config);
-
-  const sqlResources = buildSqlServer(
-    `${baseName}-sql`,
-    "appdb",
-    location,
-    {
-      adminUser: config.sqlAdminUser,
-      adminPassword: config.sqlAdminPassword,
-      dbSku: config.dbSku,
-    },
-    deployParams
-  );
-
-  const storageResource = buildStorageAccount(baseName, location, {
-    redundancy: config.storageTier,
-  }, suffix);
-
-  const kvResource = buildKeyVault(`${baseName}-kv`, location, {
-    kvSku: config.kvSku,
-    softDelete: true,
-    purgeProtection: true,
-    accessModel: "rbac",
-  }, tenantId, suffix);
-
-  return [...appResources, ...sqlResources, storageResource, kvResource];
-}
-
-// ---------------------------------------------------------------------------
 // Template-mode dispatcher
 // ---------------------------------------------------------------------------
 
 function buildTemplateResources(
-  template: { slug: string; formValues: Record<string, unknown> },
-  tenantId: string,
-  suffix = "",
-  deployParams: Record<string, { value: string }>
+  template: { slug: string; formValues: Record<string, unknown> }
 ): ArmResource[] {
   const { slug, formValues } = template;
 
@@ -829,7 +706,7 @@ export function buildArmTemplate(
 
   const primaryResources =
     payload.mode === "template"
-      ? buildTemplateResources(payload.template, opts.tenantId, uniqueSuffix, deployParams)
+      ? buildTemplateResources(payload.template)
       : buildCustomResources(payload.resources, opts.tenantId, uniqueSuffix, deployParams);
 
   const allResources = primaryResources;

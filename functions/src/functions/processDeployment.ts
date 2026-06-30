@@ -24,7 +24,7 @@ export async function processDeployment(
   let rawMessage: unknown;
   try {
     rawMessage = typeof queueItem === "string" ? JSON.parse(queueItem) : queueItem;
-  } catch (parseErr) {
+  } catch (_parseErr) {
     context.error(`Queue item is not valid JSON: ${preview}`);
     return;
   }
