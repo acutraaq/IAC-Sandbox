@@ -27,13 +27,13 @@ No active specs or plans. All approved work is implemented; completed designs li
 
 ## Project Overview
 
-**Sandbox IAC** is an Azure Infrastructure-as-Code deployment platform for EPF (Employees Provident Fund, Malaysia). It lets non-expert users configure and submit Azure infrastructure deployments through three flows:
+**Sandbox IAC** is an Azure Infrastructure-as-Code deployment platform for EPF (Employees Provident Fund, Malaysia). It lets non-expert users configure and submit Azure infrastructure deployments through the Template Flow:
 
-- **Template Flow** — Multi-step wizard using predefined templates (16 templates across 7 categories)
-- **Custom Builder Flow** — Resource-by-resource configuration builder (auto-deploy)
-- **Custom Request Flow** — Resource picker at `/request` that generates a copy-paste request document to email the IAC team (no auto-deployment; manual provisioning after HOD approval)
+- **Template Flow** — Multi-step wizard using predefined templates (3 templates across 2 categories)
 
-Both Template and Custom Builder flows converge at a shared Review & Submit page, calling `POST /api/deployments`. After submission, a copyable plain-text proof artifact is generated for manual HOD approval. Deployment status is tracked via Azure ARM — ARM is the source of truth (no database).
+The Template flow converges at a shared Review & Submit page, calling `POST /api/deployments`. After submission, a copyable plain-text proof artifact is generated for manual HOD approval. Deployment status is tracked via Azure ARM — ARM is the source of truth (no database).
+
+> **Note:** The Custom Builder and Custom Request flows have been removed. Only the Template flow is currently active.
 
 **SSO:** Microsoft SSO (Entra ID / MSAL.js) is **on hold**. MSAL plumbing is fully implemented (auth code + PKCE flow, callback handler, `deployedBy` wired end-to-end) but not being activated at this time. A **placeholder login page** is live: visiting any protected route redirects to `/login`, where the "Sign in with Microsoft" button stubs a session cookie carrying `demo@sandbox.local`. When the team decides to activate SSO, the swap is a single-file change to `web/lib/auth.ts` (see Authentication section below).
 
@@ -90,7 +90,7 @@ The core cookie signing/verification logic lives in `web/lib/auth-core.ts`, whic
 1. User submits → `POST /api/deployments` validates policy (returns 403 if slug is blocked), generates a `submissionId` (UUID), derives resource group name, enqueues a message. Returns `{ submissionId, resourceGroup }`.
 2. Azure Function App picks up the queue message, creates the resource group with 6 tags, runs the ARM deployment with 4 policy tags applied to every resource.
 3. Review page polls `GET /api/deployments/:id?rg=<rgName>` every 3 s — queries ARM directly for deployment status. Returns `"accepted"` if the ARM deployment does not exist yet (still queued).
-4. "My Stuff" page calls `GET /api/my-deployments` — queries ARM for resource groups tagged `deployedBy: demo@sandbox.local`.
+4. `GET /api/my-deployments` queries ARM for resource groups tagged `deployedBy: demo@sandbox.local` (no dedicated UI page currently).
 5. On `succeeded`, ConfirmModal shows a "View in Azure Portal" deep-link to the resource group in `sub-epf-sandbox-internal`.
 
 **ARM tags — resource group gets 6 tags; ARM resources get 4 policy tags only:**
@@ -110,34 +110,18 @@ The core cookie signing/verification logic lives in `web/lib/auth-core.ts`, whic
 
 ## Template Catalog
 
-16 templates across 7 categories (compute, data, network, security, automation, integration, landing-zone). All region options are locked to:
+3 templates across 2 categories (automation, compute). All region options are locked to:
 - Malaysia (Malaysia West) — default
 - Asia Pacific (Southeast Asia)
 
 | Category | Slug | Resource Type | Count |
 |----------|------|---------------|-------|
-| compute | `web-application` | App Service + Log Analytics + Key Vault | 4 |
-| compute | `virtual-machine` | `Microsoft.Compute/virtualMachines` — policy-blocked, shows lock UI | 4 |
-| compute | `container-app` | Container App + Log Analytics + Key Vault | 4 |
-| compute | `full-stack-web-app` | App Service + Azure SQL + Storage + Key Vault + Log Analytics | 7 |
-| compute | `microservices-platform` | Container Apps + Service Bus — policy-blocked | 4 |
-| data | `database` | PostgreSQL + Log Analytics + Key Vault | 3 |
-| data | `storage-account` | Storage + Log Analytics + Key Vault | 3 |
-| data | `data-pipeline` | policy-blocked | 4 |
-| security | `key-vault` | Key Vault + Log Analytics (vault deduplicated) | 2 |
-| network | `virtual-network` | VNet + Log Analytics + Key Vault | 3 |
-| compute | `secure-api-backend` | policy-blocked | 5 |
-| landing-zone | `landing-zone` | VNet + Key Vault + Log Analytics (already bundled) | 3 |
-| automation | `approval-workflow` | Logic App + Log Analytics + Key Vault | 3 |
-| automation | `scheduled-automation` | Logic App + Log Analytics + Key Vault | 3 |
-| integration | `message-queue` | Service Bus + Log Analytics + Key Vault | 3 |
-| integration | `event-broadcaster` | Event Grid + Log Analytics + Key Vault | 3 |
-
-Policy-blocked slugs (enforced server-side at `POST /api/deployments` → 403):
-- `virtual-machine`, `microservices-platform`, `data-pipeline`, `secure-api-backend`
+| automation | `approval-workflow` | Logic App | 1 |
+| automation | `scheduled-automation` | Logic App | 1 |
+| compute | `static-web-app` | Static Web App | 1 |
 
 Deployable slugs (allow-list in `web/lib/deployments/policy.ts`):
-- `web-application`, `database`, `storage-account`, `key-vault`, `virtual-network`, `container-app`, `landing-zone`, `full-stack-web-app`, `approval-workflow`, `scheduled-automation`, `message-queue`, `event-broadcaster`
+- `approval-workflow`, `scheduled-automation`, `static-web-app`
 
 ---
 
@@ -175,70 +159,90 @@ Prisma and PostgreSQL have been removed. ARM is the source of truth for all depl
 │   ├── app/
 │   │   ├── globals.css
 │   │   ├── layout.tsx
-│   │   ├── page.tsx             # Home (/) — includes "Request Custom Setup" CTA
+│   │   ├── page.tsx             # Home (/)
+│   │   ├── login/               # /login — placeholder login
 │   │   ├── templates/           # /templates and /templates/[slug]
-│   │   ├── builder/             # /builder (Custom Builder — auto-deploy)
-│   │   ├── request/             # /request (Custom Request — copy-paste doc, no deploy)
 │   │   ├── review/              # /review
-│   │   ├── my-stuff/            # /my-stuff — user's deployed resource groups
 │   │   └── api/
 │   │       ├── deployments/         # POST create (validates policy → 403 if blocked)
 │   │       │   └── [submissionId]/  # GET status (ARM, requires ?rg= param)
 │   │       ├── my-deployments/      # GET list RGs by deployedBy tag
+│   │       ├── auth/                # POST login (stub), POST logout, GET callback (MSAL), GET me
 │   │       └── healthz/
 │   ├── components/
-│   │   ├── layout/   # Navbar, Breadcrumb, Footer, PageTransition, UserMenu, PageEyebrow
-│   │   ├── ui/       # Button, Card, Badge, Modal, Toast, MonoSectionHeader, DocumentDivider
-│   │   ├── templates/# TemplateRow, TemplateWizardClient
+│   │   ├── layout/   # Navbar, Breadcrumb, Footer, PageTransition, UserMenu, PageEyebrow, MainShell, AmbientBackground
+│   │   ├── ui/       # Button, Card, Badge, Modal, Toast, MonoSectionHeader, DocumentDivider, Logo, AsciiTerminal, BracketFeature, ComparisonBar, DynamicIcon, FaqAccordion, MarqueeStrip, NumberedBlock, StatusIndicator
+│   │   ├── templates/# TemplateRow, FilterPills
 │   │   ├── wizard/   # Stepper, WizardStep, SummaryPanel
-│   │   ├── builder/
-│   │   ├── request/  # RequestDocument — copy-paste request block
 │   │   ├── review/   # ReviewSection, ConfirmModal (mono glyph timeline + portal deep-link)
-│   │   ├── home/     # DeployedList, TerminalHero
-│   │   └── stuff/    # DeployedTable (my-stuff page)
+│   │   └── home/     # NavLink, TerminalHero
 │   ├── store/
-│   │   └── deploymentStore.ts   # mode: "template"|"custom"|"custom-request"; resetCustomRequest()
+│   │   └── deploymentStore.ts   # mode: "template"|"custom"; wizard state, submission tracking
 │   ├── lib/
 │   │   ├── api.ts               # Client-side fetch helpers
 │   │   ├── arm.ts               # getArmClient() factory
-│   │   ├── button-classes.ts    # Server-safe Tailwind button class builder
+│   │   ├── auth-core.ts         # Edge-safe cookie signing/verification
+│   │   ├── auth.ts              # Server-side auth helpers
+│   │   ├── button-classes.ts    # Tailwind button class builder
+│   │   ├── display.ts           # displayFieldValue() for proof artifacts
+│   │   ├── env-public.ts        # Public env var reader
 │   │   ├── errors.ts            # AppError (incl. forbidden()), toErrorResponse()
+│   │   ├── icons.ts             # Lucide icon map + getIcon()
+│   │   ├── modal-inert.ts       # Inert management for modals
+│   │   ├── motion.ts            # Shared Framer Motion variants
+│   │   ├── msal.ts              # MSAL/Entra ID config (on hold)
+│   │   ├── report.ts            # generateReport() — proof artifact
+│   │   ├── schema.ts            # buildSchema() — Zod form schemas
 │   │   ├── server-env.ts        # Zod env (no DATABASE_URL)
-│   │   ├── schema.ts
-│   │   ├── icons.ts
-│   │   ├── report.ts
+│   │   ├── utils.ts             # cn() utility
 │   │   └── deployments/
 │   │       ├── schema.ts        # Zod payload schemas + tagsSchema
-│   │       ├── schema.test.ts    # schema unit tests (co-located)
-│   │       ├── policy.ts        # DEPLOYABLE_SLUGS allow-list + POLICY_BLOCKED_TEMPLATE_SLUGS
+│   │       ├── deployment.schema.test.ts  # schema unit tests (co-located)
+│   │       ├── policy.ts        # DEPLOYABLE_SLUGS allow-list + ALLOWED_RESOURCE_TYPES
+│   │       ├── failure-lookup.ts # Reads failure blobs from storage
 │   │       ├── rg-name.ts       # deriveResourceGroupName / deriveLocation
 │   │       └── arm-status.ts    # mapArmProvisioningState → DeploymentStatus
 │   ├── types/index.ts
 │   ├── data/
-│   │   ├── templates.json       # 16 templates across 7 categories; regions locked to SEA/EA/AUE only
-│   │   └── resources.json       # 10 resource types (NSG removed); used by Custom Builder + Request pages
+│   │   ├── templates.json       # 3 templates across 2 categories; regions locked to malaysiawest/southeastasia only
+│   │   └── resources.json       # 10 resource types for Custom Builder flow
 │   └── __tests__/
 │       ├── store/
 │       ├── lib/deployments/
+│       ├── store/
+│       ├── lib/
+│       │   └── deployments/
+│       ├── components/
+│       │   └── layout/
 │       └── app/
+│           ├── api/
+│           │   ├── auth/
+│           │   ├── deployments/
+│           │   └── my-deployments/
 │           ├── review/
-│           └── my-stuff/
+│           └── login/
 │
 ├── functions/
 │   └── src/
-│       ├── functions/processDeployment.ts        # exported handler; errors thrown for retry
-│       ├── functions/processPoisonDeployment.ts  # poison-queue dead-letter handler
+│       ├── functions/processDeployment.ts        # Queue-triggered handler; errors thrown for retry
+│       ├── functions/processPoisonDeployment.ts  # Poison-queue dead-letter handler
+│       ├── functions/healthz.ts                  # HTTP health check endpoint
 │       ├── lib/env.ts
 │       └── modules/deployments/
-│           ├── arm-template-builder.ts      # builders + PolicyBlockedTemplateError
-│           ├── bicep-executor.ts            # applies 6 tags to RG, 4 policy tags to ARM resources
-│           ├── deployment.schema.ts
-│           └── sanitize.ts                  # name sanitization helpers
+│           ├── arm-template-builder.ts      # Builders + PolicyBlockedTemplateError
+│           ├── bicep-executor.ts            # Applies 6 tags to RG, 4 policy tags to ARM resources
+│           ├── deployment.schema.ts         # Deployment payload schemas
+│           ├── failure-store.ts             # Writes failure records to blob storage
+│           └── sanitize.ts                  # Name sanitization helpers
 │       └── __tests__/
-│           ├── functions/processDeployment.test.ts
+│           ├── functions/
+│           │   ├── processDeployment.test.ts
+│           │   ├── processPoisonDeployment.test.ts
+│           │   └── healthz.test.ts
 │           └── modules/deployments/
 │               ├── arm-template-builder.test.ts
-│               └── bicep-executor.test.ts
+│               ├── bicep-executor.test.ts
+│               └── sanitize.test.ts
 │
 ├── .github/
 │   └── workflows/

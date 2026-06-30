@@ -5,7 +5,9 @@
   "scripts": {
     "dev": "npm run dev --prefix web",
     "build": "npm run build --prefix web",
-    "test": "npm test --prefix web"
+    "test": "npm test --prefix web",
+    "test:functions": "npm test --prefix functions",
+    "build:functions": "npm run build --prefix functions"
   },
   "dependencies": {
     "clsx": "^2.1.1",

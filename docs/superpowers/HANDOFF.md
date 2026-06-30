@@ -43,11 +43,9 @@
 - Total: **323 passed**
 
 ### What is NOT done (next session candidates)
-- **Deploy to Azure** — commit and push to `main` to deploy to App Service + Function App
-- **End-to-end verification** — test a real template submission via frontend and confirm RG + LAW + KV appear in `sub-epf-sandbox-internal`
-- **CLAUDE.md v2.5.1** — update the Template Catalog table to reflect new resource counts and descriptions
-- **Resource count display** — some templates show `"resourceCount": 4` (e.g., `web-application`) but user asked to keep counts accurate; verify UI renders the updated numbers correctly
-- **Builder page** — the custom builder (`/builder`) now also produces +2 supporting resources per resource. Confirm the summary panel and review page reflect this correctly.
+- **End-to-end verification** — confirm a real template submission progresses from `accepted` → `running` → `succeeded` in `sub-epf-sandbox-internal` with LAW + KV in the resource group
+- **Function App env vars** — azure-infra.md marks all steps complete, but queue processing has not been observed working live; verify a deployment actually moves past `accepted`
+- **Builder page** — the custom builder (`/builder`) also produces +2 supporting resources per resource; confirm summary panel and review page reflect this correctly
 
 ---
 

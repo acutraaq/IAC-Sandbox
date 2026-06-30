@@ -99,7 +99,27 @@
       "Read(//tmp/**)",
       "Bash(grep -v \"^$\")",
       "Bash(python -c \"import json,sys; d=json.load\\(sys.stdin\\); [print\\(j['name'], j['status'], j['conclusion']\\) for j in d['jobs']]\")",
-      "Bash(python -c ' *)"
+      "Bash(python -c ' *)",
+      "Skill(claude-md-management:revise-claude-md)",
+      "Skill(claude-md-management:revise-claude-md:*)",
+      "Bash(cd \"/c/Users/AB3968/Git/IAC-Sandbox\" && grep -A3 '\"slug\": \"key-vault\"' web/data/templates.json | head -5)",
+      "Read(//c/c/Users/AB3968/Git/IAC-Sandbox/web/data/**)",
+      "Bash(cd \"/c/Users/AB3968/Git/IAC-Sandbox\" && find web/components -maxdepth 1 -type d | sort)",
+      "Read(//c/c/Users/AB3968/Git/IAC-Sandbox/web/**)",
+      "Bash(grep -v '^$')",
+      "mcp__plugin_github_github__list_pull_requests",
+      "Bash(echo \"---EXIT:$?---\")",
+      "Bash(git -C /c/Users/AB3968/Git/IAC-Sandbox diff HEAD -- web/lib/api.ts)",
+      "Bash(git -C /c/Users/AB3968/Git/IAC-Sandbox diff HEAD -- web/types/index.ts)",
+      "Bash(grep -v \"^.*//.*$\")",
+      "Bash(git -C /c/Users/AB3968/Git/IAC-Sandbox show HEAD:web/app/builder/page.tsx)",
+      "Bash(git -C /c/Users/AB3968/Git/IAC-Sandbox show HEAD:web/app/request/page.tsx)",
+      "Bash(python -c \"import sys,json; d=json.load\\(sys.stdin\\); [print\\(t['slug']\\) for t in d]\")",
+      "Bash(python -c \"import json; d=json.load\\(open\\('web/data/templates.json'\\)\\); [print\\(t['slug']\\) for t in d]\")",
+      "Bash(python -c \"import json; d=json.load\\(open\\('web/data/templates.json'\\)\\); [print\\(json.dumps\\(t, indent=2\\)\\) for t in d]\")",
+      "Bash(python -c \"import json,sys; d=json.load\\(sys.stdin\\); print\\(f'{len\\(d\\)} templates:'\\); [print\\(f'  {t[\\\\\"slug\\\\\"]} \\({t[\\\\\"category\\\\\"]}\\)'  \\) for t in d]\")",
+      "Bash(npx eslint *)",
+      "Bash(python -c \"import json,sys; d=json.load\\(sys.stdin\\); print\\(d['devDependencies'].get\\('vitest', 'N/A'\\)\\)\")"
     ]
   },
   "hooks": {
