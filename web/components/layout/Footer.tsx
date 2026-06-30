@@ -5,8 +5,6 @@ import Link from "next/link";
 const footerLinks = [
   { href: "/", label: "Home" },
   { href: "/templates", label: "Templates" },
-  { href: "/builder", label: "Builder" },
-  { href: "/my-stuff", label: "My Stuff" },
 ];
 
 export function Footer() {

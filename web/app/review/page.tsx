@@ -71,10 +71,6 @@ export default function ReviewPage() {
   }, [mode, router]);
 
   if (!mode) return null;
-  if (mode === "custom-request") {
-    router.replace("/request");
-    return null;
-  }
 
   const canSubmit =
     mode === "template"
@@ -140,7 +136,7 @@ export default function ReviewPage() {
   const backHref =
     mode === "template" && selectedTemplate
       ? `/templates/${selectedTemplate.slug}`
-      : "/builder";
+      : "/";
 
   return (
     <PageTransition>
@@ -152,7 +148,7 @@ export default function ReviewPage() {
           className="mb-3 inline-flex items-center gap-1.5 text-sm text-text-muted hover:text-accent"
         >
           <ArrowLeft className="h-4 w-4" />
-          {mode === "template" ? "Back to setup" : "Back to builder"}
+          {mode === "template" ? "Back to setup" : "Back"}
         </Link>
         <h1 className="font-sans text-xl md:text-2xl font-bold text-text">
           Review your setup

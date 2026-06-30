@@ -1,26 +1,19 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
 import templatesData from "@/data/templates.json";
 import { PageEyebrow } from "@/components/layout/PageEyebrow";
 import { PageTransition } from "@/components/layout/PageTransition";
 import { TemplateRow } from "@/components/templates/TemplateRow";
 import { FilterPills } from "@/components/templates/FilterPills";
-import { ArrowRight } from "lucide-react";
 import type { Template } from "@/types";
 
 const ALL_TEMPLATES = templatesData as Template[];
 
 const FILTER_CATEGORIES = [
   { value: "all",           label: "All" },
-  { value: "compute",       label: "Web & Apps" },
-  { value: "data",          label: "Storage & Databases" },
-  { value: "network",       label: "Networking" },
-  { value: "security",      label: "Security" },
   { value: "automation",    label: "Automation" },
-  { value: "integration",   label: "Messaging" },
-  { value: "landing-zone",  label: "Starter Kits" },
+  { value: "compute",       label: "Web & Apps" },
 ];
 
 export default function TemplatesPage() {
@@ -75,25 +68,6 @@ export default function TemplatesPage() {
           </button>
         </div>
       )}
-
-      {/* Bottom CTA */}
-      <section className="mt-12 rounded-xl border border-border bg-surface px-6 py-5">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <p className="text-sm font-semibold text-text">Need something different?</p>
-            <p className="mt-0.5 text-xs text-text-muted">
-              If none of these fit, submit a custom setup request. Our team will provision it after HOD approval.
-            </p>
-          </div>
-          <Link
-            href="/request"
-            className="shrink-0 inline-flex items-center gap-2 rounded-full border border-border bg-bg px-5 py-2.5 text-sm font-medium text-accent transition-all hover:bg-surface-highlight hover:border-accent/30"
-          >
-            Request a Custom Setup
-            <ArrowRight className="h-4 w-4" />
-          </Link>
-        </div>
-      </section>
     </div>
     </PageTransition>
   );

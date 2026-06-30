@@ -349,7 +349,8 @@
         "label": "Prevent permanent deletion?",
         "type": "toggle",
         "required": false,
-        "helpText": "Prevents anyone from permanently deleting secrets until the recovery period ends."
+        "default": true,
+        "helpText": "Required by subscription policy. Prevents permanent deletion until the recovery period ends."
       },
       {
         "name": "kvSku",

@@ -32,17 +32,7 @@ export interface Template {
   policyBlocked?: boolean;
 }
 
-/* ── Resources (custom builder) ── */
-
-export interface AzureResource {
-  type: string;
-  name: string;
-  description: string;
-  category: string;
-  icon: string;
-  fields: FieldSchema[];
-  policyBlocked?: boolean;
-}
+/* ── Resources ── */
 
 export interface SelectedResource {
   type: string;
@@ -111,6 +101,7 @@ export interface MyDeploymentItem {
   status: DeploymentStatus;
   submissionId: string | null;
   deployedAt: string | null;
+  errorMessage: string | null;
 }
 
 export interface ErrorResponse {
@@ -125,7 +116,7 @@ export interface ErrorResponse {
 /* ── Store State ── */
 
 export interface DeploymentState {
-  mode: "template" | "custom" | "custom-request" | null;
+  mode: "template" | "custom" | null;
   selectedTemplate: {
     slug: string;
     name: string;
@@ -142,7 +133,7 @@ export interface DeploymentState {
   deploymentSummary: string | null;
 
   // Actions
-  setMode: (mode: "template" | "custom" | "custom-request") => void;
+  setMode: (mode: "template" | "custom") => void;
   selectTemplate: (template: Template) => void;
   updateWizardStep: (step: number) => void;
   completeStep: (step: number) => void;
@@ -150,6 +141,5 @@ export interface DeploymentState {
   addResource: (resource: SelectedResource) => boolean;
   removeResource: (type: string) => void;
   setSubmissionResult: (id: string, summary: string, resourceGroup: string) => void;
-  resetCustomRequest: () => void;
   reset: () => void;
 }

@@ -12,13 +12,8 @@ interface TemplateRowProps {
 }
 
 const CATEGORY_LABELS: Record<string, string> = {
-  compute:        "Web & Apps",
-  data:           "Storage & Databases",
-  network:        "Networking",
-  security:       "Security",
-  "landing-zone": "Starter Kits",
-  automation:     "Automation",
-  integration:    "Messaging",
+  compute:    "Web \u0026 Apps",
+  automation: "Automation",
 };
 
 export function TemplateRow({ template }: TemplateRowProps) {

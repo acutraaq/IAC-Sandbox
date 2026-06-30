@@ -10,12 +10,7 @@ export interface CategoryOption {
 const DEFAULT_CATEGORIES: CategoryOption[] = [
   { value: "all", label: "All" },
   { value: "automation", label: "Automation" },
-  { value: "integration", label: "Integration" },
-  { value: "compute", label: "Compute" },
-  { value: "data", label: "Data" },
-  { value: "network", label: "Network" },
-  { value: "security", label: "Security" },
-  { value: "landing-zone", label: "Starter Kits" },
+  { value: "compute", label: "Web \u0026 Apps" },
 ];
 
 interface FilterPillsProps {

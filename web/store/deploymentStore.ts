@@ -69,17 +69,6 @@ export const useDeploymentStore = create<DeploymentState>((set, get) => ({
   setSubmissionResult: (id: string, summary: string, resourceGroup: string) =>
     set({ submissionId: id, deploymentSummary: summary, deployedResourceGroup: resourceGroup }),
 
-  resetCustomRequest: () =>
-    set({
-      mode: null,
-      selectedTemplate: null,
-      wizardState: { ...initialWizardState },
-      selectedResources: [],
-      submissionId: null,
-      deployedResourceGroup: null,
-      deploymentSummary: null,
-    }),
-
   reset: () =>
     set({
       mode: null,

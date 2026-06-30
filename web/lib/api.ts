@@ -1,7 +1,6 @@
 import type {
   DeploymentPayload,
   DeploymentStatusResponse,
-  MyDeploymentItem,
   SubmitResponse,
   ErrorResponse,
 } from "@/types";
@@ -59,16 +58,6 @@ export async function getDeployment(
 
   if (response.status === 200) {
     return response.json() as Promise<DeploymentStatusResponse>;
-  }
-
-  return parseErrorBody(response);
-}
-
-export async function listMyDeployments(): Promise<MyDeploymentItem[]> {
-  const response = await fetch("/api/my-deployments");
-
-  if (response.status === 200) {
-    return response.json() as Promise<MyDeploymentItem[]>;
   }
 
   return parseErrorBody(response);

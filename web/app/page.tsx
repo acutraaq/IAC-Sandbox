@@ -3,7 +3,6 @@
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { Button } from "@/components/ui/Button";
-import { NavLink } from "@/components/home/NavLink";
 import { TerminalHero } from "@/components/home/TerminalHero";
 import { MarqueeStrip } from "@/components/ui/MarqueeStrip";
 import { NumberedBlock } from "@/components/ui/NumberedBlock";
@@ -29,9 +28,9 @@ import {
 } from "lucide-react";
 
 const statItems = [
-  { label: "Templates", value: "16", icon: Layers },
-  { label: "Categories", value: "7", icon: Puzzle },
-  { label: "Avg. Time", value: "~5 min", icon: Clock },
+  { label: "Templates", value: "3", icon: Layers },
+  { label: "Categories", value: "2", icon: Puzzle },
+  { label: "Avg. Time", value: "~1 min", icon: Clock },
 ];
 
 const marqueeItems = [
@@ -80,7 +79,7 @@ const comparisons = [
     leftValue: 95,
     rightValue: 8,
     leftMeta: "~2 hours",
-    rightMeta: "~5 minutes",
+    rightMeta: "~1 minute",
     improvement: "24× faster",
   },
   {
@@ -110,7 +109,7 @@ const comparisons = [
     leftValue: 25,
     rightValue: 100,
     leftMeta: "Scattered across portal",
-    rightMeta: "My Stuff page",
+    rightMeta: "ARM tagged, tracked",
     improvement: "Full visibility",
   },
 ];
@@ -119,7 +118,7 @@ const features = [
   {
     icon: Zap,
     title: "Fast setup",
-    desc: "From idea to deployed resources in under 5 minutes.",
+    desc: "From idea to deployed resources in under 1 minute.",
   },
   {
     icon: FileCheck,
@@ -169,7 +168,7 @@ const faqItems = [
   {
     question: "What is Sandbox IAC?",
     answer:
-      "Sandbox IAC is an internal Azure Infrastructure-as-Code deployment platform for EPF. It lets non-expert users configure and submit Azure infrastructure deployments through guided templates or a custom builder — no cloud expertise required.",
+      "Sandbox IAC is an internal Azure Infrastructure-as-Code deployment platform for EPF. It lets non-expert users configure and submit Azure infrastructure deployments through guided templates — no cloud expertise required.",
   },
   {
     question: "Who can use Sandbox?",
@@ -179,7 +178,7 @@ const faqItems = [
   {
     question: "How does deployment work?",
     answer:
-      "You choose a template or build a custom config, fill in the required tags, review your setup, and submit. The request is queued and picked up by an Azure Function that creates your resource group and runs the ARM deployment via managed identity.",
+      "You choose a template, fill in the required tags, review your setup, and submit. The request is queued and picked up by an Azure Function that creates your resource group and runs the ARM deployment via managed identity.",
   },
   {
     question: "What about HOD approval?",
@@ -255,14 +254,6 @@ export default function Home() {
                   <ArrowRight className="h-4 w-4" />
                 </Link>
               </Button>
-              <NavLink
-                href="/builder"
-                mode="custom"
-                variant="outline-glow"
-                size="lg"
-              >
-                Build Custom
-              </NavLink>
             </motion.div>
 
             <motion.div
@@ -373,8 +364,8 @@ export default function Home() {
             </h2>
             <p className="mt-4 max-w-[60ch] text-base leading-relaxed text-text-muted">
               Sandbox replaces the manual portal workflow with a guided,
-              tag-validated, queue-driven deployment pipeline. Choose a template
-              or build your own — every submission is validated, tracked, and
+              tag-validated, queue-driven deployment pipeline. Pick a template,
+              answer a few questions — every submission is validated, tracked, and
               traced back to you.
             </p>
           </motion.div>
@@ -397,7 +388,7 @@ export default function Home() {
                   { text: "  ! High error rate, no audit trail", color: "muted" },
                   { text: "", color: "text" },
                   { text: "# -- Sandbox Pipeline --", color: "muted" },
-                  { text: "  1. Pick template / builder", color: "accent" },
+                  { text: "  1. Pick template", color: "accent" },
                   { text: "  2. Answer guided questions", color: "accent" },
                   { text: "  3. Validate all 6 tags", color: "accent" },
                   { text: "  4. Review + proof artifact", color: "accent" },
@@ -553,10 +544,10 @@ export default function Home() {
                     { text: "  [✓] Everything tagged and tracked", color: "success" },
                     { text: "", color: "text" },
                     { text: "── Step 3: You are notified ─────────────────", color: "muted" },
-                    { text: "  [✓] Status visible in My Stuff", color: "success" },
+                    { text: "  [✓] Status tracked via ARM tags", color: "success" },
                     { text: "  [✓] Direct link to your new workspace", color: "success" },
                     { text: "", color: "text" },
-                    { text: "  Ready in approximately 5 minutes.", color: "accent" },
+                    { text: "  Ready in approximately 1 minute.", color: "accent" },
                     { text: "  You can close this tab right now.", color: "muted" },
                   ]}
                 />
@@ -572,8 +563,8 @@ export default function Home() {
                   { label: "No expertise", value: "Guided step by step" },
                   { label: "No risk", value: "Policy checked upfront" },
                   { label: "Proof ready", value: "For HOD approval" },
-                  { label: "Fully tracked", value: "See it in My Stuff" },
-                  { label: "Takes about", value: "~5 minutes" },
+                  { label: "Fully tracked", value: "ARM tagged" },
+                  { label: "Takes about", value: "~1 minute" },
                 ].map((meta) => (
                   <div
                     key={meta.label}
@@ -640,13 +631,12 @@ export default function Home() {
           variants={staggerContainer}
           className="relative"
         >
-          <motion.div variants={fadeUpVariant} transition={easeOutTransition}>
+            <motion.div variants={fadeUpVariant} transition={easeOutTransition}>
             <h2 className="font-sans text-[clamp(1.75rem,4vw,2.5rem)] font-bold text-text">
               Ready when you are
             </h2>
             <p className="relative mx-auto mt-3 max-w-md text-base text-text-muted">
-              Jump into templates, or request a custom setup if you need
-              something specific.
+              Jump into templates to get started.
             </p>
             <div className="relative mt-7 flex flex-wrap justify-center gap-3">
               <Button asChild size="lg">
@@ -655,14 +645,6 @@ export default function Home() {
                   <ArrowRight className="h-4 w-4" />
                 </Link>
               </Button>
-              <NavLink
-                href="/request"
-                mode="custom-request"
-                variant="outline-glow"
-                size="lg"
-              >
-                Request Custom Setup
-              </NavLink>
             </div>
           </motion.div>
         </motion.div>

@@ -34,6 +34,7 @@ export async function GET(request: Request) {
       let status: DeploymentStatus = "accepted";
       let submissionId: string | null = null;
       let deployedAt: string | null = null;
+      let errorMessage: string | null = null;
 
       const taggedId = rg.tags?.["iac-submissionId"] ?? null;
       if (taggedId) {
@@ -42,6 +43,13 @@ export async function GET(request: Request) {
           status = mapArmProvisioningState(dep.properties?.provisioningState);
           submissionId = taggedId;
           deployedAt = dep.properties?.timestamp?.toISOString() ?? null;
+          if (status === "failed") {
+            const err = (dep.properties as Record<string, unknown> | undefined)?.error as
+              | { message?: string; details?: { message?: string }[] }
+              | undefined;
+            errorMessage =
+              err?.details?.[0]?.message ?? err?.message ?? "Deployment failed";
+          }
         } catch {
           // Deployment record gone or not yet written — leave status as accepted
         }
@@ -54,6 +62,7 @@ export async function GET(request: Request) {
         status,
         submissionId,
         deployedAt,
+        errorMessage,
       });
     }
 
