@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { buildArmTemplate, validateTemplateAgainstPolicy, InvalidDeploymentConfigError } from "../../../modules/deployments/arm-template-builder.js";
+import { buildArmTemplate, validateTemplateAgainstPolicy } from "../../../modules/deployments/arm-template-builder.js";
 import type { DeploymentPayload } from "../../../modules/deployments/deployment.schema.js";
 
 const TENANT_ID = "test-tenant-id";
@@ -23,26 +23,26 @@ function customPayload(type: string, name: string, config: Record<string, unknow
 
 describe("buildArmTemplate — assembly", () => {
   it("returns correct $schema and contentVersion", () => {
-    const t = buildArmTemplate(templatePayload("storage-account", { storageName: "mystore" }), { tenantId: TENANT_ID });
+    const t = buildArmTemplate(templatePayload("approval-workflow", { workflowName: "mywf" }), { tenantId: TENANT_ID });
     expect(t.$schema).toBe("https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#");
     expect(t.contentVersion).toBe("1.0.0.0");
   });
 
   it("parameters and outputs are empty objects", () => {
-    const t = buildArmTemplate(templatePayload("storage-account"), { tenantId: TENANT_ID });
+    const t = buildArmTemplate(templatePayload("approval-workflow"), { tenantId: TENANT_ID });
     expect(t.parameters).toEqual({});
     expect(t.outputs).toEqual({});
   });
 
   it("applies tags to every resource when opts.tags provided", () => {
-    const t = buildArmTemplate(templatePayload("storage-account", { storageName: "tagtest" }), { tenantId: TENANT_ID, tags: TAGS });
+    const t = buildArmTemplate(templatePayload("approval-workflow", { workflowName: "tagtest" }), { tenantId: TENANT_ID, tags: TAGS });
     for (const r of t.resources) {
       expect(r.tags).toEqual(TAGS);
     }
   });
 
   it("does not add tags when opts.tags omitted", () => {
-    const t = buildArmTemplate(templatePayload("storage-account"), { tenantId: TENANT_ID });
+    const t = buildArmTemplate(templatePayload("approval-workflow"), { tenantId: TENANT_ID });
     for (const r of t.resources) {
       expect(r.tags).toBeUndefined();
     }
@@ -54,197 +54,35 @@ describe("buildArmTemplate — assembly", () => {
 });
 
 // ---------------------------------------------------------------------------
-// Storage Account builder
+// validateTemplateAgainstPolicy
 // ---------------------------------------------------------------------------
 
-describe("buildStorageAccount", () => {
-  it("happy path: correct type and apiVersion", () => {
-    const t = buildArmTemplate(templatePayload("storage-account", { storageName: "mystore" }), { tenantId: TENANT_ID });
-    const r = t.resources[0];
-    expect(r.type).toBe("Microsoft.Storage/storageAccounts");
-    expect(r.apiVersion).toBe("2023-01-01");
+describe("validateTemplateAgainstPolicy", () => {
+  it("returns empty array for all-allowed template", () => {
+    const t = buildArmTemplate(templatePayload("approval-workflow", { workflowName: "s" }), { tenantId: TENANT_ID });
+    expect(validateTemplateAgainstPolicy(t)).toEqual([]);
   });
 
-  it("sanitizes name — strips special chars, lowercase, max 24", () => {
-    const t = buildArmTemplate(templatePayload("storage-account", { storageName: "My_Storage-Account!@#" }), { tenantId: TENANT_ID });
-    expect(t.resources[0].name).toMatch(/^[a-z0-9]{1,24}$/);
-    expect(t.resources[0].name.length).toBeLessThanOrEqual(24);
-  });
-
-  it("uses fallback name when sanitized result is empty", () => {
-    const t = buildArmTemplate(templatePayload("storage-account", { storageName: "---" }), { tenantId: TENANT_ID });
-    expect(t.resources[0].name).toBe("sandboxstorage");
-  });
-
-  it("maps short redundancy code to full SKU name", () => {
-    const t = buildArmTemplate(templatePayload("storage-account", { storageName: "s", redundancy: "GRS" }), { tenantId: TENANT_ID });
-    expect((t.resources[0] as Record<string, unknown>).sku).toEqual({ name: "Standard_GRS" });
+  it("returns blocked type when resource is not in policy set", () => {
+    const t = buildArmTemplate(
+      customPayload("Microsoft.Web/staticSites", "app"),
+      { tenantId: TENANT_ID }
+    );
+    // inject a non-allowed type to test the validator
+    t.resources.push({ type: "Microsoft.SomeBlockedService/things", apiVersion: "2023-01-01", name: "x", location: "eastus" });
+    const blocked = validateTemplateAgainstPolicy(t);
+    expect(blocked).toContain("Microsoft.SomeBlockedService/things");
+    expect(blocked).not.toContain("Microsoft.Web/staticSites");
   });
 });
 
 // ---------------------------------------------------------------------------
-// Virtual Network builder
+// Policy-blocked template slugs
 // ---------------------------------------------------------------------------
-
-describe("buildVirtualNetwork", () => {
-  it("happy path: correct type and apiVersion", () => {
-    const t = buildArmTemplate(templatePayload("virtual-network", { vnetName: "my-vnet" }), { tenantId: TENANT_ID });
-    const r = t.resources[0];
-    expect(r.type).toBe("Microsoft.Network/virtualNetworks");
-    expect(r.apiVersion).toBe("2023-09-01");
-  });
-
-  it("sanitizes name — replaces non-alphanum with hyphens, max 64", () => {
-    const longName = "a".repeat(80);
-    const t = buildArmTemplate(templatePayload("virtual-network", { vnetName: longName }), { tenantId: TENANT_ID });
-    expect(t.resources[0].name.length).toBeLessThanOrEqual(64);
-  });
-
-  it("uses custom address space from formValues", () => {
-    const t = buildArmTemplate(templatePayload("virtual-network", { vnetName: "v", addressSpace: "192.168.0.0/24" }), { tenantId: TENANT_ID });
-    const props = (t.resources[0] as Record<string, unknown>).properties as { addressSpace: { addressPrefixes: string[] } };
-    expect(props.addressSpace.addressPrefixes).toContain("192.168.0.0/24");
-  });
-});
-
-// ---------------------------------------------------------------------------
-// Key Vault builder
-// ---------------------------------------------------------------------------
-
-describe("buildKeyVault", () => {
-  it("happy path: correct type and apiVersion", () => {
-    const t = buildArmTemplate(templatePayload("key-vault", { vaultName: "my-kv" }), { tenantId: TENANT_ID });
-    const r = t.resources[0];
-    expect(r.type).toBe("Microsoft.KeyVault/vaults");
-    expect(r.apiVersion).toBe("2023-07-01");
-  });
-
-  it("name starts with a letter after sanitization", () => {
-    const t = buildArmTemplate(templatePayload("key-vault", { vaultName: "123vault" }), { tenantId: TENANT_ID });
-    expect(t.resources[0].name).toMatch(/^[a-z]/);
-  });
-
-  it("name max 24 chars", () => {
-    const t = buildArmTemplate(templatePayload("key-vault", { vaultName: "a".repeat(40) }), { tenantId: TENANT_ID });
-    expect(t.resources[0].name.length).toBeLessThanOrEqual(24);
-  });
-
-  it("uses fallback name when sanitized result is empty", () => {
-    const t = buildArmTemplate(templatePayload("key-vault", { vaultName: "123" }), { tenantId: TENANT_ID });
-    expect(t.resources[0].name).toBe("sandbox-kv");
-  });
-
-  it("sets tenantId from opts", () => {
-    const t = buildArmTemplate(templatePayload("key-vault", { vaultName: "kv" }), { tenantId: "my-tenant" });
-    const props = (t.resources[0] as Record<string, unknown>).properties as { tenantId: string };
-    expect(props.tenantId).toBe("my-tenant");
-  });
-});
-
-// ---------------------------------------------------------------------------
-// PostgreSQL builder
-// ---------------------------------------------------------------------------
-
-describe("buildPostgresServer", () => {
-  it("happy path: correct type and apiVersion", () => {
-    const t = buildArmTemplate(templatePayload("database", { dbName: "mydb" }), { tenantId: TENANT_ID });
-    const r = t.resources[0];
-    expect(r.type).toBe("Microsoft.DBforPostgreSQL/flexibleServers");
-    expect(r.apiVersion).toBe("2023-12-01");
-  });
-
-  it("sanitizes name, max 63 chars", () => {
-    const t = buildArmTemplate(templatePayload("database", { dbName: "a".repeat(80) }), { tenantId: TENANT_ID });
-    expect(t.resources[0].name.length).toBeLessThanOrEqual(63);
-  });
-
-  it("uses fallback name when input sanitizes to empty", () => {
-    const t = buildArmTemplate(templatePayload("database", { dbName: "---" }), { tenantId: TENANT_ID });
-    expect(t.resources[0].name).toBe("sandbox-db");
-  });
-});
-
-// ---------------------------------------------------------------------------
-// Web Application builder (2 resources: serverfarms + sites)
-// ---------------------------------------------------------------------------
-
-describe("buildWebApplication", () => {
-  it("returns 4 resources: serverfarm, site, law, kv", () => {
-    const t = buildArmTemplate(templatePayload("web-application", { appName: "myapp" }), { tenantId: TENANT_ID });
-    expect(t.resources).toHaveLength(4);
-    expect(t.resources[0].type).toBe("Microsoft.Web/serverfarms");
-    expect(t.resources[1].type).toBe("Microsoft.Web/sites");
-    expect(t.resources[2].type).toBe("Microsoft.OperationalInsights/workspaces");
-    expect(t.resources[3].type).toBe("Microsoft.KeyVault/vaults");
-  });
-
-  it("sanitizes name, max 60 chars", () => {
-    const t = buildArmTemplate(templatePayload("web-application", { appName: "a".repeat(80) }), { tenantId: TENANT_ID });
-    expect(t.resources[1].name.length).toBeLessThanOrEqual(60);
-  });
-
-  it("falls back to B1 for invalid planSize", () => {
-    const t = buildArmTemplate(templatePayload("web-application", { appName: "app", planSize: "P3" }), { tenantId: TENANT_ID });
-    const sku = (t.resources[0] as Record<string, unknown>).sku as { name: string };
-    expect(sku.name).toBe("B1");
-  });
-
-  it("accepts valid planSize B2", () => {
-    const t = buildArmTemplate(templatePayload("web-application", { appName: "app", planSize: "B2" }), { tenantId: TENANT_ID });
-    const sku = (t.resources[0] as Record<string, unknown>).sku as { name: string };
-    expect(sku.name).toBe("B2");
-  });
-});
-
-// ---------------------------------------------------------------------------
-// Container App builder (2 resources: managedEnvironments + containerApps)
-// ---------------------------------------------------------------------------
-
-describe("buildContainerApp", () => {
-  it("returns 4 resources: managedEnvironment, containerApp, law, kv", () => {
-    const t = buildArmTemplate(templatePayload("container-app", { appName: "myapp" }), { tenantId: TENANT_ID });
-    expect(t.resources).toHaveLength(4);
-    expect(t.resources[0].type).toBe("Microsoft.App/managedEnvironments");
-    expect(t.resources[1].type).toBe("Microsoft.App/containerApps");
-    expect(t.resources[2].type).toBe("Microsoft.OperationalInsights/workspaces");
-    expect(t.resources[3].type).toBe("Microsoft.KeyVault/vaults");
-  });
-
-  it("sanitizes name, max 32 chars", () => {
-    const t = buildArmTemplate(templatePayload("container-app", { appName: "a".repeat(50) }), { tenantId: TENANT_ID });
-    expect(t.resources[1].name.length).toBeLessThanOrEqual(32);
-  });
-
-  it("uses custom container image when provided", () => {
-    const t = buildArmTemplate(templatePayload("container-app", { appName: "app", containerImage: "myrepo/myimage:v1" }), { tenantId: TENANT_ID });
-    const props = (t.resources[1] as Record<string, unknown>).properties as { template: { containers: Array<{ image: string }> } };
-    expect(props.template.containers[0].image).toBe("myrepo/myimage:v1");
-  });
-});
-
-// ---------------------------------------------------------------------------
-// Virtual Machine builder (4 resources)
-// ---------------------------------------------------------------------------
-
-describe("buildVirtualMachine (custom mode)", () => {
-  it("throws policy error for Microsoft.Compute/virtualMachines in custom mode", () => {
-    expect(() =>
-      buildArmTemplate(
-        customPayload("Microsoft.Compute/virtualMachines", "myvm"),
-        { tenantId: TENANT_ID }
-      )
-    ).toThrow(/blocked by subscription policy/);
-  });
-});
 
 describe("policy-blocked template slugs", () => {
-  it("throws PolicyBlockedTemplateError for virtual-machine slug", () => {
-    expect(() =>
-      buildArmTemplate(templatePayload("virtual-machine", { vmName: "x" }), { tenantId: TENANT_ID })
-    ).toThrow(/blocked by subscription policy/);
-  });
-
   it.each([
+    "virtual-machine",
     "microservices-platform",
     "data-pipeline",
     "secure-api-backend",
@@ -253,292 +91,19 @@ describe("policy-blocked template slugs", () => {
       buildArmTemplate(templatePayload(slug), { tenantId: TENANT_ID })
     ).toThrow(/blocked by subscription policy/);
   });
-
-  it("full-stack-web-app is now deployable (not blocked)", () => {
-    expect(() =>
-      buildArmTemplate(templatePayload("full-stack-web-app", { appName: "test-app" }), { tenantId: TENANT_ID })
-    ).not.toThrow();
-  });
 });
 
 // ---------------------------------------------------------------------------
-// Landing Zone builder (conditional resources)
-// ---------------------------------------------------------------------------
-
-describe("buildLandingZone", () => {
-  it("returns primary resources + supporting kv when only includeMonitoring is true (law already present)", () => {
-    const t = buildArmTemplate(
-      templatePayload("landing-zone", { includeMonitoring: true, namingPrefix: "proj" }),
-      { tenantId: TENANT_ID }
-    );
-    // Primary: law. Supporting: kv (law already in primary, so skipped).
-    expect(t.resources).toHaveLength(2);
-    const types = t.resources.map(r => r.type);
-    expect(types).toContain("Microsoft.OperationalInsights/workspaces");
-    expect(types).toContain("Microsoft.KeyVault/vaults");
-  });
-
-  it("returns vnet + kv + workspace when all flags true (no dupes because both law and kv already in primary)", () => {
-    const t = buildArmTemplate(
-      templatePayload("landing-zone", { includeNetwork: true, includeSecurity: true, includeMonitoring: true, namingPrefix: "p" }),
-      { tenantId: TENANT_ID }
-    );
-    const types = t.resources.map(r => r.type);
-    expect(types).toContain("Microsoft.Network/virtualNetworks");
-    expect(types).toContain("Microsoft.KeyVault/vaults");
-    expect(types).toContain("Microsoft.OperationalInsights/workspaces");
-    expect(t.resources).toHaveLength(3);
-  });
-
-  it("throws InvalidDeploymentConfigError when no flags set", () => {
-    expect(() =>
-      buildArmTemplate(templatePayload("landing-zone", {}), { tenantId: TENANT_ID })
-    ).toThrow("Landing zone requires at least one");
-  });
-});
-
-// ---------------------------------------------------------------------------
-// validateTemplateAgainstPolicy
-// ---------------------------------------------------------------------------
-
-describe("validateTemplateAgainstPolicy", () => {
-  it("returns empty array for all-allowed template", () => {
-    const t = buildArmTemplate(templatePayload("storage-account", { storageName: "s" }), { tenantId: TENANT_ID });
-    expect(validateTemplateAgainstPolicy(t)).toEqual([]);
-  });
-
-  it("returns blocked type when resource is not in policy set", () => {
-    const t = buildArmTemplate(
-      customPayload("Microsoft.Web/sites", "app"),
-      { tenantId: TENANT_ID }
-    );
-    // inject a non-allowed type to test the validator
-    t.resources.push({ type: "Microsoft.SomeBlockedService/things", apiVersion: "2023-01-01", name: "x", location: "eastus" });
-    const blocked = validateTemplateAgainstPolicy(t);
-    expect(blocked).toContain("Microsoft.SomeBlockedService/things");
-    expect(blocked).not.toContain("Microsoft.Web/sites");
-  });
-});
-
-// ---------------------------------------------------------------------------
-// Custom mode
-// ---------------------------------------------------------------------------
-
-describe("buildArmTemplate — custom mode", () => {
-  it("builds storage account from custom payload", () => {
-    const t = buildArmTemplate(customPayload("Microsoft.Storage/storageAccounts", "mystore"), { tenantId: TENANT_ID });
-    expect(t.resources[0].type).toBe("Microsoft.Storage/storageAccounts");
-  });
-
-  it("unknown custom resource type throws", () => {
-    expect(() =>
-      buildArmTemplate(customPayload("Microsoft.Unknown/resource", "thing"), { tenantId: TENANT_ID })
-    ).toThrow();
-  });
-
-  it("builds Logic App from custom payload (+ supporting law + kv)", () => {
-    const t = buildArmTemplate(customPayload("Microsoft.Logic/workflows", "my-workflow"), { tenantId: TENANT_ID });
-    expect(t.resources).toHaveLength(3);
-    expect(t.resources[0].type).toBe("Microsoft.Logic/workflows");
-    expect(t.resources[1].type).toBe("Microsoft.OperationalInsights/workspaces");
-    expect(t.resources[2].type).toBe("Microsoft.KeyVault/vaults");
-  });
-
-  it("builds Service Bus namespace from custom payload (+ supporting law + kv)", () => {
-    const t = buildArmTemplate(customPayload("Microsoft.ServiceBus/namespaces", "my-queue"), { tenantId: TENANT_ID });
-    expect(t.resources).toHaveLength(3);
-    expect(t.resources[0].type).toBe("Microsoft.ServiceBus/namespaces");
-    expect(t.resources[1].type).toBe("Microsoft.OperationalInsights/workspaces");
-    expect(t.resources[2].type).toBe("Microsoft.KeyVault/vaults");
-  });
-
-  it("builds Event Grid topic from custom payload (+ supporting law + kv)", () => {
-    const t = buildArmTemplate(customPayload("Microsoft.EventGrid/topics", "my-topic"), { tenantId: TENANT_ID });
-    expect(t.resources).toHaveLength(3);
-    expect(t.resources[0].type).toBe("Microsoft.EventGrid/topics");
-    expect(t.resources[1].type).toBe("Microsoft.OperationalInsights/workspaces");
-    expect(t.resources[2].type).toBe("Microsoft.KeyVault/vaults");
-  });
-});
-
-// ---------------------------------------------------------------------------
-// Custom mode — name resolution (config field overrides catalog name)
-// ---------------------------------------------------------------------------
-
-describe("buildArmTemplate — custom mode name resolution", () => {
-  it("uses config.appName over catalog name for Web App", () => {
-    const t = buildArmTemplate(
-      customPayload("Microsoft.Web/sites", "CatalogName", { appName: "my-real-app" }),
-      { tenantId: TENANT_ID }
-    );
-    expect(t.resources[1].name).toBe("my-real-app");
-  });
-
-  it("falls back to catalog name when config.appName is missing", () => {
-    const t = buildArmTemplate(
-      customPayload("Microsoft.Web/sites", "fallback-app", {}),
-      { tenantId: TENANT_ID }
-    );
-    expect(t.resources[1].name).toBe("fallback-app");
-  });
-
-  it("uses config.dbName over catalog name for PostgreSQL", () => {
-    const t = buildArmTemplate(
-      customPayload("Microsoft.DBforPostgreSQL/flexibleServers", "CatalogName", { dbName: "my-real-db" }),
-      { tenantId: TENANT_ID }
-    );
-    expect(t.resources[0].name).toBe("my-real-db");
-  });
-
-  it("uses config.storageName over catalog name for Storage Account", () => {
-    const t = buildArmTemplate(
-      customPayload("Microsoft.Storage/storageAccounts", "CatalogName", { storageName: "myrealstore" }),
-      { tenantId: TENANT_ID }
-    );
-    expect(t.resources[0].name).toBe("myrealstore");
-  });
-
-  it("uses config.vnetName over catalog name for VNet", () => {
-    const t = buildArmTemplate(
-      customPayload("Microsoft.Network/virtualNetworks", "CatalogName", { vnetName: "my-real-vnet" }),
-      { tenantId: TENANT_ID }
-    );
-    expect(t.resources[0].name).toBe("my-real-vnet");
-  });
-
-  it("uses config.vaultName over catalog name for Key Vault", () => {
-    const t = buildArmTemplate(
-      customPayload("Microsoft.KeyVault/vaults", "CatalogName", { vaultName: "my-real-kv" }),
-      { tenantId: TENANT_ID }
-    );
-    expect(t.resources[0].name).toBe("my-real-kv");
-  });
-
-  it("uses config.appName over catalog name for Container App", () => {
-    const t = buildArmTemplate(
-      customPayload("Microsoft.App/containerApps", "CatalogName", { appName: "my-real-ca" }),
-      { tenantId: TENANT_ID }
-    );
-    expect(t.resources[1].name).toBe("my-real-ca");
-  });
-
-  it("uses config.workflowName over catalog name for Logic App", () => {
-    const t = buildArmTemplate(
-      customPayload("Microsoft.Logic/workflows", "CatalogName", { workflowName: "my-real-wf" }),
-      { tenantId: TENANT_ID }
-    );
-    expect(t.resources[0].name).toBe("my-real-wf");
-  });
-
-  it("uses config.namespaceName over catalog name for Service Bus", () => {
-    const t = buildArmTemplate(
-      customPayload("Microsoft.ServiceBus/namespaces", "CatalogName", { namespaceName: "my-real-sb" }),
-      { tenantId: TENANT_ID }
-    );
-    expect(t.resources[0].name).toBe("my-real-sb");
-  });
-
-  it("uses config.topicName over catalog name for Event Grid", () => {
-    const t = buildArmTemplate(
-      customPayload("Microsoft.EventGrid/topics", "CatalogName", { topicName: "my-real-topic" }),
-      { tenantId: TENANT_ID }
-    );
-    expect(t.resources[0].name).toBe("my-real-topic");
-  });
-});
-
-// ---------------------------------------------------------------------------
-// Custom mode — field parity tests
-// ---------------------------------------------------------------------------
-
-describe("buildArmTemplate — custom mode field parity", () => {
-  it("applies engineVersion from config for PostgreSQL", () => {
-    const t = buildArmTemplate(
-      customPayload("Microsoft.DBforPostgreSQL/flexibleServers", "my-db", { dbName: "my-db", engineVersion: "15" }),
-      { tenantId: TENANT_ID }
-    );
-    const props = (t.resources[0] as Record<string, unknown>).properties as { version: string };
-    expect(props.version).toBe("15");
-  });
-
-  it("applies redundancy from config for Storage Account", () => {
-    const t = buildArmTemplate(
-      customPayload("Microsoft.Storage/storageAccounts", "my-store", { storageName: "my-store", redundancy: "ZRS" }),
-      { tenantId: TENANT_ID }
-    );
-    const sku = (t.resources[0] as Record<string, unknown>).sku as { name: string };
-    expect(sku.name).toBe("Standard_ZRS");
-  });
-
-  it("applies subnetName and subnetRange from config for VNet", () => {
-    const t = buildArmTemplate(
-      customPayload("Microsoft.Network/virtualNetworks", "my-vnet", {
-        vnetName: "my-vnet",
-        subnetName: "apps",
-        subnetRange: "10.0.5.0/24",
-      }),
-      { tenantId: TENANT_ID }
-    );
-    const props = (t.resources[0] as Record<string, unknown>).properties as { subnets: Array<{ name: string; properties: { addressPrefix: string } }> };
-    expect(props.subnets[0].name).toBe("apps");
-    expect(props.subnets[0].properties.addressPrefix).toBe("10.0.5.0/24");
-  });
-
-  it("applies kvSku, purgeProtection and accessModel from config for Key Vault", () => {
-    const t = buildArmTemplate(
-      customPayload("Microsoft.KeyVault/vaults", "my-kv", {
-        vaultName: "my-kv",
-        kvSku: "premium",
-        purgeProtection: true,
-        accessModel: "rbac",
-      }),
-      { tenantId: TENANT_ID }
-    );
-    const props = (t.resources[0] as Record<string, unknown>).properties as {
-      sku: { name: string };
-      enablePurgeProtection: boolean;
-      enableRbacAuthorization: boolean;
-    };
-    expect(props.sku.name).toBe("premium");
-    expect(props.enablePurgeProtection).toBe(true);
-    expect(props.enableRbacAuthorization).toBe(true);
-  });
-
-  it("applies minReplicas, maxReplicas and region from config for Container App", () => {
-    const t = buildArmTemplate(
-      customPayload("Microsoft.App/containerApps", "my-ca", {
-        appName: "my-ca",
-        containerImage: "nginx:latest",
-        region: "southeastasia",
-        minReplicas: 0,
-        maxReplicas: 5,
-        externalAccess: true,
-      }),
-      { tenantId: TENANT_ID }
-    );
-    expect(t.resources[0].location).toBe("southeastasia");
-    expect(t.resources[1].location).toBe("southeastasia");
-    const props = (t.resources[1] as Record<string, unknown>).properties as {
-      template: { scale: { minReplicas: number; maxReplicas: number } };
-      configuration: { ingress: { external: boolean } };
-    };
-    expect(props.template.scale.minReplicas).toBe(0);
-    expect(props.template.scale.maxReplicas).toBe(5);
-    expect(props.configuration.ingress.external).toBe(true);
-  });
-});
-
-// ---------------------------------------------------------------------------
-// New EPF business-user template builders
+// Approval Workflow (Logic App HTTP)
 // ---------------------------------------------------------------------------
 
 describe("buildApprovalWorkflow (approval-workflow template)", () => {
-  it("returns 3 resources: Logic App + law + kv with HTTP trigger", () => {
+  it("returns 1 resource: Logic App with HTTP trigger", () => {
     const t = buildArmTemplate(
       templatePayload("approval-workflow", { workflowName: "leave-approval", region: "southeastasia" }),
       { tenantId: TENANT_ID }
     );
-    expect(t.resources).toHaveLength(3);
+    expect(t.resources).toHaveLength(1);
     expect(t.resources[0].type).toBe("Microsoft.Logic/workflows");
     const def = (t.resources[0] as Record<string, unknown>).properties as { definition: { triggers: Record<string, unknown> } };
     expect(def.definition.triggers).toHaveProperty("manual");
@@ -553,16 +118,18 @@ describe("buildApprovalWorkflow (approval-workflow template)", () => {
   });
 });
 
+// ---------------------------------------------------------------------------
+// Scheduled Automation (Logic App recurrence)
+// ---------------------------------------------------------------------------
+
 describe("buildScheduledAutomation (scheduled-automation template)", () => {
-  it("returns 3 resources: Logic App + law + kv with recurrence trigger", () => {
+  it("returns 1 resource: Logic App with recurrence trigger", () => {
     const t = buildArmTemplate(
       templatePayload("scheduled-automation", { workflowName: "weekly-report", frequency: "Week", runTime: "09:00" }),
       { tenantId: TENANT_ID }
     );
-    expect(t.resources).toHaveLength(3);
+    expect(t.resources).toHaveLength(1);
     expect(t.resources[0].type).toBe("Microsoft.Logic/workflows");
-    expect(t.resources[1].type).toBe("Microsoft.OperationalInsights/workspaces");
-    expect(t.resources[2].type).toBe("Microsoft.KeyVault/vaults");
     const def = (t.resources[0] as Record<string, unknown>).properties as { definition: { triggers: { Recurrence: { recurrence: { frequency: string } } } } };
     expect(def.definition.triggers.Recurrence.recurrence.frequency).toBe("Week");
   });
@@ -577,217 +144,95 @@ describe("buildScheduledAutomation (scheduled-automation template)", () => {
   });
 });
 
-describe("buildMessageQueue (message-queue template)", () => {
-  it("returns 3 resources: Service Bus namespace + law + kv", () => {
+// ---------------------------------------------------------------------------
+// Static Web App
+// ---------------------------------------------------------------------------
+
+describe("buildStaticWebApp (static-web-app template)", () => {
+  it("returns 1 resource: staticSites", () => {
     const t = buildArmTemplate(
-      templatePayload("message-queue", { namespaceName: "epf-queue", tier: "Basic" }),
+      templatePayload("static-web-app", { appName: "myapp" }),
       { tenantId: TENANT_ID }
     );
-    expect(t.resources).toHaveLength(3);
-    expect(t.resources[0].type).toBe("Microsoft.ServiceBus/namespaces");
-    expect(t.resources[1].type).toBe("Microsoft.OperationalInsights/workspaces");
-    expect(t.resources[2].type).toBe("Microsoft.KeyVault/vaults");
+    expect(t.resources).toHaveLength(1);
+    expect(t.resources[0].type).toBe("Microsoft.Web/staticSites");
   });
 
-  it("uses Standard tier when specified", () => {
+  it("sanitizes name", () => {
     const t = buildArmTemplate(
-      templatePayload("message-queue", { namespaceName: "epf-queue", tier: "Standard" }),
+      templatePayload("static-web-app", { appName: "My@App!" }),
+      { tenantId: TENANT_ID }
+    );
+    expect(t.resources[0].name).toMatch(/^[a-z0-9-]+$/);
+  });
+
+  it("uses sku from formValues", () => {
+    const t = buildArmTemplate(
+      templatePayload("static-web-app", { appName: "myapp", sku: "Standard" }),
       { tenantId: TENANT_ID }
     );
     const sku = (t.resources[0] as Record<string, unknown>).sku as { name: string };
     expect(sku.name).toBe("Standard");
   });
 
-  it("falls back to Basic tier for unknown values", () => {
+  it("defaults to Free tier when no sku provided", () => {
     const t = buildArmTemplate(
-      templatePayload("message-queue", { namespaceName: "epf-queue", tier: "Enterprise" }),
+      templatePayload("static-web-app", { appName: "myapp" }),
       { tenantId: TENANT_ID }
     );
     const sku = (t.resources[0] as Record<string, unknown>).sku as { name: string };
-    expect(sku.name).toBe("Basic");
-  });
-
-  it("passes through Premium tier when explicitly set", () => {
-    const t = buildArmTemplate(
-      templatePayload("message-queue", { namespaceName: "epf-queue", tier: "Premium" }),
-      { tenantId: TENANT_ID }
-    );
-    const sku = (t.resources[0] as Record<string, unknown>).sku as { name: string };
-    expect(sku.name).toBe("Premium");
+    expect(sku.name).toBe("Free");
   });
 });
 
-describe("buildEventBroadcaster (event-broadcaster template)", () => {
-  it("returns 3 resources: Event Grid topic + law + kv", () => {
-    const t = buildArmTemplate(
-      templatePayload("event-broadcaster", { topicName: "member-events" }),
-      { tenantId: TENANT_ID }
-    );
-    expect(t.resources).toHaveLength(3);
+// ---------------------------------------------------------------------------
+// Custom mode — Logic App
+// ---------------------------------------------------------------------------
+
+describe("buildArmTemplate — custom mode", () => {
+  it("builds Logic App from custom payload", () => {
+    const t = buildArmTemplate(customPayload("Microsoft.Logic/workflows", "my-workflow"), { tenantId: TENANT_ID });
+    expect(t.resources).toHaveLength(1);
+    expect(t.resources[0].type).toBe("Microsoft.Logic/workflows");
+  });
+
+  it("builds Service Bus namespace from custom payload", () => {
+    const t = buildArmTemplate(customPayload("Microsoft.ServiceBus/namespaces", "my-queue"), { tenantId: TENANT_ID });
+    expect(t.resources).toHaveLength(1);
+    expect(t.resources[0].type).toBe("Microsoft.ServiceBus/namespaces");
+  });
+
+  it("builds Event Grid topic from custom payload", () => {
+    const t = buildArmTemplate(customPayload("Microsoft.EventGrid/topics", "my-topic"), { tenantId: TENANT_ID });
+    expect(t.resources).toHaveLength(1);
     expect(t.resources[0].type).toBe("Microsoft.EventGrid/topics");
-    expect(t.resources[1].type).toBe("Microsoft.OperationalInsights/workspaces");
-    expect(t.resources[2].type).toBe("Microsoft.KeyVault/vaults");
   });
 
-  it("uses CloudEventSchemaV1_0 when specified", () => {
-    const t = buildArmTemplate(
-      templatePayload("event-broadcaster", { topicName: "events", inputSchema: "CloudEventSchemaV1_0" }),
-      { tenantId: TENANT_ID }
-    );
-    const props = (t.resources[0] as Record<string, unknown>).properties as { inputSchema: string };
-    expect(props.inputSchema).toBe("CloudEventSchemaV1_0");
-  });
-
-  it("defaults to EventGridSchema", () => {
-    const t = buildArmTemplate(
-      templatePayload("event-broadcaster", { topicName: "events" }),
-      { tenantId: TENANT_ID }
-    );
-    const props = (t.resources[0] as Record<string, unknown>).properties as { inputSchema: string };
-    expect(props.inputSchema).toBe("EventGridSchema");
+  it("unknown custom resource type throws", () => {
+    expect(() =>
+      buildArmTemplate(customPayload("Microsoft.Unknown/resource", "thing"), { tenantId: TENANT_ID })
+    ).toThrow();
   });
 });
 
 // ---------------------------------------------------------------------------
-// Key Vault SKU from config
+// Custom mode — name resolution
 // ---------------------------------------------------------------------------
 
-describe("buildKeyVault — SKU selection", () => {
-  it("defaults to standard when no kvSku provided", () => {
-    const t = buildArmTemplate(templatePayload("key-vault", { vaultName: "my-kv" }), { tenantId: TENANT_ID });
-    const props = (t.resources[0] as Record<string, unknown>).properties as { sku: { name: string } };
-    expect(props.sku.name).toBe("standard");
-  });
-
-  it("uses premium when kvSku: premium", () => {
-    const t = buildArmTemplate(templatePayload("key-vault", { vaultName: "my-kv", kvSku: "premium" }), { tenantId: TENANT_ID });
-    const props = (t.resources[0] as Record<string, unknown>).properties as { sku: { name: string } };
-    expect(props.sku.name).toBe("premium");
-  });
-
-  it("falls back to standard for unrecognised kvSku values", () => {
-    const t = buildArmTemplate(templatePayload("key-vault", { vaultName: "my-kv", kvSku: "enterprise" }), { tenantId: TENANT_ID });
-    const props = (t.resources[0] as Record<string, unknown>).properties as { sku: { name: string } };
-    expect(props.sku.name).toBe("standard");
-  });
-});
-
-// ---------------------------------------------------------------------------
-// Azure SQL Server builder (via custom mode)
-// ---------------------------------------------------------------------------
-
-describe("buildSqlServer (custom mode Microsoft.Sql/servers)", () => {
-  it("returns 4 resources: server + database + law + kv", () => {
-    const t = buildArmTemplate(customPayload("Microsoft.Sql/servers", "my-sql", {
-      adminUser: "sqladmin",
-      adminPassword: "P@ssw0rd123!",
-      dbSku: "Basic",
-    }), { tenantId: TENANT_ID });
-    expect(t.resources).toHaveLength(4);
-    expect(t.resources[0].type).toBe("Microsoft.Sql/servers");
-    expect(t.resources[1].type).toBe("Microsoft.Sql/servers/databases");
-    expect(t.resources[2].type).toBe("Microsoft.OperationalInsights/workspaces");
-    expect(t.resources[3].type).toBe("Microsoft.KeyVault/vaults");
-  });
-
-  it("database name is nested under server: server/db", () => {
-    const t = buildArmTemplate(customPayload("Microsoft.Sql/servers", "myapp-sql", {}), { tenantId: TENANT_ID });
-    const dbName = t.resources[1].name as string;
-    expect(dbName).toContain("/");
-    expect(dbName.split("/")[0]).toBe(t.resources[0].name);
-  });
-
-  it("database dependsOn the server resourceId", () => {
-    const t = buildArmTemplate(customPayload("Microsoft.Sql/servers", "my-sql", {}), { tenantId: TENANT_ID });
-    const dependsOn = t.resources[1].dependsOn as string[];
-    expect(dependsOn).toBeDefined();
-    expect(dependsOn[0]).toContain("Microsoft.Sql/servers");
-  });
-
-  it("falls back to sandboxadmin when no adminUser provided", () => {
-    const t = buildArmTemplate(customPayload("Microsoft.Sql/servers", "my-sql", {}), { tenantId: TENANT_ID });
-    const props = (t.resources[0] as Record<string, unknown>).properties as { administratorLogin: string };
-    expect(props.administratorLogin).toBe("sandboxadmin");
-  });
-
-  it("sanitizes server name — strips special chars, max 63", () => {
-    const t = buildArmTemplate(customPayload("Microsoft.Sql/servers", "My SQL Server!!", {}), { tenantId: TENANT_ID });
-    expect(t.resources[0].name).toMatch(/^[a-z0-9-]+$/);
-    expect(t.resources[0].name.length).toBeLessThanOrEqual(63);
-  });
-
-  it("applies tags to both server and database resources", () => {
-    const t = buildArmTemplate(customPayload("Microsoft.Sql/servers", "my-sql", {}), { tenantId: TENANT_ID, tags: TAGS });
-    expect(t.resources[0].tags).toEqual(TAGS);
-    expect(t.resources[1].tags).toEqual(TAGS);
-  });
-});
-
-// ---------------------------------------------------------------------------
-// Full-stack web app bundle (template mode)
-// ---------------------------------------------------------------------------
-
-describe("buildFullStackWebApp (full-stack-web-app template)", () => {
-  it("returns 7 resources (6 primary + 1 supporting law, kv deduped)", () => {
-    const t = buildArmTemplate(templatePayload("full-stack-web-app", {
-      appName: "my-app",
-      planSize: "B1",
-      region: "southeastasia",
-      sqlAdminUser: "sqladmin",
-      sqlAdminPassword: "P@ssw0rd!",
-      dbSku: "Basic",
-      storageTier: "Standard_LRS",
-      kvSku: "standard",
-    }), { tenantId: TENANT_ID });
-    expect(t.resources).toHaveLength(7);
-  });
-
-  it("contains one resource of each expected type", () => {
-    const t = buildArmTemplate(templatePayload("full-stack-web-app", { appName: "my-app" }), { tenantId: TENANT_ID });
-    const types = t.resources.map(r => r.type);
-    expect(types).toContain("Microsoft.Web/serverfarms");
-    expect(types).toContain("Microsoft.Web/sites");
-    expect(types).toContain("Microsoft.Sql/servers");
-    expect(types).toContain("Microsoft.Sql/servers/databases");
-    expect(types).toContain("Microsoft.Storage/storageAccounts");
-    expect(types).toContain("Microsoft.KeyVault/vaults");
-  });
-
-  it("all resources share the same location", () => {
-    const t = buildArmTemplate(templatePayload("full-stack-web-app", { appName: "my-app", region: "southeastasia" }), { tenantId: TENANT_ID });
-    for (const r of t.resources) {
-      expect(r.location).toBe("southeastasia");
-    }
-  });
-
-  it("uses kvSku: premium when specified", () => {
-    const t = buildArmTemplate(templatePayload("full-stack-web-app", { appName: "my-app", kvSku: "premium" }), { tenantId: TENANT_ID });
-    const kv = t.resources.find(r => r.type === "Microsoft.KeyVault/vaults")!;
-    const props = (kv as Record<string, unknown>).properties as { sku: { name: string } };
-    expect(props.sku.name).toBe("premium");
-  });
-
-  it("applies tags to all 7 resources", () => {
-    const t = buildArmTemplate(templatePayload("full-stack-web-app", { appName: "my-app" }), { tenantId: TENANT_ID, tags: TAGS });
-    expect(t.resources).toHaveLength(7);
-    for (const r of t.resources) {
-      expect(r.tags).toEqual(TAGS);
-    }
-  });
-
-  it("all resource types pass COE policy validation", () => {
-    const t = buildArmTemplate(templatePayload("full-stack-web-app", { appName: "my-app" }), { tenantId: TENANT_ID });
-    const blocked = validateTemplateAgainstPolicy(t);
-    expect(blocked).toHaveLength(0);
-  });
-
-  it("sanitizes long app names to fit within Azure name limits", () => {
+describe("buildArmTemplate — custom mode name resolution", () => {
+  it("uses config.workflowName over catalog name for Logic App", () => {
     const t = buildArmTemplate(
-      templatePayload("full-stack-web-app", { appName: "a".repeat(80) }),
+      customPayload("Microsoft.Logic/workflows", "CatalogName", { workflowName: "my-real-wf" }),
       { tenantId: TENANT_ID }
     );
-    for (const r of t.resources) {
-      expect((r.name as string).length).toBeLessThanOrEqual(128);
-    }
+    expect(t.resources[0].name).toBe("my-real-wf");
+  });
+
+  it("falls back to catalog name when config.workflowName is missing", () => {
+    const t = buildArmTemplate(
+      customPayload("Microsoft.Logic/workflows", "fallback-wf", {}),
+      { tenantId: TENANT_ID }
+    );
+    expect(t.resources[0].name).toBe("fallback-wf");
   });
 });

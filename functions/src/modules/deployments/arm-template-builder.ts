@@ -16,9 +16,7 @@ function generatePassword(): string {
 // ---------------------------------------------------------------------------
 // Shared supporting-resource builders (observability + security)
 // Every production deployment gets a Log Analytics workspace and a Key Vault
-// alongside its primary resources. Diagnostic settings route logs/metrics to
-// the workspace. Only resource types listed in POLICY_ALLOWED_RESOURCE_TYPES
-// are emitted — blocked types are silently skipped, not injected.
+// alongside its primary resources.
 // ---------------------------------------------------------------------------
 
 function createLogAnalyticsWorkspace(name: string, location: string): ArmResource {
@@ -30,43 +28,6 @@ function createLogAnalyticsWorkspace(name: string, location: string): ArmResourc
     properties: {
       retentionInDays: 30,
       sku: { name: "PerGB2018" },
-    },
-  };
-}
-
-/**
- * Build a diagnostic-settings resource for an Azure resource type.
- * Returns null if the resource type is not allowed by subscription policy,
- * so we never silently inject something that will fail at ARM time.
- */
-function createDiagnosticSettings(
-  resourceName: string,
-  resourceType: string,
-  lawName: string,
-  logCategories: string[],
-  metricCategories: string[]
-): ArmResource | null {
-  if (!POLICY_ALLOWED_RESOURCE_TYPES.has("Microsoft.Insights/diagnosticSettings")) {
-    return null;
-  }
-  return {
-    type: "Microsoft.Insights/diagnosticSettings",
-    apiVersion: "2021-05-01-preview",
-    name: `${resourceName}-diag`,
-    scope: `[resourceId('${resourceType}', '${resourceName}')]`,
-    dependsOn: [`[resourceId('${resourceType}', '${resourceName}')]`],
-    properties: {
-      workspaceId: `[resourceId('Microsoft.OperationalInsights/workspaces', '${lawName}')]`,
-      logs: logCategories.map((category) => ({
-        category,
-        enabled: true,
-        retentionPolicy: { days: 0, enabled: false },
-      })),
-      metrics: metricCategories.map((category) => ({
-        category,
-        enabled: true,
-        retentionPolicy: { days: 0, enabled: false },
-      })),
     },
   };
 }
@@ -397,6 +358,10 @@ function buildWebApplication(
       properties: {
         serverFarmId: `[resourceId('Microsoft.Web/serverfarms', '${planName}')]`,
         httpsOnly: config.httpsOnly !== false,
+        siteConfig: {
+          minTlsVersion: "1.2",
+          ftpsState: "Disabled",
+        },
       },
     },
   ];
@@ -453,118 +418,6 @@ function buildContainerApp(
   ];
 }
 
-function buildVirtualMachine(
-  name: string,
-  location: string,
-  config: Record<string, unknown>
-): ArmResource[] {
-  const safeName = sanitizeGenericName(name, 15) || "sandbox-vm";
-  const vmSize =
-    typeof config.vmSize === "string" ? config.vmSize : "Standard_B2s";
-  const osType =
-    typeof config.osType === "string" ? config.osType : "Ubuntu2204";
-  const adminUsername =
-    typeof config.adminUsername === "string"
-      ? config.adminUsername
-      : "azureuser";
-
-  const imageReference =
-    osType === "WindowsServer2022"
-      ? { publisher: "MicrosoftWindowsServer", offer: "WindowsServer", sku: "2022-Datacenter", version: "latest" }
-      : osType === "Ubuntu2004"
-      ? { publisher: "Canonical", offer: "0001-com-ubuntu-server-focal", sku: "20_04-lts", version: "latest" }
-      : { publisher: "Canonical", offer: "0001-com-ubuntu-server-jammy", sku: "22_04-lts", version: "latest" };
-
-  const isWindows = osType === "WindowsServer2022";
-  const adminPassword = generatePassword();
-  const ipName = `${safeName}-ip`;
-  const vnetName = `${safeName}-vnet`;
-  const nicName = `${safeName}-nic`;
-  const computerName = safeName;
-
-  return [
-    {
-      type: "Microsoft.Network/publicIPAddresses",
-      apiVersion: "2023-09-01",
-      name: ipName,
-      location,
-      sku: { name: "Basic" },
-      properties: { publicIPAllocationMethod: "Dynamic" },
-    },
-    {
-      type: "Microsoft.Network/virtualNetworks",
-      apiVersion: "2023-09-01",
-      name: vnetName,
-      location,
-      properties: {
-        addressSpace: { addressPrefixes: ["10.0.0.0/16"] },
-        subnets: [
-          { name: "default", properties: { addressPrefix: "10.0.1.0/24" } },
-        ],
-      },
-    },
-    {
-      type: "Microsoft.Network/networkInterfaces",
-      apiVersion: "2023-09-01",
-      name: nicName,
-      location,
-      dependsOn: [
-        `[resourceId('Microsoft.Network/virtualNetworks', '${vnetName}')]`,
-        `[resourceId('Microsoft.Network/publicIPAddresses', '${ipName}')]`,
-      ],
-      properties: {
-        ipConfigurations: [
-          {
-            name: "ipconfig1",
-            properties: {
-              privateIPAllocationMethod: "Dynamic",
-              subnet: {
-                id: `[resourceId('Microsoft.Network/virtualNetworks/subnets', '${vnetName}', 'default')]`,
-              },
-              publicIPAddress: {
-                id: `[resourceId('Microsoft.Network/publicIPAddresses', '${ipName}')]`,
-              },
-            },
-          },
-        ],
-      },
-    },
-    {
-      type: "Microsoft.Compute/virtualMachines",
-      apiVersion: "2024-03-01",
-      name: safeName,
-      location,
-      dependsOn: [
-        `[resourceId('Microsoft.Network/networkInterfaces', '${nicName}')]`,
-      ],
-      properties: {
-        hardwareProfile: { vmSize },
-        storageProfile: {
-          imageReference,
-          osDisk: {
-            createOption: "FromImage",
-            managedDisk: { storageAccountType: "Standard_LRS" },
-          },
-        },
-        osProfile: {
-          computerName,
-          adminUsername,
-          adminPassword,
-          ...(isWindows
-            ? { windowsConfiguration: { enableAutomaticUpdates: true } }
-            : { linuxConfiguration: { disablePasswordAuthentication: false } }),
-        },
-        networkProfile: {
-          networkInterfaces: [
-            {
-              id: `[resourceId('Microsoft.Network/networkInterfaces', '${nicName}')]`,
-            },
-          ],
-        },
-      },
-    },
-  ];
-}
 
 function buildLandingZone(
   config: Record<string, unknown>,
@@ -588,7 +441,7 @@ function buildLandingZone(
 
   if (config.includeSecurity === true) {
     resources.push(
-      buildKeyVault(`${prefix}-kv`, location, { softDelete: true, purgeProtection: false, accessModel: "rbac" }, tenantId, suffix)
+      buildKeyVault(`${prefix}-kv`, location, { softDelete: true, purgeProtection: true, accessModel: "rbac" }, tenantId, suffix)
     );
   }
 
@@ -668,6 +521,32 @@ function buildLogicApp(
         actions: {},
         outputs: {},
       },
+    },
+  };
+}
+
+// ---------------------------------------------------------------------------
+// Static Web App builder
+// ---------------------------------------------------------------------------
+
+function buildStaticWebApp(
+  name: string,
+  location: string,
+  config: Record<string, unknown>
+): ArmResource {
+  const safeName = sanitizeGenericName(name, 40) || "sandbox-app";
+  const skuName = typeof config.sku === "string" ? config.sku : "Free";
+
+  return {
+    type: "Microsoft.Web/staticSites",
+    apiVersion: "2023-01-01",
+    name: safeName,
+    location,
+    sku: { name: skuName, tier: skuName },
+    properties: {
+      stagingEnvironmentPolicy: "Enabled",
+      allowConfigFileUpdates: true,
+      enterpriseGradeCdnStatus: "Disabled",
     },
   };
 }
@@ -757,6 +636,9 @@ function buildFullStackWebApp(
 
   const kvResource = buildKeyVault(`${baseName}-kv`, location, {
     kvSku: config.kvSku,
+    softDelete: true,
+    purgeProtection: true,
+    accessModel: "rbac",
   }, tenantId, suffix);
 
   return [...appResources, ...sqlResources, storageResource, kvResource];
@@ -781,62 +663,6 @@ function buildTemplateResources(
   const location = resolveRegion(formValues.region);
 
   switch (slug) {
-    case "web-application":
-      return buildWebApplication(
-        typeof formValues.appName === "string" ? formValues.appName : "sandbox-app",
-        location,
-        formValues
-      );
-    case "virtual-machine":
-      return buildVirtualMachine(
-        typeof formValues.vmName === "string" ? formValues.vmName : "sandbox-vm",
-        location,
-        formValues
-      );
-    case "database":
-      return [
-        buildPostgresServer(
-          typeof formValues.dbName === "string" ? formValues.dbName : "sandbox-db",
-          location,
-          formValues,
-          deployParams
-        ),
-      ];
-    case "storage-account":
-      return [
-        buildStorageAccount(
-          typeof formValues.storageName === "string" ? formValues.storageName : "sandboxstorage",
-          location,
-          formValues,
-          suffix
-        ),
-      ];
-    case "virtual-network":
-      return [
-        buildVirtualNetwork(
-          typeof formValues.vnetName === "string" ? formValues.vnetName : "sandbox-vnet",
-          location,
-          formValues
-        ),
-      ];
-    case "key-vault":
-      return [
-        buildKeyVault(
-          typeof formValues.vaultName === "string" ? formValues.vaultName : "sandbox-kv",
-          location,
-          formValues,
-          tenantId,
-          suffix
-        ),
-      ];
-    case "container-app":
-      return buildContainerApp(
-        typeof formValues.appName === "string" ? formValues.appName : "sandbox-app",
-        location,
-        formValues
-      );
-    case "landing-zone":
-      return buildLandingZone(formValues, location, tenantId, suffix);
     case "approval-workflow":
       return [
         buildLogicApp(
@@ -855,31 +681,14 @@ function buildTemplateResources(
           "recurrence"
         ),
       ];
-    case "message-queue":
+    case "static-web-app":
       return [
-        buildServiceBusNamespace(
-          typeof formValues.namespaceName === "string" ? formValues.namespaceName : "sandbox-queue",
+        buildStaticWebApp(
+          typeof formValues.appName === "string" ? formValues.appName : "sandbox-app",
           location,
           formValues
         ),
       ];
-    case "event-broadcaster":
-      return [
-        buildEventGridTopic(
-          typeof formValues.topicName === "string" ? formValues.topicName : "sandbox-events",
-          location,
-          formValues
-        ),
-      ];
-    case "full-stack-web-app":
-      return buildFullStackWebApp(
-        typeof formValues.appName === "string" ? formValues.appName : "sandbox-app",
-        location,
-        formValues,
-        tenantId,
-        suffix,
-        deployParams
-      );
     default:
       throw new Error(
         `Template slug "${slug}" has no ARM builder. ` +
@@ -947,13 +756,20 @@ function buildCustomResources(
         armResources.push(buildKeyVault(
           typeof resource.config.vaultName === "string" ? resource.config.vaultName : resource.name,
           location,
-          resource.config,
+          { ...resource.config, purgeProtection: true },
           tenantId,
           suffix
         ));
         break;
       case "Microsoft.App/containerApps":
         armResources.push(...buildContainerApp(
+          typeof resource.config.appName === "string" ? resource.config.appName : resource.name,
+          location,
+          resource.config
+        ));
+        break;
+      case "Microsoft.Web/staticSites":
+        armResources.push(buildStaticWebApp(
           typeof resource.config.appName === "string" ? resource.config.appName : resource.name,
           location,
           resource.config
@@ -1016,41 +832,7 @@ export function buildArmTemplate(
       ? buildTemplateResources(payload.template, opts.tenantId, uniqueSuffix, deployParams)
       : buildCustomResources(payload.resources, opts.tenantId, uniqueSuffix, deployParams);
 
-  // ---------------------------------------------------------------------------
-  // Supporting resources
-  // Every deployment gets a Log Analytics workspace (centralised logs/metrics)
-  // and a Key Vault (secrets governance) within the same resource group.
-  // Type-level guards prevent double-injection when the primary set already
-  // contains a workspace or vault.
-  // ---------------------------------------------------------------------------
-  const primaryTypes = new Set(primaryResources.map((r) => r.type));
-  const hasLaw = primaryTypes.has("Microsoft.OperationalInsights/workspaces");
-  const hasKv = primaryTypes.has("Microsoft.KeyVault/vaults");
-
-  const supporting: ArmResource[] = [];
-  if (primaryResources.length > 0) {
-    const firstName = primaryResources[0].name as string;
-    const location = primaryResources[0].location as string;
-    const lawName = makeLawName(firstName);
-    const kvName = makeKvName(firstName, uniqueSuffix);
-
-    if (!hasLaw) {
-      supporting.push(createLogAnalyticsWorkspace(lawName, location));
-    }
-    if (!hasKv) {
-      supporting.push(
-        buildKeyVault(
-          kvName,
-          location,
-          { softDelete: true, purgeProtection: false, accessModel: "rbac" },
-          opts.tenantId,
-          ""
-        )
-      );
-    }
-  }
-
-  const allResources = [...primaryResources, ...supporting];
+  const allResources = primaryResources;
 
   // COE-Enforce-Tag-Resources: every individual resource must carry the 4 policy tags.
   const taggedResources = opts.tags
