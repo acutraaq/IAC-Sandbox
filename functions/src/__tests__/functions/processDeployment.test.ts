@@ -42,7 +42,7 @@ const validMessage = {
       "Project Owner": "owner@test.com",
       "Expiry Date": "2026-12-31",
     },
-    template: { slug: "storage-account", formValues: { storageName: "mystore" } },
+    template: { slug: "approval-workflow", formValues: { workflowName: "mystore" } },
   },
   tags: {
     "Cost Center": "CC01",

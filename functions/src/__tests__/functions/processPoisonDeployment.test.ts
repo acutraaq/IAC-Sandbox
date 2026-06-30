@@ -6,16 +6,16 @@ process.env.DEPLOYMENT_QUEUE ??= "test-queue";
 process.env.AZURE_STORAGE_CONNECTION_STRING ??= "DefaultEndpointsProtocol=https;AccountName=test;AccountKey=AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==;EndpointSuffix=core.windows.net";
 process.env.NODE_ENV = "test";
 
-const mockCreateFailureRecord = vi.fn();
+const mockCreateFailureRecord = vi.hoisted(() => vi.fn());
 
 vi.mock("../../modules/deployments/failure-store.js", () => ({
   createFailureRecord: mockCreateFailureRecord,
 }));
 
 vi.mock("@azure/identity", () => ({
-  DefaultAzureCredential: vi.fn().mockImplementation(() => ({
-    getToken: vi.fn(async () => ({ token: "fake-token", expiresOnTimestamp: Date.now() + 60_000 })),
-  })),
+  DefaultAzureCredential: vi.fn().mockImplementation(function () {
+    return { getToken: vi.fn(async () => ({ token: "fake-token", expiresOnTimestamp: Date.now() + 60_000 })) };
+  }),
 }));
 
 vi.mock("@azure/functions", () => ({
@@ -44,7 +44,7 @@ const validMessage = {
       "Project Owner": "owner@test.com",
       "Expiry Date": "2026-12-31",
     },
-    template: { slug: "storage-account", formValues: { storageName: "mystore" } },
+    template: { slug: "approval-workflow", formValues: { workflowName: "mystore" } },
   },
   tags: {
     "Cost Center": "CC01",

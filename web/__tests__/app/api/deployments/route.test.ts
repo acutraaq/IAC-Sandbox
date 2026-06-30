@@ -33,7 +33,7 @@ const validPayload = {
     "Project Owner": "owner@epf.gov.my",
     "Expiry Date": "2026-12-31",
   },
-  template: { slug: "storage-account", formValues: { storageName: "mystorage", region: "southeastasia" } },
+  template: { slug: "approval-workflow", formValues: { workflowName: "myworkflow", region: "southeastasia" } },
 };
 
 function makeRequest(body: unknown) {
@@ -69,7 +69,7 @@ describe("POST /api/deployments", () => {
   });
 
   it("returns 400 for missing required tags", async () => {
-    const res = await POST(makeRequest({ mode: "template", template: { slug: "storage-account", formValues: {} } }));
+    const res = await POST(makeRequest({ mode: "template", template: { slug: "approval-workflow", formValues: {} } }));
     expect(res.status).toBe(400);
     const body = await res.json();
     expect(body.error.code).toBe("VALIDATION_ERROR");

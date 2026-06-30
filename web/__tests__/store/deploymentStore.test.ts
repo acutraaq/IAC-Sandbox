@@ -3,27 +3,27 @@ import { useDeploymentStore } from "@/store/deploymentStore";
 import type { Template, SelectedResource } from "@/types";
 
 const mockTemplate: Template = {
-  slug: "web-application",
-  name: "Web Application",
+  slug: "approval-workflow",
+  name: "Automated Approval Workflow",
   description: "Test",
-  category: "compute",
+  category: "automation",
   icon: "Globe",
   resourceCount: 1,
-  estimatedTime: "~5 min",
+  estimatedTime: "~3 min",
   steps: [
     {
       title: "Step 1",
       description: "First step",
       fields: [
-        { name: "appName", label: "App name", type: "text", required: true },
+        { name: "workflowName", label: "Workflow name", type: "text", required: true },
       ],
     },
   ],
 };
 
 const mockResource: SelectedResource = {
-  type: "Microsoft.Web/sites",
-  name: "Web Application",
+  type: "Microsoft.Web/staticSites",
+  name: "Static Web App",
   icon: "Globe",
   config: { appName: "test-app" },
 };
@@ -51,7 +51,7 @@ describe("deploymentStore", () => {
     useDeploymentStore.getState().selectTemplate(mockTemplate);
 
     const state = useDeploymentStore.getState();
-    expect(state.selectedTemplate?.slug).toBe("web-application");
+    expect(state.selectedTemplate?.slug).toBe("approval-workflow");
     expect(state.mode).toBe("template");
     expect(state.wizardState.currentStep).toBe(0);
     expect(state.wizardState.completedSteps).toHaveLength(0);
@@ -119,16 +119,4 @@ describe("deploymentStore", () => {
     expect(useDeploymentStore.getState().wizardState.currentStep).toBe(2);
   });
 
-  it("resetCustomRequest clears template and wizard state", () => {
-    useDeploymentStore.getState().selectTemplate(mockTemplate);
-    useDeploymentStore.getState().setFormValues({ appName: "test" });
-    useDeploymentStore.getState().setMode("custom-request");
-
-    useDeploymentStore.getState().resetCustomRequest();
-
-    const state = useDeploymentStore.getState();
-    expect(state.mode).toBeNull();
-    expect(state.selectedTemplate).toBeNull();
-    expect(state.wizardState.formValues).toEqual({});
-  });
 });

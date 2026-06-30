@@ -7,22 +7,22 @@ describe("generateReport", () => {
   const baseState = {
     mode: "template" as const,
     selectedTemplate: {
-      slug: "web-application",
-      name: "Web Application",
+      slug: "approval-workflow",
+      name: "Automated Approval Workflow",
       steps: [
         {
           title: "Basic Details",
           description: "Test",
           fields: [
             {
-              name: "appName",
-              label: "What should we call your application?",
+              name: "workflowName",
+              label: "What should we call this workflow?",
               type: "text" as const,
               required: true,
             },
             {
               name: "region",
-              label: "Where should it run?",
+              label: "Where should it be created?",
               type: "select" as const,
               required: true,
               options: [
@@ -37,7 +37,7 @@ describe("generateReport", () => {
       currentStep: 0,
       completedSteps: [0],
       formValues: {
-        appName: "my-app",
+        workflowName: "my-workflow",
         region: "southeastasia",
       },
     },
@@ -62,12 +62,12 @@ describe("generateReport", () => {
 
   it("includes template name", () => {
     const report = generateReport("SUB-123", baseState, demoUser);
-    expect(report).toContain("Template: Web Application");
+    expect(report).toContain("Template: Automated Approval Workflow");
   });
 
   it("includes form values", () => {
     const report = generateReport("SUB-123", baseState, demoUser);
-    expect(report).toContain("my-app");
+    expect(report).toContain("my-workflow");
   });
 
   it("includes HOD approval note", () => {

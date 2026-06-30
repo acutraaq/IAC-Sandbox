@@ -6,17 +6,17 @@ process.env.DEPLOYMENT_QUEUE ??= "test-queue";
 process.env.AZURE_STORAGE_CONNECTION_STRING ??= "DefaultEndpointsProtocol=https;AccountName=test;AccountKey=AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==;EndpointSuffix=core.windows.net";
 process.env.NODE_ENV = "test";
 
-const mockGetToken = vi.fn();
-const mockFetch = vi.fn();
+const mockGetToken = vi.hoisted(() => vi.fn());
+const mockFetch = vi.hoisted(() => vi.fn());
 
 vi.mock("@azure/functions", () => ({
   app: { http: vi.fn() },
 }));
 
 vi.mock("@azure/identity", () => ({
-  DefaultAzureCredential: vi.fn().mockImplementation(() => ({
-    getToken: mockGetToken,
-  })),
+  DefaultAzureCredential: vi.fn().mockImplementation(function () {
+    return { getToken: mockGetToken };
+  }),
 }));
 
 const { healthz } = await import("../../functions/healthz.js");

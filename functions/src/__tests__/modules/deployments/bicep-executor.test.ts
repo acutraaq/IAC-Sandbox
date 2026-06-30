@@ -6,17 +6,19 @@ process.env.DEPLOYMENT_QUEUE ??= "test-queue";
 process.env.AZURE_STORAGE_CONNECTION_STRING ??= "DefaultEndpointsProtocol=https;AccountName=test;AccountKey=AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==;EndpointSuffix=core.windows.net";
 process.env.NODE_ENV = "test";
 
-const createOrUpdate = vi.fn();
-const getToken = vi.fn(async () => ({ token: "fake-token", expiresOnTimestamp: Date.now() + 60_000 }));
+const createOrUpdate = vi.hoisted(() => vi.fn());
+const getToken = vi.hoisted(() => vi.fn(async () => ({ token: "fake-token", expiresOnTimestamp: Date.now() + 60_000 })));
 
 vi.mock("@azure/arm-resources", () => ({
-  ResourceManagementClient: vi.fn().mockImplementation(() => ({
-    resourceGroups: { createOrUpdate },
-  })),
+  ResourceManagementClient: vi.fn().mockImplementation(function () {
+    return { resourceGroups: { createOrUpdate } };
+  }),
 }));
 
 vi.mock("@azure/identity", () => ({
-  DefaultAzureCredential: vi.fn().mockImplementation(() => ({ getToken })),
+  DefaultAzureCredential: vi.fn().mockImplementation(function () {
+    return { getToken };
+  }),
 }));
 
 const { executeBicepDeployment } = await import(
@@ -33,7 +35,7 @@ const TAGS = {
 const VALID_STORAGE_PAYLOAD = {
   mode: "template" as const,
   tags: TAGS,
-  template: { slug: "storage-account", formValues: { storageName: "mystore" } },
+  template: { slug: "approval-workflow", formValues: { workflowName: "mystore" } },
 };
 
 describe("executeBicepDeployment", () => {
