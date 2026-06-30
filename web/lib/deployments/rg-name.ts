@@ -8,18 +8,9 @@ type DeploymentPayloadWithoutTags =
   | Omit<Extract<DeploymentPayload, { mode: "custom" }>, "tags">;
 
 export const SLUG_PRIMARY_FIELD: Record<string, string> = {
-  "web-application":    "appName",
-  "database":           "dbName",
-  "storage-account":    "storageName",
-  "virtual-network":    "vnetName",
-  "key-vault":          "vaultName",
-  "container-app":      "appName",
-  "landing-zone":       "namingPrefix",
   "approval-workflow":  "workflowName",
   "scheduled-automation": "workflowName",
-  "message-queue":      "namespaceName",
-  "event-broadcaster":  "topicName",
-  "full-stack-web-app": "appName",
+  "static-web-app":       "appName",
 };
 
 export function deriveResourceGroupName(

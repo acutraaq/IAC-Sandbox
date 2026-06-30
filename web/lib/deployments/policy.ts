@@ -38,18 +38,9 @@ const ALLOWED_RESOURCE_TYPES = new Set([
 
 // Only slugs that have ARM builders in arm-template-builder.ts and are not policy-blocked
 const DEPLOYABLE_SLUGS = new Set([
-  "web-application",
-  "database",
-  "storage-account",
-  "virtual-network",
-  "key-vault",
-  "container-app",
-  "landing-zone",
   "approval-workflow",
   "scheduled-automation",
-  "message-queue",
-  "event-broadcaster",
-  "full-stack-web-app",
+  "static-web-app",
 ]);
 
 export interface PolicyViolation {
