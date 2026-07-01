@@ -1,8 +1,9 @@
+import type { DeploymentPayload } from "@/lib/deployments/schema";
 import type {
-  DeploymentPayload,
   DeploymentStatusResponse,
   SubmitResponse,
   ErrorResponse,
+  SessionUser,
 } from "@/types";
 
 export class ApiError extends Error {
@@ -61,6 +62,16 @@ export async function getDeployment(
   }
 
   return parseErrorBody(response);
+}
+
+export async function getMe(): Promise<SessionUser | null> {
+  try {
+    const response = await fetch("/api/auth/me");
+    if (!response.ok) return null;
+    return response.json() as Promise<SessionUser>;
+  } catch {
+    return null;
+  }
 }
 
 export async function logoutUser(): Promise<void> {

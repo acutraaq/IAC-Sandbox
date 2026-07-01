@@ -1,6 +1,6 @@
-# Session Handoff — 2026-05-22
+# Session Handoff — 2026-07-01
 
-> **Version:** 2.0.0 | **Last updated:** 2026-05-22 | **Status:** Active
+> **Version:** 2.1.0 | **Last updated:** 2026-07-01 | **Status:** Active
 > **Purpose:** Context for engineers starting a new session
 > **Related docs:** [Project Index](../README.md) | [CLAUDE.md](../../CLAUDE.md) | [Complete Spec](../project/SPEC.md)
 >
@@ -8,11 +8,48 @@
 
 ## TL;DR
 
-**Supporting-resource bundling implemented.** Every template and custom-builder resource now auto-deploys a Log Analytics workspace and a Key Vault alongside its primary resources. Web descriptions and resource counts updated. All 323 tests pass (193 web + 130 functions). Functions/` `arm-template-builder.test.ts` assertions updated to reflect new resource counts (1→3 for single-resource templates, 2→4 for paired templates, 6→7 for full-stack). Policy allow-lists already included LAW/KV so no new types were needed.
+**Codebase optimization pass completed.** 12 targeted fixes applied across 11 files — no features added, no breaking changes. All 313 tests pass (239 web + 74 functions). Key highlights: policy sync fix (diagnosticSettings removed from web allow-list), queue message schema extracted to single source of truth, `DeploymentPayload` type now sourced from Zod schema only, `getMe()` added to api.ts, `templates.md` corrected (was listing 16 templates, only 3 are live).
 
 ---
 
-## What was done in this session (2026-05-22)
+## What was done in this session (2026-07-01)
+
+### Codebase optimization — 12 fixes across 11 files
+
+| Fix | File(s) | Why |
+|-----|---------|-----|
+| Remove `diagnosticSettings` from `ALLOWED_RESOURCE_TYPES` | `web/lib/deployments/policy.ts` | Not in functions-side `POLICY_ALLOWED_RESOURCE_TYPES` — custom deployments using it would pass web check then fail in Function and poison-queue |
+| Null guard on `tokenResponse` | `web/app/api/healthz/arm/route.ts` | `credential.getToken()` can return null; unguarded access would throw uncaught error |
+| Extract `deploymentJobMessageSchema` | `functions/src/modules/deployments/deployment.schema.ts` | Was copy-pasted identically in `processDeployment.ts` and `processPoisonDeployment.ts` — now single source |
+| Import shared schema | `functions/src/functions/processDeployment.ts`, `processPoisonDeployment.ts` | Remove local duplicate, import from schema |
+| Remove dead `allResources` alias | `functions/src/modules/deployments/arm-template-builder.ts:712` | `const allResources = primaryResources` — no-op remnant from removed supporting-resource bundling |
+| Remove unused `LOG_LEVEL` | `functions/src/lib/env.ts`, `functions/src/__tests__/lib/env.test.ts` | Parsed and stored but never read anywhere; Functions runtime controls log verbosity via host.json |
+| `BlobServiceClient` singleton | `web/lib/deployments/failure-lookup.ts` | Was reconstructed on every call (every 3s status poll) |
+| `DeploymentPayload` import source | `web/lib/api.ts` | Changed from `@/types` to `@/lib/deployments/schema` — Zod-inferred type is authoritative |
+| Add `getMe()` helper | `web/lib/api.ts` | Missing canonical helper; review page was using raw `fetch("/api/auth/me")` |
+| Use `getMe()` | `web/app/review/page.tsx` | Replace raw fetch with api.ts helper (per CLAUDE.md canonical patterns) |
+| Remove duplicate payload types | `web/types/index.ts` | `TemplateDeploymentPayload`, `CustomDeploymentPayload`, `DeploymentPayload` union removed — now sourced from Zod schema exclusively |
+| Add `getMe` to test mock | `web/__tests__/app/review/page.test.tsx` | Mock for `@/lib/api` needed to include new export |
+
+### Documentation updates
+- `templates.md` — corrected from 16 templates to 3 (actual `templates.json` content); added ARM builder inventory section
+- `CLAUDE.md` — updated canonical patterns table (getMe, schema sync note, payload type note), directory layout comments
+- `HANDOFF.md` — this file
+
+### Test results
+- `functions/` `npx vitest run` → **74 passed**
+- `web/` `npx vitest run` → **239 passed**
+- `web/` `npx tsc --noEmit` → **0 errors**
+- `functions/` `npx tsc --noEmit` → **0 errors**
+
+### What is NOT done (next session candidates)
+- **templates.md discrepancy investigation** — `arm-template-builder.ts` has builders for 10+ additional slugs; `templates.json` only exposes 3. Determine if the remaining 10 should be added to the UI catalog or remain as builder-only.
+- **End-to-end verification** — confirm a real template submission progresses from `accepted` → `running` → `succeeded` in `sub-epf-sandbox-internal`
+- **Function App env vars** — queue processing has not been observed working live; verify a deployment actually moves past `accepted`
+
+---
+
+## What was done in the previous session (2026-05-22)
 
 ### Supporting-resource bundling: LAW + KV auto-injected
 - **`functions/src/modules/deployments/arm-template-builder.ts`**

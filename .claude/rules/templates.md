@@ -1,37 +1,48 @@
 ---
-description: Template catalog — 16 templates, policy-blocked slugs, region constraints, and deployable allow-list for IAC Sandbox
+description: Template catalog — live templates in templates.json, DEPLOYABLE_SLUGS allow-list, region constraints, and ARM builder inventory for IAC Sandbox
 globs: web/app/templates/**, web/data/**, web/lib/deployments/**
 ---
 
 # Template Catalog
 
-16 templates across 7 categories. All region options are locked to:
+3 templates across 2 categories — live in `web/data/templates.json`. All region options are locked to:
 - Malaysia (Malaysia West) — default
 - Asia Pacific (Southeast Asia)
 
 | Category | Slug | Resource Type |
 |----------|------|---------------|
-| compute | `web-application` | `Microsoft.Web/serverfarms` + `Microsoft.Web/sites` |
-| compute | `virtual-machine` | `Microsoft.Compute/virtualMachines` — policy-blocked, shows lock UI |
-| compute | `container-app` | `Microsoft.App/managedEnvironments` + `Microsoft.App/containerApps` |
-| compute | `full-stack-web-app` | App Service + Azure SQL + Storage + Key Vault (6 resources) |
-| compute | `microservices-platform` | Container Apps + Service Bus — policy-blocked |
-| data | `database` | `Microsoft.DBforPostgreSQL/flexibleServers` |
-| data | `storage-account` | `Microsoft.Storage/storageAccounts` |
-| data | `data-pipeline` | policy-blocked |
-| security | `key-vault` | `Microsoft.KeyVault/vaults` |
-| network | `virtual-network` | `Microsoft.Network/virtualNetworks` |
-| landing-zone | `landing-zone` | VNet + Key Vault + Log Analytics (conditional) |
-| compute | `secure-api-backend` | policy-blocked |
 | automation | `approval-workflow` | `Microsoft.Logic/workflows` (HTTP trigger) |
 | automation | `scheduled-automation` | `Microsoft.Logic/workflows` (recurrence trigger) |
-| integration | `message-queue` | `Microsoft.ServiceBus/namespaces` |
-| integration | `event-broadcaster` | `Microsoft.EventGrid/topics` |
+| compute | `static-web-app` | `Microsoft.Web/staticSites` |
 
-Policy-blocked slugs (enforced server-side at `POST /api/deployments` → 403):
-- `virtual-machine`, `microservices-platform`, `data-pipeline`, `secure-api-backend`
+Deployable slugs (allow-list in `web/lib/deployments/policy.ts` — **must exactly match what is in `templates.json`**):
+- `approval-workflow`, `scheduled-automation`, `static-web-app`
 
-Deployable slugs (allow-list in `web/lib/deployments/policy.ts`):
-- `web-application`, `database`, `storage-account`, `key-vault`, `virtual-network`, `container-app`, `landing-zone`, `full-stack-web-app`, `approval-workflow`, `scheduled-automation`, `message-queue`, `event-broadcaster`
+Policy-blocked slugs: none (all 3 active slugs are deployable).
 
-> When adding a new deployable slug, update BOTH `web/lib/deployments/policy.ts` (DEPLOYABLE_SLUGS) AND `web/lib/deployments/rg-name.ts` (primary field map).
+## ARM Builder Inventory (beyond current UI catalog)
+
+`functions/src/modules/deployments/arm-template-builder.ts` contains builders for additional slugs that are NOT yet exposed in `templates.json` or `DEPLOYABLE_SLUGS`:
+
+| Slug | Resource Type |
+|------|---------------|
+| `web-application` | `Microsoft.Web/serverfarms` + `Microsoft.Web/sites` |
+| `container-app` | `Microsoft.App/managedEnvironments` + `Microsoft.App/containerApps` |
+| `full-stack-web-app` | App Service + Azure SQL + Storage + Key Vault |
+| `database` | `Microsoft.DBforPostgreSQL/flexibleServers` |
+| `storage-account` | `Microsoft.Storage/storageAccounts` |
+| `key-vault` | `Microsoft.KeyVault/vaults` |
+| `virtual-network` | `Microsoft.Network/virtualNetworks` |
+| `landing-zone` | VNet + Key Vault + Log Analytics |
+| `message-queue` | `Microsoft.ServiceBus/namespaces` |
+| `event-broadcaster` | `Microsoft.EventGrid/topics` |
+
+> To activate any of these: add an entry to `templates.json`, add the slug to `DEPLOYABLE_SLUGS` in `web/lib/deployments/policy.ts`, and add a primary field entry to `SLUG_PRIMARY_FIELD` in `web/lib/deployments/rg-name.ts`.
+
+## Adding a New Template (checklist)
+
+1. Add entry to `web/data/templates.json` (slug, name, category, steps, fields)
+2. Add slug to `DEPLOYABLE_SLUGS` in `web/lib/deployments/policy.ts`
+3. Add slug → primary form field mapping in `SLUG_PRIMARY_FIELD` in `web/lib/deployments/rg-name.ts`
+4. Verify ARM builder exists in `functions/src/modules/deployments/arm-template-builder.ts`; add if missing
+5. Run `npx vitest run` from both `web/` and `functions/` — all must pass

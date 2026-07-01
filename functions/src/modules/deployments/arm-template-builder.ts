@@ -709,12 +709,10 @@ export function buildArmTemplate(
       ? buildTemplateResources(payload.template)
       : buildCustomResources(payload.resources, opts.tenantId, uniqueSuffix, deployParams);
 
-  const allResources = primaryResources;
-
   // COE-Enforce-Tag-Resources: every individual resource must carry the 4 policy tags.
   const taggedResources = opts.tags
-    ? allResources.map((r) => ({ ...r, tags: opts.tags }))
-    : allResources;
+    ? primaryResources.map((r) => ({ ...r, tags: opts.tags }))
+    : primaryResources;
 
   const parameters: Record<string, unknown> = Object.fromEntries(
     Object.keys(deployParams).map((k) => [k, { type: "secureString" }])

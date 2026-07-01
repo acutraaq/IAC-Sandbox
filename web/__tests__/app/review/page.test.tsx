@@ -27,6 +27,7 @@ vi.mock("next/link", () => ({
 
 vi.mock("@/lib/api", () => ({
   submitDeployment: vi.fn(),
+  getMe: vi.fn().mockResolvedValue(null),
   ApiError: class ApiError extends Error {
     code: string;
     constructor(code: string, message: string) {

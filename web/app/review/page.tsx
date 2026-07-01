@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useDeploymentStore } from "@/store/deploymentStore";
-import { submitDeployment, ApiError } from "@/lib/api";
+import { submitDeployment, getMe, ApiError } from "@/lib/api";
 import { generateReport } from "@/lib/report";
 import { ReviewSection } from "@/components/review/ReviewSection";
 import { ConfirmModal } from "@/components/review/ConfirmModal";
@@ -35,18 +35,7 @@ export default function ReviewPage() {
   const [user, setUser] = useState<SessionUser | null>(null);
 
   useEffect(() => {
-    async function loadUser() {
-      try {
-        const res = await fetch("/api/auth/me");
-        if (res.ok) {
-          const data = await res.json();
-          setUser(data);
-        }
-      } catch {
-        // ignore
-      }
-    }
-    loadUser();
+    getMe().then(setUser);
   }, []);
 
   function validateTags(): boolean {

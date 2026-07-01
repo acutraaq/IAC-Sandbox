@@ -20,7 +20,6 @@ describe("functions/src/lib/env", () => {
     const { default: env } = await import("../../lib/env.js");
     expect(env.AZURE_SUBSCRIPTION_ID).toBe(baseEnv.AZURE_SUBSCRIPTION_ID);
     expect(env.NODE_ENV).toBe("test");
-    expect(env.LOG_LEVEL).toBe("info");
   });
 
   it("defaults NODE_ENV to development when unset", async () => {

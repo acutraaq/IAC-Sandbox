@@ -9,6 +9,13 @@ export async function GET() {
       "https://management.azure.com/.default"
     );
 
+    if (!tokenResponse?.token) {
+      return NextResponse.json(
+        { status: "error", detail: "Token acquisition returned empty" },
+        { status: 503 }
+      );
+    }
+
     const url =
       `https://management.azure.com/subscriptions/${serverEnv.AZURE_SUBSCRIPTION_ID}` +
       `/resourcegroups?api-version=2021-04-01&$top=1`;

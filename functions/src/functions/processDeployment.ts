@@ -1,18 +1,8 @@
 import { app, InvocationContext } from "@azure/functions";
-import { z } from "zod";
 import { executeBicepDeployment } from "../modules/deployments/bicep-executor.js";
-import { deploymentPayloadSchema } from "../modules/deployments/deployment.schema.js";
+import { deploymentJobMessageSchema } from "../modules/deployments/deployment.schema.js";
 import { InvalidDeploymentConfigError } from "../modules/deployments/arm-template-builder.js";
 import env from "../lib/env.js";
-
-const deploymentJobMessageSchema = z.object({
-  submissionId: z.string().uuid(),
-  resourceGroupName: z.string().min(1),
-  location: z.string().min(1),
-  payload: deploymentPayloadSchema,
-  tags: z.record(z.string(), z.string()),
-  deployedBy: z.string().min(1),
-});
 
 export async function processDeployment(
   queueItem: unknown,

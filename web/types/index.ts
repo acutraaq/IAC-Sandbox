@@ -50,27 +50,6 @@ export interface ResourceGroupTags {
   "Expiry Date": string; // YYYY-MM-DD
 }
 
-/* ── Deployment Payloads (match OpenAPI spec) ── */
-
-export interface TemplateDeploymentPayload {
-  mode: "template";
-  tags: ResourceGroupTags;
-  template: {
-    slug: string;
-    formValues: Record<string, unknown>;
-  };
-}
-
-export interface CustomDeploymentPayload {
-  mode: "custom";
-  tags: ResourceGroupTags;
-  resources: SelectedResource[];
-}
-
-export type DeploymentPayload =
-  | TemplateDeploymentPayload
-  | CustomDeploymentPayload;
-
 /* ── Auth ── */
 
 export interface SessionUser {

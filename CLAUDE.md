@@ -1,6 +1,6 @@
 # CLAUDE.md — Project Conventions & Developer Guidance
 
-> **Version:** 2.5.1 | **Last updated:** 2026-05-22 | **Status:** Active  
+> **Version:** 2.5.2 | **Last updated:** 2026-07-01 | **Status:** Active  
 > **Purpose:** Single source of truth for project conventions, tech stack, and development patterns  
 > **Owner:** All engineers | **Review cadence:** On every convention or pattern change  
 > **Related docs:** [Documentation Index](docs/README.md) | [Complete Spec](docs/project/SPEC.md) | [Glossary](docs/GLOSSARY.md) | [HANDOFF](docs/superpowers/HANDOFF.md)
@@ -18,7 +18,7 @@ Before starting any work, check `docs/superpowers/specs/` for any active (non-ar
 No active specs or plans. All approved work is implemented; completed designs live under `docs/superpowers/archive/`.
 
 **What is live and working:** Terminal-native document redesign (mono nav chrome, editorial rows, `~/path` eyebrows); supporting-resource bundling (LAW + KV auto-injected into every deployment); see Live Deployment section below.  
-**Latest commit:** supporting-resource bundling — every template and custom-builder resource now auto-deploys a Log Analytics workspace and a Key Vault alongside its primary resources.
+**Latest session (2026-07-01):** Codebase optimization pass — policy sync fix, queue message schema extracted to single source, `DeploymentPayload` type now Zod-only, `getMe()` added to api.ts, `templates.md` corrected. 239 web + 74 functions tests passing. See HANDOFF.md for full change list.
 **What is designed but not built:** Nothing — all approved specs implemented.
 **SSO status:** Microsoft SSO / MSAL is **on hold** — placeholder login is live and sufficient for current needs. The MSAL plumbing is fully implemented but not being activated at this time. See Authentication section.
 **What needs admin action:** Configure `epf-sandbox-functions` environment variables in Azure Portal (`DEPLOYMENT_QUEUE`, `AZURE_STORAGE_CONNECTION_STRING`, `AzureWebJobsStorage`, `AZURE_SUBSCRIPTION_ID`, `AZURE_TENANT_ID`) so the Function App can consume queue messages. Managed identity setup is complete: App Service MI has **Reader** on `sub-epf-sandbox-internal`, Function App MI has **Contributor** on `sub-epf-sandbox-internal`. After env vars are set, verify end-to-end with a test deployment (e.g., Storage Account) and confirm the resource group appears in `sub-epf-sandbox-internal` with all 6 ARM tags.
@@ -202,7 +202,7 @@ Prisma and PostgreSQL have been removed. ARM is the source of truth for all depl
 │   │       ├── failure-lookup.ts # Reads failure blobs from storage
 │   │       ├── rg-name.ts       # deriveResourceGroupName / deriveLocation
 │   │       └── arm-status.ts    # mapArmProvisioningState → DeploymentStatus
-│   ├── types/index.ts
+│   ├── types/index.ts           # Shared frontend types — does NOT export DeploymentPayload (use @/lib/deployments/schema)
 │   ├── data/
 │   │   ├── templates.json       # 3 templates across 2 categories; regions locked to malaysiawest/southeastasia only
 │   │   └── resources.json       # 10 resource types for Custom Builder flow
@@ -231,7 +231,7 @@ Prisma and PostgreSQL have been removed. ARM is the source of truth for all depl
 │       └── modules/deployments/
 │           ├── arm-template-builder.ts      # Builders + PolicyBlockedTemplateError
 │           ├── bicep-executor.ts            # Applies 6 tags to RG, 4 policy tags to ARM resources
-│           ├── deployment.schema.ts         # Deployment payload schemas
+│           ├── deployment.schema.ts         # Deployment payload schemas + deploymentJobMessageSchema (queue message contract)
 │           ├── failure-store.ts             # Writes failure records to blob storage
 │           └── sanitize.ts                  # Name sanitization helpers
 │       └── __tests__/
@@ -297,10 +297,11 @@ No docker-compose or local database needed.
 | ARM status | `mapArmProvisioningState` from `web/lib/deployments/arm-status.ts` |
 | ARM client | `getArmClient()` from `web/lib/arm.ts` (one per request) |
 | Server env | `serverEnv` from `web/lib/server-env.ts` (never raw `process.env`) |
-| Client API | helpers in `web/lib/api.ts` (never raw `fetch('/api/...')`) |
+| Client API | helpers in `web/lib/api.ts` (never raw `fetch('/api/...')`) — `submitDeployment`, `getDeployment`, `getMe`, `logoutUser` |
 | Errors | `AppError` + `toErrorResponse()` from `web/lib/errors.ts`; use `AppError.forbidden()` for policy blocks |
-| Schema sync | `functions/src/modules/deployments/deployment.schema.ts` must match `web/lib/deployments/schema.ts` — edit both together |
+| Schema sync | `functions/src/modules/deployments/deployment.schema.ts` must match `web/lib/deployments/schema.ts` — edit both together. Also exports `deploymentJobMessageSchema` + `DeploymentJobMessage` (queue message contract — single source of truth) |
 | Policy check | `DEPLOYABLE_SLUGS` in `web/lib/deployments/policy.ts` — add new slugs here when adding templates |
+| Payload type | `DeploymentPayload` from `@/lib/deployments/schema` (Zod-inferred, authoritative) — NOT from `@/types` |
 
 ---
 

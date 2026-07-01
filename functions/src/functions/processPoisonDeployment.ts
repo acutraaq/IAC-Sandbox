@@ -1,18 +1,8 @@
 import { app, InvocationContext } from "@azure/functions";
-import { z } from "zod";
 import { DefaultAzureCredential } from "@azure/identity";
-import { deploymentPayloadSchema } from "../modules/deployments/deployment.schema.js";
+import { deploymentJobMessageSchema } from "../modules/deployments/deployment.schema.js";
 import { createFailureRecord } from "../modules/deployments/failure-store.js";
 import env from "../lib/env.js";
-
-const deploymentJobMessageSchema = z.object({
-  submissionId: z.string().uuid(),
-  resourceGroupName: z.string().min(1),
-  location: z.string().min(1),
-  payload: deploymentPayloadSchema,
-  tags: z.record(z.string(), z.string()),
-  deployedBy: z.string().min(1),
-});
 
 async function fetchArmFailureReason(
   credential: DefaultAzureCredential,

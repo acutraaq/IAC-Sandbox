@@ -40,3 +40,14 @@ export const deploymentPayloadSchema = z.discriminatedUnion("mode", [
 ]);
 
 export type DeploymentPayload = z.infer<typeof deploymentPayloadSchema>;
+
+export const deploymentJobMessageSchema = z.object({
+  submissionId: z.string().uuid(),
+  resourceGroupName: z.string().min(1),
+  location: z.string().min(1),
+  payload: deploymentPayloadSchema,
+  tags: z.record(z.string(), z.string()),
+  deployedBy: z.string().min(1),
+});
+
+export type DeploymentJobMessage = z.infer<typeof deploymentJobMessageSchema>;

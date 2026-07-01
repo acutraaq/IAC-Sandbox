@@ -4,6 +4,12 @@ import { z } from "zod";
 
 const CONTAINER_NAME = "deployment-failures";
 
+function getBlobContainerClient() {
+  return BlobServiceClient.fromConnectionString(
+    serverEnv.AZURE_STORAGE_CONNECTION_STRING
+  ).getContainerClient(CONTAINER_NAME);
+}
+
 export interface FailureRecord {
   submissionId: string;
   resourceGroupName: string;
@@ -22,11 +28,7 @@ const failureRecordSchema = z.object({
 
 export async function getFailureRecord(submissionId: string): Promise<FailureRecord | null> {
   try {
-    const client = BlobServiceClient.fromConnectionString(
-      serverEnv.AZURE_STORAGE_CONNECTION_STRING
-    );
-    const container = client.getContainerClient(CONTAINER_NAME);
-    const blob = container.getBlockBlobClient(`${submissionId}.json`);
+    const blob = getBlobContainerClient().getBlockBlobClient(`${submissionId}.json`);
     const download = await blob.download(0);
     const text = await streamToString(download.readableStreamBody);
     const parsed = failureRecordSchema.safeParse(JSON.parse(text));

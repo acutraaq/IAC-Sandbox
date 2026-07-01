@@ -6,9 +6,6 @@ const envSchema = z.object({
     .default("development"),
   AZURE_SUBSCRIPTION_ID: z.string().min(1, "AZURE_SUBSCRIPTION_ID is required"),
   AZURE_TENANT_ID: z.string().min(1, "AZURE_TENANT_ID is required"),
-  LOG_LEVEL: z
-    .enum(["fatal", "error", "warn", "info", "debug", "trace"])
-    .default("info"),
   DEPLOYMENT_QUEUE: z.string().min(1, "DEPLOYMENT_QUEUE is required"),
   AZURE_STORAGE_CONNECTION_STRING: z.string().min(1, "AZURE_STORAGE_CONNECTION_STRING is required"),
 });
