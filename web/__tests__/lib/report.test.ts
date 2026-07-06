@@ -41,7 +41,6 @@ describe("generateReport", () => {
         region: "southeastasia",
       },
     },
-    selectedResources: [],
   };
 
   it("includes SANDBOX DEPLOYMENT PROOF header", () => {
@@ -80,30 +79,5 @@ describe("generateReport", () => {
   it("includes status accepted", () => {
     const report = generateReport("SUB-123", baseState, demoUser);
     expect(report).toContain("Status        : accepted");
-  });
-
-  it("generates custom mode report", () => {
-    const customState = {
-      mode: "custom" as const,
-      selectedTemplate: null,
-      wizardState: {
-        currentStep: 0,
-        completedSteps: [],
-        formValues: {},
-      },
-      selectedResources: [
-        {
-          type: "Microsoft.KeyVault/vaults",
-          name: "Secret Manager",
-          icon: "KeyRound",
-          config: { vaultName: "my-secrets", region: "southeastasia" },
-        },
-      ],
-    };
-
-    const report = generateReport("SUB-456", customState, demoUser);
-    expect(report).toContain("Mode          : Custom");
-    expect(report).toContain("Resource 1: Secret Manager");
-    expect(report).toContain("my-secrets");
   });
 });

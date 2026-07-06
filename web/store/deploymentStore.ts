@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import type { DeploymentState, Template, SelectedResource } from "@/types";
+import type { DeploymentState, Template } from "@/types";
 
 const initialWizardState = {
   currentStep: 0,
@@ -11,7 +11,6 @@ export const useDeploymentStore = create<DeploymentState>((set, get) => ({
   mode: null,
   selectedTemplate: null,
   wizardState: initialWizardState,
-  selectedResources: [],
   submissionId: null,
   deployedResourceGroup: null,
   deploymentSummary: null,
@@ -52,20 +51,6 @@ export const useDeploymentStore = create<DeploymentState>((set, get) => ({
       },
     })),
 
-  addResource: (resource: SelectedResource) => {
-    const isDuplicate = get().selectedResources.some(
-      (r) => r.type === resource.type,
-    );
-    if (isDuplicate) return false;
-    set((state) => ({ selectedResources: [...state.selectedResources, resource] }));
-    return true;
-  },
-
-  removeResource: (type: string) =>
-    set((state) => ({
-      selectedResources: state.selectedResources.filter((r) => r.type !== type),
-    })),
-
   setSubmissionResult: (id: string, summary: string, resourceGroup: string) =>
     set({ submissionId: id, deploymentSummary: summary, deployedResourceGroup: resourceGroup }),
 
@@ -74,7 +59,6 @@ export const useDeploymentStore = create<DeploymentState>((set, get) => ({
       mode: null,
       selectedTemplate: null,
       wizardState: { ...initialWizardState },
-      selectedResources: [],
       submissionId: null,
       deployedResourceGroup: null,
       deploymentSummary: null,

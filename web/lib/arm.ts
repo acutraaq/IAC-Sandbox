@@ -74,7 +74,7 @@ export type ArmClientWithDeployments = ResourceManagementClient & {
 };
 
 export function getArmClient(): ArmClientWithDeployments {
-  const isAzure = !!process.env.WEBSITE_INSTANCE_ID;
+  const isAzure = !!serverEnv.WEBSITE_INSTANCE_ID;
   const credential: TokenCredential = isAzure
     ? new ManagedIdentityCredential()
     : new DefaultAzureCredential();

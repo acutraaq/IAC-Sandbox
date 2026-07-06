@@ -7,9 +7,10 @@ globs: **/package.json, **/package-lock.json
 
 ## `web/` — Production
 - `next` (v16), `react`, `react-dom` (v19)
-- `@azure/storage-queue`, `@azure/storage-blob`, `@azure/arm-resources`, `@azure/identity`
+- `@azure/storage-queue`, `@azure/storage-blob`, `@azure/arm-resources`, `@azure/identity`, `@azure/msal-node`
 - `zustand`, `react-hook-form`, `@hookform/resolvers`, `zod`
 - `lucide-react` (fonts: IBM Plex Sans + IBM Plex Mono via `next/font/google`)
+- `framer-motion`, `clsx`, `tailwind-merge`
 
 ## `web/` — Development
 - `typescript`, `@types/react`, `@types/react-dom`, `@types/node`

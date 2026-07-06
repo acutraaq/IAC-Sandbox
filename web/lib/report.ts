@@ -22,7 +22,7 @@ export function generateReport(
   submissionId: string,
   state: Pick<
     DeploymentState,
-    "mode" | "selectedTemplate" | "wizardState" | "selectedResources"
+    "mode" | "selectedTemplate" | "wizardState"
   >,
   user: SessionUser,
   tags?: ResourceGroupTags,
@@ -40,7 +40,7 @@ export function generateReport(
     `Submitted By  : ${user.displayName} (${user.upn})`,
     `Tenant        : ${getPublicAzureEnv().tenantId}`,
     `Date/Time     : ${now}`,
-    `Mode          : ${state.mode === "template" ? "Template" : "Custom"}`,
+    `Mode          : Template`,
     `Target Sub    : sub-epf-sandbox-internal`,
     `Target RG     : ${resourceGroupName ?? ""}`,
     `Status        : accepted`,
@@ -66,17 +66,6 @@ export function generateReport(
         const value = values[field.name];
         if (value !== undefined && value !== null && value !== "") {
           lines.push(`    ${formalLabel(field.name)}: ${displayFieldValue(field, value)}`);
-        }
-      }
-    }
-  } else if (state.mode === "custom") {
-    for (let i = 0; i < state.selectedResources.length; i++) {
-      const resource = state.selectedResources[i];
-      lines.push(`- Resource ${i + 1}: ${resource.name}`);
-      lines.push(`  Configuration:`);
-      for (const [key, value] of Object.entries(resource.config)) {
-        if (value !== undefined && value !== null && value !== "") {
-          lines.push(`    ${formalLabel(key)}: ${String(value)}`);
         }
       }
     }

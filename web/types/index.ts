@@ -32,15 +32,6 @@ export interface Template {
   policyBlocked?: boolean;
 }
 
-/* ── Resources ── */
-
-export interface SelectedResource {
-  type: string;
-  name: string;
-  icon: string;
-  config: Record<string, unknown>;
-}
-
 /* ── Resource Group Tags (required by policy COE-Enforce-Tag-RG) ── */
 
 export interface ResourceGroupTags {
@@ -95,7 +86,7 @@ export interface ErrorResponse {
 /* ── Store State ── */
 
 export interface DeploymentState {
-  mode: "template" | "custom" | null;
+  mode: "template" | null;
   selectedTemplate: {
     slug: string;
     name: string;
@@ -106,19 +97,16 @@ export interface DeploymentState {
     completedSteps: number[];
     formValues: Record<string, unknown>;
   };
-  selectedResources: SelectedResource[];
   submissionId: string | null;
   deployedResourceGroup: string | null;
   deploymentSummary: string | null;
 
   // Actions
-  setMode: (mode: "template" | "custom") => void;
+  setMode: (mode: "template") => void;
   selectTemplate: (template: Template) => void;
   updateWizardStep: (step: number) => void;
   completeStep: (step: number) => void;
   setFormValues: (values: Record<string, unknown>) => void;
-  addResource: (resource: SelectedResource) => boolean;
-  removeResource: (type: string) => void;
   setSubmissionResult: (id: string, summary: string, resourceGroup: string) => void;
   reset: () => void;
 }

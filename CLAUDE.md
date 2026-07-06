@@ -19,7 +19,7 @@ No active specs or plans. All approved work is implemented; completed designs li
 
 **What is live and working:** Terminal-native document redesign (mono nav chrome, editorial rows, `~/path` eyebrows); supporting-resource bundling (LAW + KV auto-injected into every deployment); see Live Deployment section below.  
 **Latest session (2026-07-01):** Codebase optimization pass — policy sync fix, queue message schema extracted to single source, `DeploymentPayload` type now Zod-only, `getMe()` added to api.ts, `templates.md` corrected. 239 web + 74 functions tests passing. See HANDOFF.md for full change list.
-**What is designed but not built:** Nothing — all approved specs implemented.
+**What is designed but not built:** Nothing formally speced. Open items tracked in HANDOFF.md not yet actioned: 10 extra ARM builder slugs (`web-application`, `container-app`, etc. — see `.claude/rules/templates.md`) not exposed in the template catalog, end-to-end deployment verification pending admin env var setup, and an error-UX / a11y audit not yet scheduled.
 **SSO status:** Microsoft SSO / MSAL is **on hold** — placeholder login is live and sufficient for current needs. The MSAL plumbing is fully implemented but not being activated at this time. See Authentication section.
 **What needs admin action:** Configure `epf-sandbox-functions` environment variables in Azure Portal (`DEPLOYMENT_QUEUE`, `AZURE_STORAGE_CONNECTION_STRING`, `AzureWebJobsStorage`, `AZURE_SUBSCRIPTION_ID`, `AZURE_TENANT_ID`) so the Function App can consume queue messages. Managed identity setup is complete: App Service MI has **Reader** on `sub-epf-sandbox-internal`, Function App MI has **Contributor** on `sub-epf-sandbox-internal`. After env vars are set, verify end-to-end with a test deployment (e.g., Storage Account) and confirm the resource group appears in `sub-epf-sandbox-internal` with all 6 ARM tags.
 
@@ -77,11 +77,11 @@ The Template flow converges at a shared Review & Submit page, calling `POST /api
 
 All routes are gated by `web/proxy.ts` (Next.js 16's middleware convention). Unauthenticated requests are redirected to `/login?next=<original-path>`. Public paths bypass the gate: `/login`, `/api/auth/*`, `/api/healthz` (and sub-paths like `/api/healthz/arm`), Next.js internals, and static files.
 
-Identity comes from `getCurrentUser()` in `web/lib/auth.ts`. Today this reads an HMAC-signed session cookie (`iac_session`, Web Crypto SHA-256, 24 h TTL) and returns the placeholder user `{ upn: "demo@sandbox.local", displayName: "Demo User" }`. The cookie is created by `POST /api/auth/login` (clicked via the stub "Sign in with Microsoft" button) and cleared by `POST /api/auth/logout`.
+Identity comes from `getCurrentUser()` in `web/lib/auth.ts`. Today this reads an HMAC-signed session cookie (`iac_session`, Web Crypto SHA-256, 24 h TTL) and returns the placeholder user `{ upn: "demo@sandbox.local", displayName: "Demo User" }`. The cookie is created by `GET /api/auth/login` (clicked via the stub "Sign in with Microsoft" button — a GET redirect handler, not POST; it falls back to the placeholder stub when MSAL env vars are unset) and cleared by `POST /api/auth/logout`.
 
 The core cookie signing/verification logic lives in `web/lib/auth-core.ts`, which is Edge-safe and used by `proxy.ts` (avoids importing `next/headers` in the middleware layer).
 
-**MSAL swap:** MSAL plumbing is fully implemented — authorization code + PKCE flow at `web/lib/msal.ts`, GET redirect login at `GET /api/auth/login`, and OAuth callback handler at `GET /api/auth/callback`. `deployedBy` is wired end-to-end: session → queue message → ARM tags via `getCurrentUser()` in both `web/app/api/deployments/route.ts` and `web/app/api/my-deployments/route.ts`, parsed in `functions/src/functions/processDeployment.ts`, and applied in `bicep-executor.ts`. Until admin provides App Registration credentials (`AZURE_AD_CLIENT_ID`, `AZURE_AD_CLIENT_SECRET`), the placeholder login stub (`demo@sandbox.local`) remains active via `POST /api/auth/login`.
+**MSAL swap:** MSAL plumbing is fully implemented — authorization code + PKCE flow at `web/lib/msal.ts`, GET redirect login at `GET /api/auth/login`, and OAuth callback handler at `GET /api/auth/callback/azure-ad`. `deployedBy` is wired end-to-end: session → queue message → ARM tags via `getCurrentUser()` in both `web/app/api/deployments/route.ts` and `web/app/api/my-deployments/route.ts`, parsed in `functions/src/functions/processDeployment.ts`, and applied in `bicep-executor.ts`. Until admin provides App Registration credentials (`AZURE_AD_CLIENT_ID`, `AZURE_AD_CLIENT_SECRET`), the placeholder login stub (`demo@sandbox.local`) remains active via `GET /api/auth/login`.
 
 ---
 
@@ -375,6 +375,6 @@ npx vitest run       # all pass
 - `functions/package.json` `main` must be `dist/functions/*.js` — tsconfig `rootDir: ./src` strips the `src/` prefix, so compiled output is at `dist/functions/`, not `dist/src/functions/`. Getting this wrong causes "Function host is not running"
 - Function App Azure settings: `AZURE_SUBSCRIPTION_ID` must point to `sub-epf-sandbox-internal` (`1fed33d2-00fd-40a8-a5c1-c120aec1b902`), not the cloud sub. Managed identity needs Contributor on that subscription.
 
-> Template catalog (16 templates, policy-blocked slugs, region lock): see `.claude/rules/templates.md` — auto-loads when editing templates/data/deployments files.  
+> Template catalog (3 templates, no policy-blocked slugs, region lock): see `.claude/rules/templates.md` — auto-loads when editing templates/data/deployments files.  
 > Design tokens and color values: see `.claude/rules/design-system.md` — auto-loads when editing any `web/` file.  
 > Proof artifact exact format: see `.claude/rules/proof-format.md` — auto-loads when editing review components or `report.ts`.

@@ -7,6 +7,7 @@ const envSchema = z.object({
   SESSION_SECRET: z.string().min(32, "SESSION_SECRET must be at least 32 characters"),
   AZURE_AD_CLIENT_ID: z.string().optional(),
   AZURE_AD_CLIENT_SECRET: z.string().optional(),
+  WEBSITE_INSTANCE_ID: z.string().optional(),
 });
 
 const parsed = envSchema.safeParse(process.env);

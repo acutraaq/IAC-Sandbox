@@ -19,7 +19,7 @@ import { PageTransition } from "@/components/layout/PageTransition";
 
 export default function ReviewPage() {
   const router = useRouter();
-  const { mode, selectedTemplate, wizardState, selectedResources, setSubmissionResult, reset } = useDeploymentStore();
+  const { mode, selectedTemplate, wizardState, setSubmissionResult, reset } = useDeploymentStore();
 
   const [submitting, setSubmitting] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
@@ -61,36 +61,24 @@ export default function ReviewPage() {
 
   if (!mode) return null;
 
-  const canSubmit =
-    mode === "template"
-      ? selectedTemplate !== null
-      : selectedResources.length > 0;
+  const canSubmit = selectedTemplate !== null;
 
   async function handleSubmit() {
-    if (!canSubmit) return;
+    if (!canSubmit || !selectedTemplate) return;
     if (!validateTags()) return;
     if (submittingRef.current) return;
     submittingRef.current = true;
 
     setSubmitting(true);
     try {
-      let payload;
-      if (mode === "template" && selectedTemplate) {
-        payload = {
-          mode: "template" as const,
-          tags,
-          template: {
-            slug: selectedTemplate.slug,
-            formValues: wizardState.formValues,
-          },
-        };
-      } else {
-        payload = {
-          mode: "custom" as const,
-          tags,
-          resources: selectedResources,
-        };
-      }
+      const payload = {
+        mode: "template" as const,
+        tags,
+        template: {
+          slug: selectedTemplate.slug,
+          formValues: wizardState.formValues,
+        },
+      };
 
       const result = await submitDeployment(payload);
       const reportUser = user ?? { upn: "demo@sandbox.local", displayName: "Demo User" };
@@ -98,7 +86,6 @@ export default function ReviewPage() {
         mode,
         selectedTemplate,
         wizardState,
-        selectedResources,
       }, reportUser, tags, result.resourceGroup);
 
       setSubmissionResult(result.submissionId, report, result.resourceGroup);
@@ -122,10 +109,9 @@ export default function ReviewPage() {
     setModalOpen(false);
   }
 
-  const backHref =
-    mode === "template" && selectedTemplate
-      ? `/templates/${selectedTemplate.slug}`
-      : "/";
+  const backHref = selectedTemplate
+    ? `/templates/${selectedTemplate.slug}`
+    : "/";
 
   return (
     <PageTransition>
@@ -137,7 +123,7 @@ export default function ReviewPage() {
           className="mb-3 inline-flex items-center gap-1.5 text-sm text-text-muted hover:text-accent"
         >
           <ArrowLeft className="h-4 w-4" />
-          {mode === "template" ? "Back to setup" : "Back"}
+          Back to setup
         </Link>
         <h1 className="font-sans text-xl md:text-2xl font-bold text-text">
           Review your setup
@@ -153,7 +139,6 @@ export default function ReviewPage() {
         mode={mode}
         selectedTemplate={selectedTemplate}
         wizardState={wizardState}
-        selectedResources={selectedResources}
       />
 
       <DocumentDivider label="tags" />

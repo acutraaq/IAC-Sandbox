@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach } from "vitest";
 import { useDeploymentStore } from "@/store/deploymentStore";
-import type { Template, SelectedResource } from "@/types";
+import type { Template } from "@/types";
 
 const mockTemplate: Template = {
   slug: "approval-workflow",
@@ -19,13 +19,6 @@ const mockTemplate: Template = {
       ],
     },
   ],
-};
-
-const mockResource: SelectedResource = {
-  type: "Microsoft.Web/staticSites",
-  name: "Static Web App",
-  icon: "Globe",
-  config: { appName: "test-app" },
 };
 
 describe("deploymentStore", () => {
@@ -58,24 +51,6 @@ describe("deploymentStore", () => {
     expect(state.wizardState.formValues).toEqual({});
   });
 
-  it("prevents duplicate resource types", () => {
-    const added1 = useDeploymentStore.getState().addResource(mockResource);
-    expect(added1).toBe(true);
-    expect(useDeploymentStore.getState().selectedResources).toHaveLength(1);
-
-    const added2 = useDeploymentStore
-      .getState()
-      .addResource({ ...mockResource, config: { appName: "other" } });
-    expect(added2).toBe(false);
-    expect(useDeploymentStore.getState().selectedResources).toHaveLength(1);
-  });
-
-  it("removes a resource by type", () => {
-    useDeploymentStore.getState().addResource(mockResource);
-    useDeploymentStore.getState().removeResource(mockResource.type);
-    expect(useDeploymentStore.getState().selectedResources).toHaveLength(0);
-  });
-
   it("setSubmissionResult stores id, summary, and resourceGroup", () => {
     useDeploymentStore.getState().setSubmissionResult("sub-123", "proof text", "my-app-rg");
 
@@ -86,15 +61,13 @@ describe("deploymentStore", () => {
   });
 
   it("reset clears all state including deployedResourceGroup", () => {
-    useDeploymentStore.getState().setMode("custom");
-    useDeploymentStore.getState().addResource(mockResource);
+    useDeploymentStore.getState().setMode("template");
     useDeploymentStore.getState().setSubmissionResult("sub-123", "proof text", "my-app-rg");
 
     useDeploymentStore.getState().reset();
 
     const state = useDeploymentStore.getState();
     expect(state.mode).toBeNull();
-    expect(state.selectedResources).toHaveLength(0);
     expect(state.submissionId).toBeNull();
     expect(state.deployedResourceGroup).toBeNull();
     expect(state.deploymentSummary).toBeNull();

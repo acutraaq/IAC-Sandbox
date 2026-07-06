@@ -33,8 +33,7 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
           "Button with asChild expects exactly one React element child.",
         );
       }
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const child = validChildren[0] as React.ReactElement<any>;
+      const child = validChildren[0] as React.ReactElement<{ className?: string }>;
       return React.cloneElement(child, {
         ...child.props,
         ...props,

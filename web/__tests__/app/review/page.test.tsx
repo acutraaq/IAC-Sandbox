@@ -50,12 +50,15 @@ const mockSubmit = api.submitDeployment as ReturnType<typeof vi.fn>;
 function setupStore() {
   const store = useDeploymentStore.getState();
   store.reset();
-  store.setMode("custom");
-  store.addResource({
-    type: "Microsoft.Storage/storageAccounts",
-    name: "File Storage",
-    icon: "HardDrive",
-    config: {},
+  store.selectTemplate({
+    slug: "approval-workflow",
+    name: "Automated Approval Workflow",
+    description: "Test",
+    category: "automation",
+    icon: "Globe",
+    resourceCount: 1,
+    estimatedTime: "~3 min",
+    steps: [],
   });
 }
 
