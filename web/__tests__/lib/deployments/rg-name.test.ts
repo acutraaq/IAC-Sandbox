@@ -102,13 +102,13 @@ describe("deriveResourceGroupName", () => {
 });
 
 describe("deriveLocation", () => {
-  it("returns region from template formValues", () => {
+  it("returns malaysiawest regardless of template formValues region", () => {
     const result = deriveLocation({
       mode: "template",
       tags: validTags,
       template: { slug: "approval-workflow", formValues: { region: "southeastasia" } },
     });
-    expect(result).toBe("southeastasia");
+    expect(result).toBe("malaysiawest");
   });
 
   it("defaults to malaysiawest for template mode with no region", () => {
@@ -120,7 +120,7 @@ describe("deriveLocation", () => {
     expect(result).toBe("malaysiawest");
   });
 
-  it("returns southeastasia from first resource config for custom mode", () => {
+  it("returns malaysiawest regardless of custom mode resource config region", () => {
     const result = deriveLocation({
       mode: "custom",
       tags: validTags,
@@ -128,7 +128,7 @@ describe("deriveLocation", () => {
         { type: "Microsoft.Web/staticSites", name: "store", icon: "Database", config: { region: "southeastasia" } },
       ],
     });
-    expect(result).toBe("southeastasia");
+    expect(result).toBe("malaysiawest");
   });
 
   it("defaults to malaysiawest for custom mode with no region", () => {

@@ -1,6 +1,6 @@
 import type { DeploymentPayload } from "./schema";
 
-export const ALLOWED_REGIONS = new Set(["malaysiawest", "southeastasia"]);
+export const ALLOWED_REGIONS = new Set(["malaysiawest"]);
 const DEFAULT_REGION = "malaysiawest";
 
 type DeploymentPayloadWithoutTags =
@@ -11,6 +11,8 @@ export const SLUG_PRIMARY_FIELD: Record<string, string> = {
   "approval-workflow":  "workflowName",
   "scheduled-automation": "workflowName",
   "static-web-app":       "appName",
+  "logic-app":            "workflowName",
+  "logic-app-storage":    "workflowName",
 };
 
 export function deriveResourceGroupName(
