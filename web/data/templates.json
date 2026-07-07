@@ -184,5 +184,30 @@
         ]
       }
     ]
+  },
+  {
+    "slug": "logic-app",
+    "name": "Logic App",
+    "description": "Deploy a blank Logic App with an HTTP trigger — start from an empty canvas and build your own workflow logic in the Azure Portal designer.",
+    "category": "automation",
+    "icon": "Zap",
+    "resourceCount": 1,
+    "estimatedTime": "~1 minute",
+    "steps": [
+      {
+        "title": "Workflow Details",
+        "description": "Give your Logic App a name.",
+        "fields": [
+          {
+            "name": "workflowName",
+            "label": "What should we call this Logic App?",
+            "type": "text",
+            "required": true,
+            "placeholder": "my-logic-app",
+            "helpText": "Use a name that describes what this workflow will do — you can build the logic itself in the Azure Portal after deployment."
+          }
+        ]
+      }
+    ]
   }
 ]

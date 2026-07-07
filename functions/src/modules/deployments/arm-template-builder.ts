@@ -566,6 +566,15 @@ function buildTemplateResources(
           formValues
         ),
       ];
+    case "logic-app":
+      return [
+        buildLogicApp(
+          typeof formValues.workflowName === "string" ? formValues.workflowName : "sandbox-workflow",
+          location,
+          formValues,
+          "http"
+        ),
+      ];
     default:
       throw new Error(
         `Template slug "${slug}" has no ARM builder. ` +

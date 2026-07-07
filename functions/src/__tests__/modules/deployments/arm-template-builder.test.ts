@@ -186,6 +186,31 @@ describe("buildStaticWebApp (static-web-app template)", () => {
 });
 
 // ---------------------------------------------------------------------------
+// Logic App (bare, no preset trigger scenario)
+// ---------------------------------------------------------------------------
+
+describe("buildLogicAppTemplate (logic-app template)", () => {
+  it("returns 1 resource: Logic App with HTTP trigger", () => {
+    const t = buildArmTemplate(
+      templatePayload("logic-app", { workflowName: "my-workflow" }),
+      { tenantId: TENANT_ID }
+    );
+    expect(t.resources).toHaveLength(1);
+    expect(t.resources[0].type).toBe("Microsoft.Logic/workflows");
+    const def = (t.resources[0] as Record<string, unknown>).properties as { definition: { triggers: Record<string, unknown> } };
+    expect(def.definition.triggers).toHaveProperty("manual");
+  });
+
+  it("sanitizes workflow name", () => {
+    const t = buildArmTemplate(
+      templatePayload("logic-app", { workflowName: "My Workflow!!" }),
+      { tenantId: TENANT_ID }
+    );
+    expect(t.resources[0].name).toMatch(/^[a-z0-9-]+$/);
+  });
+});
+
+// ---------------------------------------------------------------------------
 // Custom mode — Logic App
 // ---------------------------------------------------------------------------
 

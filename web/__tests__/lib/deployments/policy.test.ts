@@ -37,6 +37,15 @@ describe("validateDeploymentPolicy", () => {
       expect(result).toBeNull();
     });
 
+    it("allows logic-app", () => {
+      const result = validateDeploymentPolicy({
+        mode: "template",
+        tags: validTags,
+        template: { slug: "logic-app", formValues: {} },
+      });
+      expect(result).toBeNull();
+    });
+
     it("blocks unknown slugs", () => {
       const result = validateDeploymentPolicy({
         mode: "template",

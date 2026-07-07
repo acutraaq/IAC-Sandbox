@@ -40,6 +40,8 @@ const DEPLOYABLE_SLUGS = new Set([
   "approval-workflow",
   "scheduled-automation",
   "static-web-app",
+  "logic-app",
+  "logic-app-storage",
 ]);
 
 export interface PolicyViolation {
