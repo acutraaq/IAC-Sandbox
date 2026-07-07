@@ -2,7 +2,7 @@ import { randomBytes } from "crypto";
 import type { DeploymentPayload } from "./deployment.schema.js";
 import { sanitizeStorageName, sanitizeKeyVaultName, sanitizeGenericName } from "./sanitize.js";
 
-const ALLOWED_REGIONS = new Set(["malaysiawest", "southeastasia"]);
+const ALLOWED_REGIONS = new Set(["malaysiawest"]);
 const DEFAULT_REGION = "malaysiawest";
 function resolveRegion(raw: unknown): string {
   const r = typeof raw === "string" ? raw : DEFAULT_REGION;

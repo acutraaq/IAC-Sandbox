@@ -100,7 +100,7 @@ describe("policy-blocked template slugs", () => {
 describe("buildApprovalWorkflow (approval-workflow template)", () => {
   it("returns 1 resource: Logic App with HTTP trigger", () => {
     const t = buildArmTemplate(
-      templatePayload("approval-workflow", { workflowName: "leave-approval", region: "southeastasia" }),
+      templatePayload("approval-workflow", { workflowName: "leave-approval" }),
       { tenantId: TENANT_ID }
     );
     expect(t.resources).toHaveLength(1);
