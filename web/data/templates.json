@@ -10,7 +10,7 @@
     "steps": [
       {
         "title": "Workflow Details",
-        "description": "Give your approval workflow a name and choose where it will run.",
+        "description": "Give your approval workflow a name.",
         "fields": [
           {
             "name": "workflowName",
@@ -71,7 +71,7 @@
     "steps": [
       {
         "title": "Task Details",
-        "description": "Give your scheduled task a name and choose where it will run.",
+        "description": "Give your scheduled task a name.",
         "fields": [
           {
             "name": "workflowName",
@@ -148,7 +148,7 @@
     "steps": [
       {
         "title": "Basic Details",
-        "description": "Give your static web app a name and choose where it will run.",
+        "description": "Give your static web app a name.",
         "fields": [
           {
             "name": "appName",
