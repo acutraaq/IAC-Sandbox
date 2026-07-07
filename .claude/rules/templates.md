@@ -5,20 +5,20 @@ globs: web/app/templates/**, web/data/**, web/lib/deployments/**
 
 # Template Catalog
 
-3 templates across 2 categories — live in `web/data/templates.json`. All region options are locked to:
-- Malaysia (Malaysia West) — default
-- Asia Pacific (Southeast Asia)
+5 templates across 2 categories — live in `web/data/templates.json`. Region is locked to Malaysia West only — no region field in any wizard.
 
 | Category | Slug | Resource Type |
 |----------|------|---------------|
 | automation | `approval-workflow` | `Microsoft.Logic/workflows` (HTTP trigger) |
 | automation | `scheduled-automation` | `Microsoft.Logic/workflows` (recurrence trigger) |
+| automation | `logic-app` | `Microsoft.Logic/workflows` (HTTP trigger, blank) |
+| automation | `logic-app-storage` | `Microsoft.Logic/workflows` (HTTP trigger) + `Microsoft.Storage/storageAccounts` |
 | compute | `static-web-app` | `Microsoft.Web/staticSites` |
 
 Deployable slugs (allow-list in `web/lib/deployments/policy.ts` — **must exactly match what is in `templates.json`**):
-- `approval-workflow`, `scheduled-automation`, `static-web-app`
+- `approval-workflow`, `scheduled-automation`, `static-web-app`, `logic-app`, `logic-app-storage`
 
-Policy-blocked slugs: none (all 3 active slugs are deployable).
+Policy-blocked slugs: none (all 5 active slugs are deployable).
 
 ## ARM Builder Inventory (beyond current UI catalog)
 

@@ -110,18 +110,18 @@ The core cookie signing/verification logic lives in `web/lib/auth-core.ts`, whic
 
 ## Template Catalog
 
-3 templates across 2 categories (automation, compute). All region options are locked to:
-- Malaysia (Malaysia West) — default
-- Asia Pacific (Southeast Asia)
+5 templates across 2 categories (automation, compute). Region is locked to Malaysia West only — no region choice in any wizard.
 
 | Category | Slug | Resource Type | Count |
 |----------|------|---------------|-------|
 | automation | `approval-workflow` | Logic App | 1 |
 | automation | `scheduled-automation` | Logic App | 1 |
+| automation | `logic-app` | Logic App | 1 |
+| automation | `logic-app-storage` | Logic App + Storage Account | 2 |
 | compute | `static-web-app` | Static Web App | 1 |
 
 Deployable slugs (allow-list in `web/lib/deployments/policy.ts`):
-- `approval-workflow`, `scheduled-automation`, `static-web-app`
+- `approval-workflow`, `scheduled-automation`, `static-web-app`, `logic-app`, `logic-app-storage`
 
 ---
 
