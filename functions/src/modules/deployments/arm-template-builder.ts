@@ -2,7 +2,7 @@ import { randomBytes } from "crypto";
 import type { DeploymentPayload } from "./deployment.schema.js";
 import { sanitizeStorageName, sanitizeKeyVaultName, sanitizeGenericName } from "./sanitize.js";
 
-const ALLOWED_REGIONS = new Set(["malaysiawest", "southeastasia"]);
+const ALLOWED_REGIONS = new Set(["malaysiawest"]);
 const DEFAULT_REGION = "malaysiawest";
 function resolveRegion(raw: unknown): string {
   const r = typeof raw === "string" ? raw : DEFAULT_REGION;
@@ -529,7 +529,8 @@ function buildEventGridTopic(
 // ---------------------------------------------------------------------------
 
 function buildTemplateResources(
-  template: { slug: string; formValues: Record<string, unknown> }
+  template: { slug: string; formValues: Record<string, unknown> },
+  suffix = ""
 ): ArmResource[] {
   const { slug, formValues } = template;
 
@@ -564,6 +565,30 @@ function buildTemplateResources(
           typeof formValues.appName === "string" ? formValues.appName : "sandbox-app",
           location,
           formValues
+        ),
+      ];
+    case "logic-app":
+      return [
+        buildLogicApp(
+          typeof formValues.workflowName === "string" ? formValues.workflowName : "sandbox-workflow",
+          location,
+          formValues,
+          "http"
+        ),
+      ];
+    case "logic-app-storage":
+      return [
+        buildLogicApp(
+          typeof formValues.workflowName === "string" ? formValues.workflowName : "sandbox-workflow",
+          location,
+          formValues,
+          "http"
+        ),
+        buildStorageAccount(
+          typeof formValues.storageAccountName === "string" ? formValues.storageAccountName : "sandboxstorage",
+          location,
+          formValues,
+          suffix
         ),
       ];
     default:
@@ -706,7 +731,7 @@ export function buildArmTemplate(
 
   const primaryResources =
     payload.mode === "template"
-      ? buildTemplateResources(payload.template)
+      ? buildTemplateResources(payload.template, uniqueSuffix)
       : buildCustomResources(payload.resources, opts.tenantId, uniqueSuffix, deployParams);
 
   // COE-Enforce-Tag-Resources: every individual resource must carry the 4 policy tags.

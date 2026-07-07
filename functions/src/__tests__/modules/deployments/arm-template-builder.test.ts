@@ -100,7 +100,7 @@ describe("policy-blocked template slugs", () => {
 describe("buildApprovalWorkflow (approval-workflow template)", () => {
   it("returns 1 resource: Logic App with HTTP trigger", () => {
     const t = buildArmTemplate(
-      templatePayload("approval-workflow", { workflowName: "leave-approval", region: "southeastasia" }),
+      templatePayload("approval-workflow", { workflowName: "leave-approval" }),
       { tenantId: TENANT_ID }
     );
     expect(t.resources).toHaveLength(1);
@@ -182,6 +182,93 @@ describe("buildStaticWebApp (static-web-app template)", () => {
     );
     const sku = (t.resources[0] as Record<string, unknown>).sku as { name: string };
     expect(sku.name).toBe("Free");
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Logic App (bare, no preset trigger scenario)
+// ---------------------------------------------------------------------------
+
+describe("buildLogicAppTemplate (logic-app template)", () => {
+  it("returns 1 resource: Logic App with HTTP trigger", () => {
+    const t = buildArmTemplate(
+      templatePayload("logic-app", { workflowName: "my-workflow" }),
+      { tenantId: TENANT_ID }
+    );
+    expect(t.resources).toHaveLength(1);
+    expect(t.resources[0].type).toBe("Microsoft.Logic/workflows");
+    const def = (t.resources[0] as Record<string, unknown>).properties as { definition: { triggers: Record<string, unknown> } };
+    expect(def.definition.triggers).toHaveProperty("manual");
+  });
+
+  it("sanitizes workflow name", () => {
+    const t = buildArmTemplate(
+      templatePayload("logic-app", { workflowName: "My Workflow!!" }),
+      { tenantId: TENANT_ID }
+    );
+    expect(t.resources[0].name).toMatch(/^[a-z0-9-]+$/);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Logic App + Storage
+// ---------------------------------------------------------------------------
+
+describe("buildLogicAppStorageTemplate (logic-app-storage template)", () => {
+  it("returns 2 resources: Logic App and Storage Account", () => {
+    const t = buildArmTemplate(
+      templatePayload("logic-app-storage", { workflowName: "my-workflow", storageAccountName: "mystorage" }),
+      { tenantId: TENANT_ID }
+    );
+    expect(t.resources).toHaveLength(2);
+    const types = t.resources.map((r) => r.type);
+    expect(types).toContain("Microsoft.Logic/workflows");
+    expect(types).toContain("Microsoft.Storage/storageAccounts");
+  });
+
+  it("sanitizes both resource names independently", () => {
+    const t = buildArmTemplate(
+      templatePayload("logic-app-storage", { workflowName: "My Workflow!!", storageAccountName: "My Storage!!" }),
+      { tenantId: TENANT_ID }
+    );
+    for (const r of t.resources) {
+      expect(r.name).toMatch(/^[a-z0-9-]+$/);
+    }
+  });
+
+  it("defaults storage account to LRS/Hot/private when no extra config given", () => {
+    const t = buildArmTemplate(
+      templatePayload("logic-app-storage", { workflowName: "wf", storageAccountName: "store" }),
+      { tenantId: TENANT_ID }
+    );
+    const storage = t.resources.find((r) => r.type === "Microsoft.Storage/storageAccounts") as Record<string, unknown>;
+    expect((storage.sku as { name: string }).name).toBe("Standard_LRS");
+    const props = storage.properties as { accessTier: string; allowBlobPublicAccess: boolean };
+    expect(props.accessTier).toBe("Hot");
+    expect(props.allowBlobPublicAccess).toBe(false);
+  });
+
+  it("appends the submissionId suffix to the storage account name for global uniqueness", () => {
+    const t = buildArmTemplate(
+      templatePayload("logic-app-storage", { workflowName: "wf", storageAccountName: "store" }),
+      { tenantId: TENANT_ID, submissionId: "123e4567-e89b-12d3-a456-426614174000" }
+    );
+    const storage = t.resources.find((r) => r.type === "Microsoft.Storage/storageAccounts") as Record<string, unknown>;
+    expect(storage.name).toBe("store123e4567");
+  });
+
+  it("does not collide when two deployments reuse the same storage account name with different submissionIds", () => {
+    const first = buildArmTemplate(
+      templatePayload("logic-app-storage", { workflowName: "wf", storageAccountName: "store" }),
+      { tenantId: TENANT_ID, submissionId: "123e4567-e89b-12d3-a456-426614174000" }
+    );
+    const second = buildArmTemplate(
+      templatePayload("logic-app-storage", { workflowName: "wf", storageAccountName: "store" }),
+      { tenantId: TENANT_ID, submissionId: "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee" }
+    );
+    const firstStorage = first.resources.find((r) => r.type === "Microsoft.Storage/storageAccounts") as Record<string, unknown>;
+    const secondStorage = second.resources.find((r) => r.type === "Microsoft.Storage/storageAccounts") as Record<string, unknown>;
+    expect(firstStorage.name).not.toBe(secondStorage.name);
   });
 });
 

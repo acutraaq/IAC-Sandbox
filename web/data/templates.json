@@ -10,7 +10,7 @@
     "steps": [
       {
         "title": "Workflow Details",
-        "description": "Give your approval workflow a name and choose where it will run.",
+        "description": "Give your approval workflow a name.",
         "fields": [
           {
             "name": "workflowName",
@@ -19,23 +19,6 @@
             "required": true,
             "placeholder": "leave-approval-workflow",
             "helpText": "Use a name that describes what this workflow approves, e.g. 'expense-claims' or 'document-review'."
-          },
-          {
-            "name": "region",
-            "label": "Where should it be created?",
-            "type": "select",
-            "required": true,
-            "helpText": "Choose a location close to your users for the best performance.",
-            "options": [
-              {
-                "label": "Malaysia (Malaysia West)",
-                "value": "malaysiawest"
-              },
-              {
-                "label": "Asia Pacific (Southeast Asia)",
-                "value": "southeastasia"
-              }
-            ]
           }
         ]
       },
@@ -88,7 +71,7 @@
     "steps": [
       {
         "title": "Task Details",
-        "description": "Give your scheduled task a name and choose where it will run.",
+        "description": "Give your scheduled task a name.",
         "fields": [
           {
             "name": "workflowName",
@@ -97,23 +80,6 @@
             "required": true,
             "placeholder": "weekly-report-runner",
             "helpText": "Use a name that describes what this task does, e.g. 'monthly-member-report' or 'nightly-data-sync'."
-          },
-          {
-            "name": "region",
-            "label": "Where should it run?",
-            "type": "select",
-            "required": true,
-            "helpText": "Choose a location close to your data or systems.",
-            "options": [
-              {
-                "label": "Malaysia (Malaysia West)",
-                "value": "malaysiawest"
-              },
-              {
-                "label": "Asia Pacific (Southeast Asia)",
-                "value": "southeastasia"
-              }
-            ]
           }
         ]
       },
@@ -182,7 +148,7 @@
     "steps": [
       {
         "title": "Basic Details",
-        "description": "Give your static web app a name and choose where it will run.",
+        "description": "Give your static web app a name.",
         "fields": [
           {
             "name": "appName",
@@ -191,23 +157,6 @@
             "required": true,
             "placeholder": "my-static-app",
             "helpText": "This will be part of your application's web address."
-          },
-          {
-            "name": "region",
-            "label": "Where should it run?",
-            "type": "select",
-            "required": true,
-            "helpText": "Choose a location close to your users for the best performance.",
-            "options": [
-              {
-                "label": "Malaysia (Malaysia West)",
-                "value": "malaysiawest"
-              },
-              {
-                "label": "Asia Pacific (Southeast Asia)",
-                "value": "southeastasia"
-              }
-            ]
           }
         ]
       },
@@ -231,6 +180,70 @@
                 "value": "Standard"
               }
             ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "slug": "logic-app",
+    "name": "Logic App",
+    "description": "Deploy a blank Logic App with an HTTP trigger — start from an empty canvas and build your own workflow logic in the Azure Portal designer.",
+    "category": "automation",
+    "icon": "Zap",
+    "resourceCount": 1,
+    "estimatedTime": "~1 minute",
+    "steps": [
+      {
+        "title": "Workflow Details",
+        "description": "Give your Logic App a name.",
+        "fields": [
+          {
+            "name": "workflowName",
+            "label": "What should we call this Logic App?",
+            "type": "text",
+            "required": true,
+            "placeholder": "my-logic-app",
+            "helpText": "Use a name that describes what this workflow will do — you can build the logic itself in the Azure Portal after deployment."
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "slug": "logic-app-storage",
+    "name": "Logic App + Storage",
+    "description": "Deploy a Logic App together with a Storage Account — for workflows that need to read or write blob data.",
+    "category": "automation",
+    "icon": "HardDrive",
+    "resourceCount": 2,
+    "estimatedTime": "~1 minute",
+    "steps": [
+      {
+        "title": "Workflow Details",
+        "description": "Give your Logic App a name.",
+        "fields": [
+          {
+            "name": "workflowName",
+            "label": "What should we call this Logic App?",
+            "type": "text",
+            "required": true,
+            "placeholder": "my-logic-app",
+            "helpText": "Use a name that describes what this workflow will do — you can build the logic itself in the Azure Portal after deployment."
+          }
+        ]
+      },
+      {
+        "title": "Storage Details",
+        "description": "Give the paired Storage Account a name.",
+        "fields": [
+          {
+            "name": "storageAccountName",
+            "label": "What should we call the storage account?",
+            "type": "text",
+            "required": true,
+            "placeholder": "mylogicappstorage",
+            "helpText": "Lowercase letters and numbers only, no spaces or symbols."
           }
         ]
       }
