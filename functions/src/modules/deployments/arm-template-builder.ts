@@ -529,7 +529,8 @@ function buildEventGridTopic(
 // ---------------------------------------------------------------------------
 
 function buildTemplateResources(
-  template: { slug: string; formValues: Record<string, unknown> }
+  template: { slug: string; formValues: Record<string, unknown> },
+  suffix = ""
 ): ArmResource[] {
   const { slug, formValues } = template;
 
@@ -586,7 +587,8 @@ function buildTemplateResources(
         buildStorageAccount(
           typeof formValues.storageAccountName === "string" ? formValues.storageAccountName : "sandboxstorage",
           location,
-          formValues
+          formValues,
+          suffix
         ),
       ];
     default:
@@ -729,7 +731,7 @@ export function buildArmTemplate(
 
   const primaryResources =
     payload.mode === "template"
-      ? buildTemplateResources(payload.template)
+      ? buildTemplateResources(payload.template, uniqueSuffix)
       : buildCustomResources(payload.resources, opts.tenantId, uniqueSuffix, deployParams);
 
   // COE-Enforce-Tag-Resources: every individual resource must carry the 4 policy tags.

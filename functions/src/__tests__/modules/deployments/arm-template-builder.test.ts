@@ -247,6 +247,29 @@ describe("buildLogicAppStorageTemplate (logic-app-storage template)", () => {
     expect(props.accessTier).toBe("Hot");
     expect(props.allowBlobPublicAccess).toBe(false);
   });
+
+  it("appends the submissionId suffix to the storage account name for global uniqueness", () => {
+    const t = buildArmTemplate(
+      templatePayload("logic-app-storage", { workflowName: "wf", storageAccountName: "store" }),
+      { tenantId: TENANT_ID, submissionId: "123e4567-e89b-12d3-a456-426614174000" }
+    );
+    const storage = t.resources.find((r) => r.type === "Microsoft.Storage/storageAccounts") as Record<string, unknown>;
+    expect(storage.name).toBe("store123e4567");
+  });
+
+  it("does not collide when two deployments reuse the same storage account name with different submissionIds", () => {
+    const first = buildArmTemplate(
+      templatePayload("logic-app-storage", { workflowName: "wf", storageAccountName: "store" }),
+      { tenantId: TENANT_ID, submissionId: "123e4567-e89b-12d3-a456-426614174000" }
+    );
+    const second = buildArmTemplate(
+      templatePayload("logic-app-storage", { workflowName: "wf", storageAccountName: "store" }),
+      { tenantId: TENANT_ID, submissionId: "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee" }
+    );
+    const firstStorage = first.resources.find((r) => r.type === "Microsoft.Storage/storageAccounts") as Record<string, unknown>;
+    const secondStorage = second.resources.find((r) => r.type === "Microsoft.Storage/storageAccounts") as Record<string, unknown>;
+    expect(firstStorage.name).not.toBe(secondStorage.name);
+  });
 });
 
 // ---------------------------------------------------------------------------
