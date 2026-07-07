@@ -211,6 +211,45 @@ describe("buildLogicAppTemplate (logic-app template)", () => {
 });
 
 // ---------------------------------------------------------------------------
+// Logic App + Storage
+// ---------------------------------------------------------------------------
+
+describe("buildLogicAppStorageTemplate (logic-app-storage template)", () => {
+  it("returns 2 resources: Logic App and Storage Account", () => {
+    const t = buildArmTemplate(
+      templatePayload("logic-app-storage", { workflowName: "my-workflow", storageAccountName: "mystorage" }),
+      { tenantId: TENANT_ID }
+    );
+    expect(t.resources).toHaveLength(2);
+    const types = t.resources.map((r) => r.type);
+    expect(types).toContain("Microsoft.Logic/workflows");
+    expect(types).toContain("Microsoft.Storage/storageAccounts");
+  });
+
+  it("sanitizes both resource names independently", () => {
+    const t = buildArmTemplate(
+      templatePayload("logic-app-storage", { workflowName: "My Workflow!!", storageAccountName: "My Storage!!" }),
+      { tenantId: TENANT_ID }
+    );
+    for (const r of t.resources) {
+      expect(r.name).toMatch(/^[a-z0-9-]+$/);
+    }
+  });
+
+  it("defaults storage account to LRS/Hot/private when no extra config given", () => {
+    const t = buildArmTemplate(
+      templatePayload("logic-app-storage", { workflowName: "wf", storageAccountName: "store" }),
+      { tenantId: TENANT_ID }
+    );
+    const storage = t.resources.find((r) => r.type === "Microsoft.Storage/storageAccounts") as Record<string, unknown>;
+    expect((storage.sku as { name: string }).name).toBe("Standard_LRS");
+    const props = storage.properties as { accessTier: string; allowBlobPublicAccess: boolean };
+    expect(props.accessTier).toBe("Hot");
+    expect(props.allowBlobPublicAccess).toBe(false);
+  });
+});
+
+// ---------------------------------------------------------------------------
 // Custom mode — Logic App
 // ---------------------------------------------------------------------------
 

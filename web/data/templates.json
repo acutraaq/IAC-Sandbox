@@ -209,5 +209,44 @@
         ]
       }
     ]
+  },
+  {
+    "slug": "logic-app-storage",
+    "name": "Logic App + Storage",
+    "description": "Deploy a Logic App together with a Storage Account — for workflows that need to read or write blob data.",
+    "category": "automation",
+    "icon": "HardDrive",
+    "resourceCount": 2,
+    "estimatedTime": "~1 minute",
+    "steps": [
+      {
+        "title": "Workflow Details",
+        "description": "Give your Logic App a name.",
+        "fields": [
+          {
+            "name": "workflowName",
+            "label": "What should we call this Logic App?",
+            "type": "text",
+            "required": true,
+            "placeholder": "my-logic-app",
+            "helpText": "Use a name that describes what this workflow will do — you can build the logic itself in the Azure Portal after deployment."
+          }
+        ]
+      },
+      {
+        "title": "Storage Details",
+        "description": "Give the paired Storage Account a name.",
+        "fields": [
+          {
+            "name": "storageAccountName",
+            "label": "What should we call the storage account?",
+            "type": "text",
+            "required": true,
+            "placeholder": "mylogicappstorage",
+            "helpText": "Lowercase letters and numbers only, no spaces or symbols."
+          }
+        ]
+      }
+    ]
   }
 ]

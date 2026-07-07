@@ -575,6 +575,20 @@ function buildTemplateResources(
           "http"
         ),
       ];
+    case "logic-app-storage":
+      return [
+        buildLogicApp(
+          typeof formValues.workflowName === "string" ? formValues.workflowName : "sandbox-workflow",
+          location,
+          formValues,
+          "http"
+        ),
+        buildStorageAccount(
+          typeof formValues.storageAccountName === "string" ? formValues.storageAccountName : "sandboxstorage",
+          location,
+          formValues
+        ),
+      ];
     default:
       throw new Error(
         `Template slug "${slug}" has no ARM builder. ` +

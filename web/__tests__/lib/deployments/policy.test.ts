@@ -46,6 +46,15 @@ describe("validateDeploymentPolicy", () => {
       expect(result).toBeNull();
     });
 
+    it("allows logic-app-storage", () => {
+      const result = validateDeploymentPolicy({
+        mode: "template",
+        tags: validTags,
+        template: { slug: "logic-app-storage", formValues: {} },
+      });
+      expect(result).toBeNull();
+    });
+
     it("blocks unknown slugs", () => {
       const result = validateDeploymentPolicy({
         mode: "template",
