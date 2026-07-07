@@ -19,23 +19,6 @@
             "required": true,
             "placeholder": "leave-approval-workflow",
             "helpText": "Use a name that describes what this workflow approves, e.g. 'expense-claims' or 'document-review'."
-          },
-          {
-            "name": "region",
-            "label": "Where should it be created?",
-            "type": "select",
-            "required": true,
-            "helpText": "Choose a location close to your users for the best performance.",
-            "options": [
-              {
-                "label": "Malaysia (Malaysia West)",
-                "value": "malaysiawest"
-              },
-              {
-                "label": "Asia Pacific (Southeast Asia)",
-                "value": "southeastasia"
-              }
-            ]
           }
         ]
       },
@@ -97,23 +80,6 @@
             "required": true,
             "placeholder": "weekly-report-runner",
             "helpText": "Use a name that describes what this task does, e.g. 'monthly-member-report' or 'nightly-data-sync'."
-          },
-          {
-            "name": "region",
-            "label": "Where should it run?",
-            "type": "select",
-            "required": true,
-            "helpText": "Choose a location close to your data or systems.",
-            "options": [
-              {
-                "label": "Malaysia (Malaysia West)",
-                "value": "malaysiawest"
-              },
-              {
-                "label": "Asia Pacific (Southeast Asia)",
-                "value": "southeastasia"
-              }
-            ]
           }
         ]
       },
@@ -191,23 +157,6 @@
             "required": true,
             "placeholder": "my-static-app",
             "helpText": "This will be part of your application's web address."
-          },
-          {
-            "name": "region",
-            "label": "Where should it run?",
-            "type": "select",
-            "required": true,
-            "helpText": "Choose a location close to your users for the best performance.",
-            "options": [
-              {
-                "label": "Malaysia (Malaysia West)",
-                "value": "malaysiawest"
-              },
-              {
-                "label": "Asia Pacific (Southeast Asia)",
-                "value": "southeastasia"
-              }
-            ]
           }
         ]
       },

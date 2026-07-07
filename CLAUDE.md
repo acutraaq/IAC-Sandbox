@@ -204,8 +204,7 @@ Prisma and PostgreSQL have been removed. ARM is the source of truth for all depl
 │   │       └── arm-status.ts    # mapArmProvisioningState → DeploymentStatus
 │   ├── types/index.ts           # Shared frontend types — does NOT export DeploymentPayload (use @/lib/deployments/schema)
 │   ├── data/
-│   │   ├── templates.json       # 3 templates across 2 categories; regions locked to malaysiawest/southeastasia only
-│   │   └── resources.json       # 10 resource types for Custom Builder flow
+│   │   └── templates.json       # 3 templates across 2 categories; region locked to malaysiawest only
 │   └── __tests__/
 │       ├── store/
 │       ├── lib/deployments/
