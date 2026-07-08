@@ -47,7 +47,7 @@ describe("deriveResourceGroupName", () => {
   it("uses primary field value for template mode", () => {
     const result = deriveResourceGroupName({
       mode: "template",
-      template: { slug: "approval-workflow", formValues: { workflowName: "mydata" } },
+      template: { slug: "logic-app", formValues: { workflowName: "mydata" } },
     });
     expect(result).toBe("mydata-rg");
   });
@@ -55,9 +55,9 @@ describe("deriveResourceGroupName", () => {
   it("falls back to slug when primary field is missing", () => {
     const result = deriveResourceGroupName({
       mode: "template",
-      template: { slug: "approval-workflow", formValues: {} },
+      template: { slug: "logic-app", formValues: {} },
     });
-    expect(result).toBe("approval-workflow-rg");
+    expect(result).toBe("logic-app-rg");
   });
 
   it("uses first resource name for custom mode", () => {
@@ -82,7 +82,7 @@ describe("deriveResourceGroupName", () => {
     const result = deriveResourceGroupName(
       {
         mode: "template",
-        template: { slug: "approval-workflow", formValues: { workflowName: "mydata" } },
+        template: { slug: "logic-app", formValues: { workflowName: "mydata" } },
       },
       "123e4567-e89b-12d3-a456-426614174000"
     );
@@ -93,7 +93,7 @@ describe("deriveResourceGroupName", () => {
     const result = deriveResourceGroupName(
       {
         mode: "template",
-        template: { slug: "approval-workflow", formValues: { workflowName: "a".repeat(100) } },
+        template: { slug: "logic-app", formValues: { workflowName: "a".repeat(100) } },
       },
       "123e4567-e89b-12d3-a456-426614174000"
     );
@@ -106,7 +106,7 @@ describe("deriveLocation", () => {
     const result = deriveLocation({
       mode: "template",
       tags: validTags,
-      template: { slug: "approval-workflow", formValues: { region: "southeastasia" } },
+      template: { slug: "logic-app", formValues: { region: "southeastasia" } },
     });
     expect(result).toBe("malaysiawest");
   });
@@ -115,7 +115,7 @@ describe("deriveLocation", () => {
     const result = deriveLocation({
       mode: "template",
       tags: validTags,
-      template: { slug: "approval-workflow", formValues: {} },
+      template: { slug: "logic-app", formValues: {} },
     });
     expect(result).toBe("malaysiawest");
   });
@@ -146,7 +146,7 @@ describe("deriveLocation", () => {
     const result = deriveLocation({
       mode: "template",
       tags: validTags,
-      template: { slug: "approval-workflow", formValues: { region: "eastus" } },
+      template: { slug: "logic-app", formValues: { region: "eastus" } },
     });
     expect(result).toBe("malaysiawest");
   });

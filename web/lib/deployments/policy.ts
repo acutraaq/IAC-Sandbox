@@ -37,8 +37,6 @@ const ALLOWED_RESOURCE_TYPES = new Set([
 
 // Only slugs that have ARM builders in arm-template-builder.ts and are not policy-blocked
 const DEPLOYABLE_SLUGS = new Set([
-  "approval-workflow",
-  "scheduled-automation",
   "logic-app",
   "logic-app-storage",
 ]);

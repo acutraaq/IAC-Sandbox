@@ -8,8 +8,6 @@ type DeploymentPayloadWithoutTags =
   | Omit<Extract<DeploymentPayload, { mode: "custom" }>, "tags">;
 
 export const SLUG_PRIMARY_FIELD: Record<string, string> = {
-  "approval-workflow":  "workflowName",
-  "scheduled-automation": "workflowName",
   "logic-app":            "workflowName",
   "logic-app-storage":    "workflowName",
 };

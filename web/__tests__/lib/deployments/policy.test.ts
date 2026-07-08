@@ -10,22 +10,22 @@ const validTags = {
 
 describe("validateDeploymentPolicy", () => {
   describe("template mode", () => {
-    it("allows approval-workflow", () => {
+    it("blocks approval-workflow (not currently exposed in catalog)", () => {
       const result = validateDeploymentPolicy({
         mode: "template",
         tags: validTags,
         template: { slug: "approval-workflow", formValues: {} },
       });
-      expect(result).toBeNull();
+      expect(result).toEqual({ blocked: ["approval-workflow"] });
     });
 
-    it("allows scheduled-automation", () => {
+    it("blocks scheduled-automation (not currently exposed in catalog)", () => {
       const result = validateDeploymentPolicy({
         mode: "template",
         tags: validTags,
         template: { slug: "scheduled-automation", formValues: {} },
       });
-      expect(result).toBeNull();
+      expect(result).toEqual({ blocked: ["scheduled-automation"] });
     });
 
     it("blocks static-web-app (not currently exposed in catalog)", () => {

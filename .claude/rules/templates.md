@@ -5,21 +5,19 @@ globs: web/app/templates/**, web/data/**, web/lib/deployments/**
 
 # Template Catalog
 
-4 templates, all automation category — live in `web/data/templates.json`. Region is locked to Malaysia West only — no region field in any wizard.
+2 templates, both automation category — live in `web/data/templates.json`. Region is locked to Malaysia West only — no region field in any wizard.
 
-`static-web-app` was pulled from the catalog for now (Web & Apps / compute category is empty) so the catalog is Logic-App-only. ARM builder + resource type stay allowed (see inventory table below) — re-adding is a 3-line reversal, see checklist.
+`static-web-app`, `approval-workflow`, and `scheduled-automation` were pulled from the catalog for now so the catalog is a minimal Logic-App-only pair. ARM builders + resource types stay allowed (see inventory table below) — re-adding any of them is a 3-line reversal, see checklist.
 
 | Category | Slug | Resource Type |
 |----------|------|---------------|
-| automation | `approval-workflow` | `Microsoft.Logic/workflows` (HTTP trigger) |
-| automation | `scheduled-automation` | `Microsoft.Logic/workflows` (recurrence trigger) |
 | automation | `logic-app` | `Microsoft.Logic/workflows` (HTTP trigger, blank) |
 | automation | `logic-app-storage` | `Microsoft.Logic/workflows` (HTTP trigger) + `Microsoft.Storage/storageAccounts` |
 
 Deployable slugs (allow-list in `web/lib/deployments/policy.ts` — **must exactly match what is in `templates.json`**):
-- `approval-workflow`, `scheduled-automation`, `logic-app`, `logic-app-storage`
+- `logic-app`, `logic-app-storage`
 
-Policy-blocked slugs: none (all 4 active slugs are deployable).
+Policy-blocked slugs: none (both active slugs are deployable).
 
 ## ARM Builder Inventory (beyond current UI catalog)
 
@@ -27,6 +25,8 @@ Policy-blocked slugs: none (all 4 active slugs are deployable).
 
 | Slug | Resource Type |
 |------|---------------|
+| `approval-workflow` | `Microsoft.Logic/workflows` (HTTP trigger) — pulled from catalog for now, see note above |
+| `scheduled-automation` | `Microsoft.Logic/workflows` (recurrence trigger) — pulled from catalog for now, see note above |
 | `static-web-app` | `Microsoft.Web/staticSites` (pulled from catalog for now — see note above) |
 | `web-application` | `Microsoft.Web/serverfarms` + `Microsoft.Web/sites` |
 | `container-app` | `Microsoft.App/managedEnvironments` + `Microsoft.App/containerApps` |

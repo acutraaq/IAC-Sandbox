@@ -19,7 +19,7 @@ No active specs or plans. All approved work is implemented; completed designs li
 
 **What is live and working:** Terminal-native document redesign (mono nav chrome, editorial rows, `~/path` eyebrows); supporting-resource bundling (LAW + KV auto-injected into every deployment); see Live Deployment section below.  
 **Latest session (2026-07-01):** Codebase optimization pass — policy sync fix, queue message schema extracted to single source, `DeploymentPayload` type now Zod-only, `getMe()` added to api.ts, `templates.md` corrected. 239 web + 74 functions tests passing. See HANDOFF.md for full change list.
-**What is designed but not built:** Nothing formally speced. Open items tracked in HANDOFF.md not yet actioned: 10 extra ARM builder slugs (`web-application`, `container-app`, etc. — see `.claude/rules/templates.md`) not exposed in the template catalog, end-to-end deployment verification pending admin env var setup, and an error-UX / a11y audit not yet scheduled.
+**What is designed but not built:** Nothing formally speced. Open items tracked in HANDOFF.md not yet actioned: 13 extra ARM builder slugs not exposed in the template catalog — 10 never-catalogued (`web-application`, `container-app`, etc.) plus `approval-workflow`, `scheduled-automation`, and `static-web-app` pulled from the catalog for now (see `.claude/rules/templates.md`) — end-to-end deployment verification pending admin env var setup, and an error-UX / a11y audit not yet scheduled.
 **SSO status:** Microsoft SSO / MSAL is **on hold** — placeholder login is live and sufficient for current needs. The MSAL plumbing is fully implemented but not being activated at this time. See Authentication section.
 **What needs admin action:** Configure `epf-sandbox-functions` environment variables in Azure Portal (`DEPLOYMENT_QUEUE`, `AZURE_STORAGE_CONNECTION_STRING`, `AzureWebJobsStorage`, `AZURE_SUBSCRIPTION_ID`, `AZURE_TENANT_ID`) so the Function App can consume queue messages. Managed identity setup is complete: App Service MI has **Reader** on `sub-epf-sandbox-internal`, Function App MI has **Contributor** on `sub-epf-sandbox-internal`. After env vars are set, verify end-to-end with a test deployment (e.g., Storage Account) and confirm the resource group appears in `sub-epf-sandbox-internal` with all 6 ARM tags.
 
@@ -29,7 +29,7 @@ No active specs or plans. All approved work is implemented; completed designs li
 
 **Sandbox IAC** is an Azure Infrastructure-as-Code deployment platform for EPF (Employees Provident Fund, Malaysia). It lets non-expert users configure and submit Azure infrastructure deployments through the Template Flow:
 
-- **Template Flow** — Multi-step wizard using predefined templates (4 templates, automation category only — `static-web-app` pulled for now)
+- **Template Flow** — Multi-step wizard using predefined templates (2 templates, automation category only — `approval-workflow`, `scheduled-automation`, `static-web-app` pulled for now)
 
 The Template flow converges at a shared Review & Submit page, calling `POST /api/deployments`. After submission, a copyable plain-text proof artifact is generated for manual HOD approval. Deployment status is tracked via Azure ARM — ARM is the source of truth (no database).
 
@@ -110,17 +110,15 @@ The core cookie signing/verification logic lives in `web/lib/auth-core.ts`, whic
 
 ## Template Catalog
 
-4 templates, automation category only. `static-web-app` pulled from the catalog for now — see `.claude/rules/templates.md` for reversal steps. Region is locked to Malaysia West only — no region choice in any wizard.
+2 templates, automation category only. `approval-workflow`, `scheduled-automation`, and `static-web-app` pulled from the catalog for now — see `.claude/rules/templates.md` for reversal steps. Region is locked to Malaysia West only — no region choice in any wizard.
 
 | Category | Slug | Resource Type | Count |
 |----------|------|---------------|-------|
-| automation | `approval-workflow` | Logic App | 1 |
-| automation | `scheduled-automation` | Logic App | 1 |
 | automation | `logic-app` | Logic App | 1 |
 | automation | `logic-app-storage` | Logic App + Storage Account | 2 |
 
 Deployable slugs (allow-list in `web/lib/deployments/policy.ts`):
-- `approval-workflow`, `scheduled-automation`, `logic-app`, `logic-app-storage`
+- `logic-app`, `logic-app-storage`
 
 ---
 
@@ -203,7 +201,7 @@ Prisma and PostgreSQL have been removed. ARM is the source of truth for all depl
 │   │       └── arm-status.ts    # mapArmProvisioningState → DeploymentStatus
 │   ├── types/index.ts           # Shared frontend types — does NOT export DeploymentPayload (use @/lib/deployments/schema)
 │   ├── data/
-│   │   └── templates.json       # 4 templates, automation category only (static-web-app pulled for now); region locked to malaysiawest only
+│   │   └── templates.json       # 2 templates, automation category only (approval-workflow, scheduled-automation, static-web-app pulled for now); region locked to malaysiawest only
 │   └── __tests__/
 │       ├── store/
 │       ├── lib/deployments/
@@ -373,6 +371,6 @@ npx vitest run       # all pass
 - `functions/package.json` `main` must be `dist/functions/*.js` — tsconfig `rootDir: ./src` strips the `src/` prefix, so compiled output is at `dist/functions/`, not `dist/src/functions/`. Getting this wrong causes "Function host is not running"
 - Function App Azure settings: `AZURE_SUBSCRIPTION_ID` must point to `sub-epf-sandbox-internal` (`1fed33d2-00fd-40a8-a5c1-c120aec1b902`), not the cloud sub. Managed identity needs Contributor on that subscription.
 
-> Template catalog (4 templates, no policy-blocked slugs, region lock): see `.claude/rules/templates.md` — auto-loads when editing templates/data/deployments files.  
+> Template catalog (2 templates, no policy-blocked slugs, region lock): see `.claude/rules/templates.md` — auto-loads when editing templates/data/deployments files.  
 > Design tokens and color values: see `.claude/rules/design-system.md` — auto-loads when editing any `web/` file.  
 > Proof artifact exact format: see `.claude/rules/proof-format.md` — auto-loads when editing review components or `report.ts`.
