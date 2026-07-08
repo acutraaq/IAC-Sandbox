@@ -1,6 +1,6 @@
 # Domain Glossary
 
-> **Version:** 1.0.0 | **Last updated:** 2026-05-14 | **Status:** Active
+> **Version:** 1.0.1 | **Last updated:** 2026-07-08 | **Status:** Active
 
 Definitions of project-specific and Azure-specific terms used throughout IAC Sandbox documentation and code.
 
@@ -56,8 +56,8 @@ See also: [ARM Tags](#arm-tag)
 
 ### **Deployment**
 A user request to create or modify Azure infrastructure via IAC Sandbox. Expressed as either:
-- **Template mode** — predefined template with user form inputs
-- **Custom mode** — user-selected resources with per-resource configuration
+- **Template mode** — predefined template with user form inputs (the only mode reachable from the UI)
+- **Custom mode** — user-selected resources with per-resource configuration. The Custom Builder UI that produced this mode has been removed; the backend schema/policy/ARM-builder code still accepts and executes `mode: "custom"` payloads sent directly to the API, but no route generates them anymore.
 
 Deployments are submitted via `POST /api/deployments`, enqueued, and executed asynchronously by an Azure Function.
 
@@ -146,7 +146,7 @@ Required ARM tags enforced by Azure subscription policy. In IAC Sandbox: `Cost C
 See also: [ARM Tags](#arm-tag)
 
 ### **Policy-Blocked** (template)
-Template slug that users are not permitted to deploy (enforced server-side). Currently: `virtual-machine`, `microservices-platform`, `data-pipeline`, `secure-api-backend`.
+Template slug that users are not permitted to deploy (enforced server-side). Currently: none — both catalogued slugs (`logic-app`, `logic-app-storage`) are deployable. A `POLICY_BLOCKED_TEMPLATE_SLUGS` array still exists in `functions/src/modules/deployments/arm-template-builder.ts` referencing `virtual-machine`, `microservices-platform`, `data-pipeline`, `secure-api-backend` — these are dead entries with no corresponding template anywhere in the current catalog or builder set.
 
 See also: [Template Catalog (CLAUDE.md)](../CLAUDE.md#template-catalog)
 
@@ -186,7 +186,7 @@ See also: [Status Lifecycle](project/SPEC.md#status-lifecycle)
 ## S
 
 ### **Slug** / **Template Slug**
-URL-friendly identifier for a template (e.g., `web-application`, `storage-account`). Used in `/templates/[slug]` routes and in deployment payloads.
+URL-friendly identifier for a template (e.g., `logic-app`, `logic-app-storage`). Used in `/templates/[slug]` routes and in deployment payloads. Note: several other slugs (`web-application`, `storage-account`, etc.) have ARM builder functions but are not currently exposed as templates — see `.claude/rules/templates.md`.
 
 See also: [Template Catalog (CLAUDE.md)](../CLAUDE.md#template-catalog)
 
@@ -227,10 +227,10 @@ Azure AD tenant (organization) containing subscriptions and users. IAC Sandbox i
 
 ## U
 
-### **Undeployed RG** (custom request mode)
-In `/request` flow, the user picks resources, generates a copy-paste request document, and emails it to the IAC team for manual provisioning. The RG is not auto-created.
+### **Undeployed RG** (custom request mode) **[REMOVED]**
+Historical: in the `/request` flow (since removed — no such route exists), the user picked resources, generated a copy-paste request document, and emailed it to the IAC team for manual provisioning. The RG was not auto-created. No equivalent flow exists today.
 
-See also: [Custom Request Flow (CLAUDE.md)](../CLAUDE.md#project-overview)
+See also: [CLAUDE.md](../CLAUDE.md#project-overview)
 
 ---
 

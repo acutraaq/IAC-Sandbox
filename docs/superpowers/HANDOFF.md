@@ -45,7 +45,7 @@
 ### What is NOT done (next session candidates)
 - **templates.md discrepancy investigation** — `arm-template-builder.ts` has builders for 10+ additional slugs; `templates.json` only exposes 3. Determine if the remaining 10 should be added to the UI catalog or remain as builder-only.
 - **End-to-end verification** — confirm a real template submission progresses from `accepted` → `running` → `succeeded` in `sub-epf-sandbox-internal`
-- **Function App env vars** — queue processing has not been observed working live; verify a deployment actually moves past `accepted`
+- **Function App env vars** — confirmed live 2026-07-08 (see Current State below); queue processing itself still not observed via a real submission
 
 ---
 
@@ -97,21 +97,15 @@
 - Functions reliability fixes committed and deployed
 - Web-layer hardening committed and deployed
 
-### Blocking: Function App env vars (admin action required)
+### Resolved 2026-07-08: Function App env vars confirmed live
 
-Portal path: `epf-sandbox-functions` → Settings → Environment variables
+Both health checks pass as of 2026-07-08:
+- App Service: `GET /api/healthz/arm` → `{"status":"ok"}`
+- Function App: `GET https://epf-sandbox-functions-d2f0a8huescxghgq.southeastasia-01.azurewebsites.net/api/healthz` → `{"status":"ok","mi":true}`
 
-| Setting | Required value |
-|---------|---------------|
-| `DEPLOYMENT_QUEUE` | Full Azure Storage connection string for `coeiacsandbox8bfc` |
-| `AZURE_STORAGE_CONNECTION_STRING` | Same connection string |
-| `AzureWebJobsStorage` | Same connection string (Functions runtime requires this) |
-| `AZURE_SUBSCRIPTION_ID` | `1fed33d2-00fd-40a8-a5c1-c120aec1b902` |
-| `AZURE_TENANT_ID` | `3335e1a2-2058-4baf-b03b-031abf0fc821` |
+No admin action outstanding. Env vars (`DEPLOYMENT_QUEUE`, `AZURE_STORAGE_CONNECTION_STRING`, `AzureWebJobsStorage`, `AZURE_SUBSCRIPTION_ID`, `AZURE_TENANT_ID`) are set and both managed identities are functioning.
 
-After saving, verify:
-1. `GET https://epf-sandbox-functions-d2f0a8huescxghgq.southeastasia-01.azurewebsites.net/api/healthz` → `{"status":"ok","mi":true}`
-2. Submit a storage-account template → status should progress from `accepted` → `running` → `succeeded`
+**Still open:** no real template submission has been observed progressing `accepted` → `running` → `succeeded` end-to-end. Next session should submit a storage-account or Template-flow Logic App and confirm the resource group appears in `sub-epf-sandbox-internal` with all 6 ARM tags.
 
 ### On hold
 - **Microsoft SSO** — fully implemented, not activating. Placeholder `demo@sandbox.local` is accepted state.

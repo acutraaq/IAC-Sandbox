@@ -1,6 +1,6 @@
 # CLAUDE.md — Project Conventions & Developer Guidance
 
-> **Version:** 2.5.2 | **Last updated:** 2026-07-01 | **Status:** Active  
+> **Version:** 2.5.3 | **Last updated:** 2026-07-08 | **Status:** Active  
 > **Purpose:** Single source of truth for project conventions, tech stack, and development patterns  
 > **Owner:** All engineers | **Review cadence:** On every convention or pattern change  
 > **Related docs:** [Documentation Index](docs/README.md) | [Complete Spec](docs/project/SPEC.md) | [Glossary](docs/GLOSSARY.md) | [HANDOFF](docs/superpowers/HANDOFF.md)
@@ -19,9 +19,10 @@ No active specs or plans. All approved work is implemented; completed designs li
 
 **What is live and working:** Terminal-native document redesign (mono nav chrome, editorial rows, `~/path` eyebrows); supporting-resource bundling (LAW + KV auto-injected into every deployment); see Live Deployment section below.  
 **Latest session (2026-07-01):** Codebase optimization pass — policy sync fix, queue message schema extracted to single source, `DeploymentPayload` type now Zod-only, `getMe()` added to api.ts, `templates.md` corrected. 239 web + 74 functions tests passing. See HANDOFF.md for full change list.
-**What is designed but not built:** Nothing formally speced. Open items tracked in HANDOFF.md not yet actioned: 13 extra ARM builder slugs not exposed in the template catalog — 10 never-catalogued (`web-application`, `container-app`, etc.) plus `approval-workflow`, `scheduled-automation`, and `static-web-app` pulled from the catalog for now (see `.claude/rules/templates.md`) — end-to-end deployment verification pending admin env var setup, and an error-UX / a11y audit not yet scheduled.
+**2026-07-08 verification:** `GET /api/healthz/arm` → `{"status":"ok"}` and Function App `GET /api/healthz` → `{"status":"ok","mi":true}` — both confirmed live. Function App env vars are set and managed identity is working on both services. Only remaining gap: no real template submission has been observed progressing `accepted`→`running`→`succeeded` yet.
+**What is designed but not built:** Nothing formally speced. Open items tracked in HANDOFF.md not yet actioned: 13 extra ARM builder slugs not exposed in the template catalog — 10 never-catalogued (`web-application`, `container-app`, etc.) plus `approval-workflow`, `scheduled-automation`, and `static-web-app` pulled from the catalog for now (see `.claude/rules/templates.md`) — end-to-end deployment verification (real template submission through to `succeeded`) still pending, and an error-UX / a11y audit not yet scheduled.
 **SSO status:** Microsoft SSO / MSAL is **on hold** — placeholder login is live and sufficient for current needs. The MSAL plumbing is fully implemented but not being activated at this time. See Authentication section.
-**What needs admin action:** Configure `epf-sandbox-functions` environment variables in Azure Portal (`DEPLOYMENT_QUEUE`, `AZURE_STORAGE_CONNECTION_STRING`, `AzureWebJobsStorage`, `AZURE_SUBSCRIPTION_ID`, `AZURE_TENANT_ID`) so the Function App can consume queue messages. Managed identity setup is complete: App Service MI has **Reader** on `sub-epf-sandbox-internal`, Function App MI has **Contributor** on `sub-epf-sandbox-internal`. After env vars are set, verify end-to-end with a test deployment (e.g., Storage Account) and confirm the resource group appears in `sub-epf-sandbox-internal` with all 6 ARM tags.
+**What needs admin action:** Nothing outstanding for managed identity / env vars — confirmed live 2026-07-08 (see above). Remaining action is non-admin: submit a real test deployment (e.g., Storage Account or a Template-flow Logic App) and confirm the resource group appears in `sub-epf-sandbox-internal` with all 6 ARM tags.
 
 ---
 
@@ -33,7 +34,7 @@ No active specs or plans. All approved work is implemented; completed designs li
 
 The Template flow converges at a shared Review & Submit page, calling `POST /api/deployments`. After submission, a copyable plain-text proof artifact is generated for manual HOD approval. Deployment status is tracked via Azure ARM — ARM is the source of truth (no database).
 
-> **Note:** The Custom Builder and Custom Request flows have been removed. Only the Template flow is currently active.
+> **Note:** The Custom Builder and Custom Request *frontend* flows have been removed — no `/builder` or `/request` route, no UI entry point. Only the Template flow is currently active in the UI. **However, the backend still accepts and executes `mode: "custom"` payloads** — `customDeploymentSchema` in `web/lib/deployments/schema.ts`, the custom-mode branch in `web/lib/deployments/policy.ts`, and `buildCustomResources()` in `functions/src/modules/deployments/arm-template-builder.ts` are all still live and will build real ARM resources if `POST /api/deployments` is called directly with `mode: "custom"`. This is dormant, unreachable-from-UI code, not a removed capability — treat it as a live API surface when reasoning about security/policy boundaries.
 
 **SSO:** Microsoft SSO (Entra ID / MSAL.js) is **on hold**. MSAL plumbing is fully implemented (auth code + PKCE flow, callback handler, `deployedBy` wired end-to-end) but not being activated at this time. A **placeholder login page** is live: visiting any protected route redirects to `/login`, where the "Sign in with Microsoft" button stubs a session cookie carrying `demo@sandbox.local`. When the team decides to activate SSO, the swap is a single-file change to `web/lib/auth.ts` (see Authentication section below).
 

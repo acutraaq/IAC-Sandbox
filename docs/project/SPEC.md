@@ -1,10 +1,12 @@
 # Sandbox Azure Deployer — Complete Specification
 
-> **Version:** v2.3.0 | **Last updated:** 2026-05-14 | **Status:** Active  
+> **Version:** v2.3.1 | **Last updated:** 2026-07-08 (ADR-022 addendum; body largely unchanged from 2026-05-14) | **Status:** Active — **partially superseded, see note below**  
 > **Owner:** Product + Architecture | **Review cadence:** Quarterly or on breaking changes  
 > **Related docs:** [Project Index](../README.md) | [API Spec](API_SPEC_OPENAPI.yaml) | [Glossary](../GLOSSARY.md) | [CLAUDE.md](../../CLAUDE.md)
 >
-> This is the single source of truth for the entire project. Sections marked **[v2]** were updated in v2.0 to match what was actually built (Fastify + PostgreSQL superseded by Next.js API routes + ARM). Sections marked **[v2.3]** reflect the v2.3.0 additions: Custom Request Flow (ADR-020), dark-only theme (ADR-021), 16-template catalog, placeholder login with MSAL plumbing, and updated project structure. The original v1.2.0 plan was superseded — see ADR-016 through ADR-021 in Section 14.
+> **⚠️ Product-shape drift since 2026-05-14:** This document (and its 3-flow / 16-template / region-choice product shape) predates two later reductions: the Custom Builder + Custom Request **frontend** flows were removed (Template flow only remains in the UI), and the template catalog was cut to 2 templates (`logic-app`, `logic-app-storage`), region locked to Malaysia West. **`CLAUDE.md` (root) is the current authoritative source for live product state — read it first.** Sections below that describe the removed flows/counts are marked **[HISTORICAL]** inline; see ADR-022 in Section 14 for the reduction record. The backend still technically executes `mode: "custom"` payloads (see Section 10) even though no UI reaches it.
+>
+> This is the single source of truth for the entire project's *history and rationale*. Sections marked **[v2]** were updated in v2.0 to match what was actually built (Fastify + PostgreSQL superseded by Next.js API routes + ARM). Sections marked **[v2.3]** reflect the v2.3.0 additions: Custom Request Flow (ADR-020), dark-only theme (ADR-021), 16-template catalog, placeholder login with MSAL plumbing, and updated project structure — note that the Custom Request flow and most of the 16 templates were themselves later removed/reduced (see warning above). The original v1.2.0 plan was superseded — see ADR-016 through ADR-022 in Section 14.
 
 ---
 
@@ -48,13 +50,15 @@
 
 ---
 
-## 1. Executive Summary **[v2]**
+## 1. Executive Summary **[v2]** **[HISTORICAL — see current state below]**
+
+> **Current state (see CLAUDE.md):** Only the Template Flow is live in the UI. Custom Builder Flow and Custom Request Flow described below were built, then their frontend routes (`/builder`, `/request`) were removed. The backend `mode: "custom"` code path still exists and executes but is unreachable from the UI.
 
 Build a secure web application where authenticated users (Microsoft SSO) can deploy Azure resources in three ways:
 
 1. **Template Flow** — Choose a predefined template and complete a multi-step wizard.
-2. **Custom Builder Flow** — Build a deployment resource-by-resource (auto-deploy).
-3. **Custom Request Flow** — Pick resources at `/request` to generate a copy-paste request document for the IAC team. No auto-deployment; manual provisioning follows HOD approval.
+2. **Custom Builder Flow** — Build a deployment resource-by-resource (auto-deploy). **[REMOVED from UI]**
+3. **Custom Request Flow** — Pick resources at `/request` to generate a copy-paste request document for the IAC team. No auto-deployment; manual provisioning follows HOD approval. **[REMOVED from UI]**
 
 Template and Custom Builder flows converge at a shared Review & Submit page:
 - API validates the payload and enqueues a deployment job.
@@ -82,9 +86,9 @@ Reduce friction for non-expert cloud users to request/deploy Azure infrastructur
 ### In Scope
 - Microsoft Entra ID SSO login (placeholder active; real SSO pending credentials).
 - Authenticated access to deployment flows.
-- Template flow, Custom Builder flow, and Custom Request flow.
+- Template flow, Custom Builder flow, and Custom Request flow. **[Custom Builder + Custom Request frontends since removed — Template flow only is live]**
 - Review and submit (Template + Custom Builder).
-- Custom Request document generation (no auto-deploy).
+- Custom Request document generation (no auto-deploy). **[REMOVED]**
 - Backend deployment intake API.
 - Backend ARM execution pipeline (Azure Functions).
 - Status tracking (`accepted` / `running` / `succeeded` / `failed`).
@@ -132,7 +136,7 @@ Reduce friction for non-expert cloud users to request/deploy Azure infrastructur
 6. User submits deployment.
 7. User sees success toast + confirmation modal with copyable report.
 
-### Journey B: Custom Builder Flow
+### Journey B: Custom Builder Flow **[REMOVED — `/builder` route no longer exists]**
 1. User lands on home page (`/`) and selects builder.
 2. User opens custom builder (`/builder`).
 3. User searches/filters resources and opens drawer to configure.
@@ -141,7 +145,7 @@ Reduce friction for non-expert cloud users to request/deploy Azure infrastructur
 6. User submits deployment.
 7. User sees success toast + confirmation modal with copyable report.
 
-### Journey C: Custom Request Flow
+### Journey C: Custom Request Flow **[REMOVED — `/request` route no longer exists]**
 1. User lands on home page (`/`) and selects "Request Custom Setup".
 2. User opens `/request` page.
 3. User picks one or more resource types and fills in details.
@@ -163,12 +167,12 @@ Reduce friction for non-expert cloud users to request/deploy Azure infrastructur
 ### Frontend Routing
 | ID | Requirement |
 |----|-------------|
-| FR-1 | Routes: `/` (home), `/templates` (catalog), `/templates/[slug]` (wizard), `/builder` (custom builder), `/request` (custom request — no deploy), `/review` (shared submit), `/my-stuff` (user's deployments), `/login` (SSO entry) |
-| FR-2 | Home page: two clear CTAs (templates vs. builder), motion/ambient visuals |
-| FR-3 | Template catalog: load from `data/templates.json`, category filter pills (all, compute, data, network, security, automation, integration, landing-zone), card with icon/name/description/count; policy-blocked templates show lock UI |
+| FR-1 | **[HISTORICAL]** Routes: `/` (home), `/templates` (catalog), `/templates/[slug]` (wizard), `/builder` (custom builder), `/request` (custom request — no deploy), `/review` (shared submit), `/my-stuff` (user's deployments), `/login` (SSO entry). **Current:** `/builder` and `/request` no longer exist. |
+| FR-2 | Home page: single CTA (templates only — builder CTA removed), motion/ambient visuals |
+| FR-3 | **[HISTORICAL — current catalog has only `automation` category, 2 templates]** Template catalog: load from `data/templates.json`, category filter pills (all, compute, data, network, security, automation, integration, landing-zone), card with icon/name/description/count; policy-blocked templates show lock UI |
 | FR-4 | Template wizard: resolve slug, set mode, stepper with text/number/select/toggle fields, per-step validation, back/next/review navigation, summary panel |
-| FR-5 | Custom builder: load from `data/resources.json`, search + category filter, drawer form with dynamic fields, add/remove resources, duplicate prevention, continue to review |
-| FR-6 | Zustand store (`store/deploymentStore.ts`): mode (`'template'`/`'custom'`/`'custom-request'`), template, wizard state, resources, submissionId, summary, reset. Selecting new template resets wizard. `resetCustomRequest()` for request mode. |
+| FR-5 | **[REMOVED]** Custom builder: load from `data/resources.json` (file no longer exists), search + category filter, drawer form with dynamic fields, add/remove resources, duplicate prevention, continue to review |
+| FR-6 | **[PARTIALLY REMOVED]** Zustand store (`store/deploymentStore.ts`): mode (`'template'`/`'custom'`/`'custom-request'`), template, wizard state, resources, submissionId, summary, reset. Selecting new template resets wizard. `resetCustomRequest()` for request mode. **Current:** store only supports `'template'` mode from the UI; `'custom'`/`'custom-request'` and `resetCustomRequest()` are gone from the frontend store (though the backend Zod schema still accepts `mode: "custom"` payloads sent directly to the API). |
 | FR-7 | Review page: guard against empty state (redirect to `/`), render template or resource summary, submit with loading state, success toast + ConfirmModal with 3-step timeline + "View in Azure Portal" deep-link, error toast |
 | FR-8 | Report generation: header, reference ID, locale date/time (`en-MY`), mode details, config values. Copyable via clipboard API. |
 | FR-9 | Theme: dark-only; no toggle; CSS variable design tokens; UI primitives (Button, Card, Badge, Modal, Toast) |
@@ -228,16 +232,19 @@ Reduce friction for non-expert cloud users to request/deploy Azure infrastructur
 - `@azure/arm-resources` + `@azure/identity` (server-side ARM calls from API routes)
 
 ### Route Map
+
+> **[HISTORICAL]** `/builder` and `/request` rows below no longer exist in the codebase — kept for history only.
+
 | Route | Type | Description |
 |-------|------|-------------|
 | `/` | Client component | Landing + funnel (Framer Motion animations) |
 | `/login` | Client component | SSO entry point (placeholder stub active) |
 | `/templates` | Server component | Loads templates data, renders `TemplateGrid` (client) |
 | `/templates/[slug]` | Server + client | `generateStaticParams` from slugs; `TemplateWizardClient` handles wizard |
-| `/builder` | Client component | Search/filter/select resources, configuration drawer |
-| `/request` | Client component | Resource picker → copyable request document; no auto-deploy |
+| ~~`/builder`~~ | ~~Client component~~ | **[REMOVED]** Search/filter/select resources, configuration drawer |
+| ~~`/request`~~ | ~~Client component~~ | **[REMOVED]** Resource picker → copyable request document; no auto-deploy |
 | `/review` | Client component | Guard, submit, success/error feedback |
-| `/my-stuff` | Client component | Lists user's deployed resource groups (ARM tag query) |
+| `/my-stuff` | Client component | Lists user's deployed resource groups (ARM tag query) — note: no dedicated UI page currently exists for this per CLAUDE.md, `GET /api/my-deployments` exists but is unconsumed |
 
 ### State Model **[v2]**
 ```ts
@@ -258,14 +265,16 @@ interface DeploymentState {
 }
 ```
 
-Key invariants:
+Key invariants (**[HISTORICAL]** — see current note below):
 - `mode` must be set before `/review` can render (`'template'` or `'custom'` only — `'custom-request'` never reaches `/review`).
 - Selecting a new template resets wizard state.
 - `selectedResources` must not contain duplicate resource `type` values.
 - `deployedResourceGroup` is set on submission and used by the polling loop to query ARM.
 - `resetCustomRequest()` clears request mode state.
 
-### Component Architecture
+> **Current:** `deploymentStore.ts` only carries `mode: "template" | "custom"` and drives the Template flow; `selectedResources` / builder duplicate-prevention / `resetCustomRequest()` are gone from the store. The invariants above only apply historically.
+
+### Component Architecture **[HISTORICAL — Builder/Request rows removed]**
 
 **Layout:** `RootLayout` → `Navbar`, `Breadcrumb`, `Footer`, `PageTransition`, `UserMenu`
 
@@ -274,11 +283,11 @@ Key invariants:
 **Feature Components:**
 - Templates: `TemplateGrid`, `FilterPills`, `TemplateCard`
 - Wizard: `Stepper`, `WizardStep`, `SummaryPanel` (inside `TemplateWizardClient`)
-- Builder: `ResourceCatalog`, `ResourceDrawer`, `SelectedPanel`
-- Request: `RequestDocument` (copyable request block)
+- ~~Builder: `ResourceCatalog`, `ResourceDrawer`, `SelectedPanel`~~ **[REMOVED]**
+- ~~Request: `RequestDocument` (copyable request block)~~ **[REMOVED]**
 - Review: `ReviewSection`, `ConfirmModal` (3-step timeline + portal deep-link)
-- Home: `DeployedList`, `TemplateGrid`
-- My Stuff: `DeployedTable`
+- Home: `TemplateGrid` (builder CTA removed)
+- My Stuff: `DeployedTable` **[no consuming page currently — API only, see CLAUDE.md]**
 
 ### Validation Design
 Centralized builder in `lib/schema.ts`:
@@ -292,15 +301,16 @@ Centralized builder in `lib/schema.ts`:
 - Token-based Tailwind classes only (no hardcoded colors)
 - Font: IBM Plex Sans + IBM Plex Mono
 
-### Data Sources
-- `data/templates.json` — 16 templates across 7 categories (compute, data, network, security, automation, integration, landing-zone). 4 slugs are policy-blocked and show lock UI; 12 are deployable.
-- `data/resources.json` — 7 resource types with Azure type, metadata, category, icon, config schema (NSG removed)
+### Data Sources **[HISTORICAL — see current counts]**
+- `data/templates.json` — 16 templates across 7 categories (compute, data, network, security, automation, integration, landing-zone). 4 slugs are policy-blocked and show lock UI; 12 are deployable. **Current: 2 templates, automation category only, 0 policy-blocked (see CLAUDE.md / `.claude/rules/templates.md`).**
+- ~~`data/resources.json`~~ — 7 resource types with Azure type, metadata, category, icon, config schema (NSG removed). **File no longer exists — Custom Builder catalog removed.**
 
 ### Type Contracts
 `types/index.ts`:
 - `Template`, `TemplateStep`, `FieldSchema`
-- `AzureResource`, `SelectedResource`
-- `DeploymentPayload`, `SubmitResponse`
+- ~~`AzureResource`, `SelectedResource`~~ **[REMOVED]**
+- ~~`DeploymentPayload`~~ **[moved]** — now sourced exclusively from `@/lib/deployments/schema` (Zod-inferred), not `types/index.ts`
+- `SubmitResponse`
 
 ### Frontend Environment
 No `NEXT_PUBLIC_*` env vars required. API routes are co-located inside Next.js — no external backend URL needed. See Section 8 for server-side env vars.
@@ -472,13 +482,15 @@ Both modes require `tags` (policy-required):
     "Expiry Date": "2027-01-01"
   },
   "template": {
-    "slug": "web-application",
-    "formValues": { "appName": "my-app", "region": "southeastasia" }
+    "slug": "logic-app",
+    "formValues": { "workflowName": "my-workflow" }
   }
 }
 ```
 
-**Custom mode:**
+> **[HISTORICAL — updated for accuracy]** Original example used slug `web-application` with a `region` form value. `web-application` is not in the current `DEPLOYABLE_SLUGS` allow-list (would 403) and region is no longer a wizard field — it's locked server-side to Malaysia West. Example above reflects a currently-deployable slug.
+
+**Custom mode** — **[no UI reaches this anymore; the schema/policy/builder code still accepts and executes it if called directly]**:
 ```json
 {
   "mode": "custom",
@@ -572,7 +584,7 @@ MSAL plumbing is fully implemented and inactive:
 > Original v1.2.0 specified Azure CLI (`az deployment group create`). This was superseded by ARM SDK + Azure Functions — see ADR-017.
 
 ### Execution Path
-1. `POST /api/deployments` checks `POLICY_BLOCKED_TEMPLATE_SLUGS` — returns `403 FORBIDDEN` if slug is blocked. Otherwise validates payload, checks `DEPLOYABLE_SLUGS` allow-list, generates `submissionId` (UUID), derives resource group name, enqueues JSON message to `deployment-jobs` queue. Returns `{ submissionId, resourceGroup }`.
+1. `POST /api/deployments` validates payload, checks `DEPLOYABLE_SLUGS` allow-list — returns `403 FORBIDDEN` if slug isn't on it. Generates `submissionId` (UUID), derives resource group name, enqueues JSON message to `deployment-jobs` queue. Returns `{ submissionId, resourceGroup }`. **[HISTORICAL]** `POLICY_BLOCKED_TEMPLATE_SLUGS` no longer exists in current `policy.ts` — there are currently 0 policy-blocked slugs (both catalogued slugs are deployable); the residual `POLICY_BLOCKED_TEMPLATE_SLUGS` array in `arm-template-builder.ts` references 4 slugs (`virtual-machine`, `microservices-platform`, `data-pipeline`, `secure-api-backend`) that don't correspond to any current template or builder — dead code, not an active policy gate.
 2. Azure Function picks up queue message (triggered by `deployment-jobs`).
 3. Function builds ARM template from payload using `arm-template-builder.ts`.
 4. Function creates/updates resource group with policy tags + `deployedBy` + `iac-submissionId` (idempotent).
@@ -754,6 +766,12 @@ Note: Manual HOD approval is required outside this system.
 - **Decision:** Remove light/dark theme toggle. Single `:root` CSS variable token set, dark-only. No `localStorage` persistence.
 - **Rationale:** Reduces UI complexity and inconsistency. Internal tool — no user preference requirement. Dark palette matches Azure Portal aesthetics.
 - **Consequences:** No `data-theme` switching, no `ThemeToggle` component, no `sandbox-theme` localStorage key.
+
+### ADR-022: Remove Custom Builder + Custom Request UI, reduce template catalog to 2 **[current]**
+- **Status:** Accepted
+- **Decision:** Remove the `/builder` and `/request` frontend routes and their components entirely (supersedes ADR-020's Custom Request Flow). Reduce `data/templates.json` from 16 templates / 7 categories down to 2 templates (`logic-app`, `logic-app-storage`), automation category only. Lock region to Malaysia West across all wizards (removes the region form field described in Section 10's original API example).
+- **Rationale:** Narrow the live product surface to the flow that's actually maintained and exercised; the Custom Builder/Request UX and the wider template catalog were unused/unvalidated relative to the Template flow.
+- **Consequences:** `web/data/resources.json` deleted. `deploymentStore.ts` no longer carries `'custom'`/`'custom-request'` mode or `resetCustomRequest()`. Backend `mode: "custom"` Zod schema, policy check, and `buildCustomResources()` ARM builder remain in code (dormant, unreachable from UI) — see CLAUDE.md Authentication/Architecture sections. 13 ARM builder slugs (`web-application`, `container-app`, `full-stack-web-app`, `database`, `storage-account`, `key-vault`, `virtual-network`, `landing-zone`, `message-queue`, `event-broadcaster`, plus `approval-workflow`/`scheduled-automation`/`static-web-app` pulled from the catalog) exist in `arm-template-builder.ts` but aren't exposed in `templates.json` or `DEPLOYABLE_SLUGS` — see `.claude/rules/templates.md` for the reversal checklist. Sections 1–13 of this document predate this change and are marked `[HISTORICAL]` inline where they describe the removed flows/counts.
 
 ---
 
