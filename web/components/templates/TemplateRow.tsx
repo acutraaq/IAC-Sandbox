@@ -62,6 +62,11 @@ export function TemplateRow({ template }: TemplateRowProps) {
 
       {/* Content */}
       <p className="text-sm font-semibold text-text">{template.name}</p>
+      {template.resourceType && (
+        <p className="mt-0.5 font-mono text-[11px] uppercase tracking-wide text-coral">
+          {template.resourceType}
+        </p>
+      )}
       <p className="mt-1.5 flex-1 text-sm leading-relaxed text-text-muted">
         {template.description}
       </p>

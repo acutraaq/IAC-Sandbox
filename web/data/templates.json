@@ -5,6 +5,7 @@
     "description": "Set up an automated approval chain — for leave requests, expense claims, or document sign-off — that runs when someone submits a form or calls a URL.",
     "category": "automation",
     "icon": "GitBranch",
+    "resourceType": "Logic App",
     "resourceCount": 1,
     "estimatedTime": "~1 minute",
     "steps": [
@@ -66,6 +67,7 @@
     "description": "Run an automated task on a schedule — daily reports, weekly data syncs, or overnight batch jobs — without anyone needing to remember to do it.",
     "category": "automation",
     "icon": "Clock",
+    "resourceType": "Logic App",
     "resourceCount": 1,
     "estimatedTime": "~1 minute",
     "steps": [
@@ -138,73 +140,26 @@
     ]
   },
   {
-    "slug": "static-web-app",
-    "name": "Static Web App",
-    "description": "Deploy a modern web app that serves static content directly from the cloud with automatic CI/CD and global CDN.",
-    "category": "compute",
-    "icon": "Globe",
-    "resourceCount": 1,
-    "estimatedTime": "~1 minute",
-    "steps": [
-      {
-        "title": "Basic Details",
-        "description": "Give your static web app a name.",
-        "fields": [
-          {
-            "name": "appName",
-            "label": "What should we call this application?",
-            "type": "text",
-            "required": true,
-            "placeholder": "my-static-app",
-            "helpText": "This will be part of your application's web address."
-          }
-        ]
-      },
-      {
-        "title": "Performance",
-        "description": "Choose how powerful your application should be.",
-        "fields": [
-          {
-            "name": "sku",
-            "label": "Which plan do you need?",
-            "type": "select",
-            "required": true,
-            "helpText": "Free is great for testing and personal projects. Standard adds custom domains and more bandwidth.",
-            "options": [
-              {
-                "label": "Free — For testing and personal projects",
-                "value": "Free"
-              },
-              {
-                "label": "Standard — For production workloads",
-                "value": "Standard"
-              }
-            ]
-          }
-        ]
-      }
-    ]
-  },
-  {
     "slug": "logic-app",
-    "name": "Logic App",
-    "description": "Deploy a blank Logic App with an HTTP trigger — start from an empty canvas and build your own workflow logic in the Azure Portal designer.",
+    "name": "Blank Workflow",
+    "description": "Start with an empty automated workflow that you design yourself — pick this if you already know the steps you want and want to build it from scratch.",
     "category": "automation",
     "icon": "Zap",
+    "resourceType": "Logic App",
     "resourceCount": 1,
     "estimatedTime": "~1 minute",
     "steps": [
       {
         "title": "Workflow Details",
-        "description": "Give your Logic App a name.",
+        "description": "Give your workflow a name.",
         "fields": [
           {
             "name": "workflowName",
-            "label": "What should we call this Logic App?",
+            "label": "What should we call this workflow?",
             "type": "text",
             "required": true,
             "placeholder": "my-logic-app",
-            "helpText": "Use a name that describes what this workflow will do — you can build the logic itself in the Azure Portal after deployment."
+            "helpText": "Use a name that describes what this workflow will do. You'll design the actual steps after it's created."
           }
         ]
       }
@@ -212,34 +167,35 @@
   },
   {
     "slug": "logic-app-storage",
-    "name": "Logic App + Storage",
-    "description": "Deploy a Logic App together with a Storage Account — for workflows that need to read or write blob data.",
+    "name": "Workflow + File Storage",
+    "description": "Set up an automated workflow that can also save and read files — useful when your process needs to store documents or data as it runs.",
     "category": "automation",
     "icon": "HardDrive",
+    "resourceType": "Logic App + Storage Account",
     "resourceCount": 2,
     "estimatedTime": "~1 minute",
     "steps": [
       {
         "title": "Workflow Details",
-        "description": "Give your Logic App a name.",
+        "description": "Give your workflow a name.",
         "fields": [
           {
             "name": "workflowName",
-            "label": "What should we call this Logic App?",
+            "label": "What should we call this workflow?",
             "type": "text",
             "required": true,
             "placeholder": "my-logic-app",
-            "helpText": "Use a name that describes what this workflow will do — you can build the logic itself in the Azure Portal after deployment."
+            "helpText": "Use a name that describes what this workflow will do. You'll design the actual steps after it's created."
           }
         ]
       },
       {
         "title": "Storage Details",
-        "description": "Give the paired Storage Account a name.",
+        "description": "Give the file storage a name.",
         "fields": [
           {
             "name": "storageAccountName",
-            "label": "What should we call the storage account?",
+            "label": "What should we call the file storage?",
             "type": "text",
             "required": true,
             "placeholder": "mylogicappstorage",

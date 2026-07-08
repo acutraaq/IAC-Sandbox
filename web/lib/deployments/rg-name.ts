@@ -10,7 +10,6 @@ type DeploymentPayloadWithoutTags =
 export const SLUG_PRIMARY_FIELD: Record<string, string> = {
   "approval-workflow":  "workflowName",
   "scheduled-automation": "workflowName",
-  "static-web-app":       "appName",
   "logic-app":            "workflowName",
   "logic-app-storage":    "workflowName",
 };

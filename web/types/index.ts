@@ -30,6 +30,8 @@ export interface Template {
   estimatedTime: string;
   steps: TemplateStep[];
   policyBlocked?: boolean;
+  /** Underlying Azure service, shown as a small badge on the template card (e.g. "Logic App") */
+  resourceType?: string;
 }
 
 /* ── Resource Group Tags (required by policy COE-Enforce-Tag-RG) ── */

@@ -29,7 +29,7 @@ No active specs or plans. All approved work is implemented; completed designs li
 
 **Sandbox IAC** is an Azure Infrastructure-as-Code deployment platform for EPF (Employees Provident Fund, Malaysia). It lets non-expert users configure and submit Azure infrastructure deployments through the Template Flow:
 
-- **Template Flow** — Multi-step wizard using predefined templates (5 templates across 2 categories)
+- **Template Flow** — Multi-step wizard using predefined templates (4 templates, automation category only — `static-web-app` pulled for now)
 
 The Template flow converges at a shared Review & Submit page, calling `POST /api/deployments`. After submission, a copyable plain-text proof artifact is generated for manual HOD approval. Deployment status is tracked via Azure ARM — ARM is the source of truth (no database).
 
@@ -110,7 +110,7 @@ The core cookie signing/verification logic lives in `web/lib/auth-core.ts`, whic
 
 ## Template Catalog
 
-5 templates across 2 categories (automation, compute). Region is locked to Malaysia West only — no region choice in any wizard.
+4 templates, automation category only. `static-web-app` pulled from the catalog for now — see `.claude/rules/templates.md` for reversal steps. Region is locked to Malaysia West only — no region choice in any wizard.
 
 | Category | Slug | Resource Type | Count |
 |----------|------|---------------|-------|
@@ -118,10 +118,9 @@ The core cookie signing/verification logic lives in `web/lib/auth-core.ts`, whic
 | automation | `scheduled-automation` | Logic App | 1 |
 | automation | `logic-app` | Logic App | 1 |
 | automation | `logic-app-storage` | Logic App + Storage Account | 2 |
-| compute | `static-web-app` | Static Web App | 1 |
 
 Deployable slugs (allow-list in `web/lib/deployments/policy.ts`):
-- `approval-workflow`, `scheduled-automation`, `static-web-app`, `logic-app`, `logic-app-storage`
+- `approval-workflow`, `scheduled-automation`, `logic-app`, `logic-app-storage`
 
 ---
 
@@ -204,7 +203,7 @@ Prisma and PostgreSQL have been removed. ARM is the source of truth for all depl
 │   │       └── arm-status.ts    # mapArmProvisioningState → DeploymentStatus
 │   ├── types/index.ts           # Shared frontend types — does NOT export DeploymentPayload (use @/lib/deployments/schema)
 │   ├── data/
-│   │   └── templates.json       # 5 templates across 2 categories; region locked to malaysiawest only
+│   │   └── templates.json       # 4 templates, automation category only (static-web-app pulled for now); region locked to malaysiawest only
 │   └── __tests__/
 │       ├── store/
 │       ├── lib/deployments/
@@ -374,6 +373,6 @@ npx vitest run       # all pass
 - `functions/package.json` `main` must be `dist/functions/*.js` — tsconfig `rootDir: ./src` strips the `src/` prefix, so compiled output is at `dist/functions/`, not `dist/src/functions/`. Getting this wrong causes "Function host is not running"
 - Function App Azure settings: `AZURE_SUBSCRIPTION_ID` must point to `sub-epf-sandbox-internal` (`1fed33d2-00fd-40a8-a5c1-c120aec1b902`), not the cloud sub. Managed identity needs Contributor on that subscription.
 
-> Template catalog (5 templates, no policy-blocked slugs, region lock): see `.claude/rules/templates.md` — auto-loads when editing templates/data/deployments files.  
+> Template catalog (4 templates, no policy-blocked slugs, region lock): see `.claude/rules/templates.md` — auto-loads when editing templates/data/deployments files.  
 > Design tokens and color values: see `.claude/rules/design-system.md` — auto-loads when editing any `web/` file.  
 > Proof artifact exact format: see `.claude/rules/proof-format.md` — auto-loads when editing review components or `report.ts`.

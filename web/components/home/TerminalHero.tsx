@@ -61,26 +61,6 @@ const SCENARIOS: Scenario[] = [
       { kind: "info",    text: "ARM status : Accepted · Running" },
     ],
   },
-  {
-    id: "static",
-    label: "static-web",
-    slug: "static-web-app",
-    lines: [
-      { kind: "cmd",     text: "sandbox deploy --template static-web-app" },
-      { kind: "info",    text: "Scanning sub-epf-sandbox-internal ..." },
-      { kind: "info",    text: "Template   : Static Web App" },
-      { kind: "info",    text: "Resources  : Static Web App + LAW + Key Vault" },
-      { kind: "info",    text: "Region     : malaysiawest" },
-      { kind: "divider", text: "" },
-      { kind: "tag",     tag: "Cost Center  ", text: "CC-EPF-SEC" },
-      { kind: "tag",     tag: "Project ID   ", text: "PRJ-2026-012" },
-      { kind: "tag",     tag: "Project Owner", text: "infra@epf.gov.my" },
-      { kind: "tag",     tag: "Expiry Date  ", text: "2026-12-31" },
-      { kind: "divider", text: "" },
-      { kind: "success", text: "Submitted → rg-staticweb-c9a2e5-rg" },
-      { kind: "info",    text: "ARM status : Accepted · Running" },
-    ],
-  },
 ];
 
 // ── Timing ────────────────────────────────────────────────────────────────────

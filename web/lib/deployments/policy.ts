@@ -39,7 +39,6 @@ const ALLOWED_RESOURCE_TYPES = new Set([
 const DEPLOYABLE_SLUGS = new Set([
   "approval-workflow",
   "scheduled-automation",
-  "static-web-app",
   "logic-app",
   "logic-app-storage",
 ]);

@@ -28,13 +28,13 @@ describe("validateDeploymentPolicy", () => {
       expect(result).toBeNull();
     });
 
-    it("allows static-web-app", () => {
+    it("blocks static-web-app (not currently exposed in catalog)", () => {
       const result = validateDeploymentPolicy({
         mode: "template",
         tags: validTags,
         template: { slug: "static-web-app", formValues: {} },
       });
-      expect(result).toBeNull();
+      expect(result).toEqual({ blocked: ["static-web-app"] });
     });
 
     it("allows logic-app", () => {
