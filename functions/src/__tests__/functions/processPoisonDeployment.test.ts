@@ -7,6 +7,7 @@ process.env.AZURE_STORAGE_CONNECTION_STRING ??= "DefaultEndpointsProtocol=https;
 process.env.NODE_ENV = "test";
 
 const mockCreateFailureRecord = vi.hoisted(() => vi.fn());
+const mockBeginDelete = vi.hoisted(() => vi.fn());
 
 vi.mock("../../modules/deployments/failure-store.js", () => ({
   createFailureRecord: mockCreateFailureRecord,
@@ -15,6 +16,12 @@ vi.mock("../../modules/deployments/failure-store.js", () => ({
 vi.mock("@azure/identity", () => ({
   DefaultAzureCredential: vi.fn().mockImplementation(function () {
     return { getToken: vi.fn(async () => ({ token: "fake-token", expiresOnTimestamp: Date.now() + 60_000 })) };
+  }),
+}));
+
+vi.mock("@azure/arm-resources", () => ({
+  ResourceManagementClient: vi.fn().mockImplementation(function () {
+    return { resourceGroups: { beginDelete: mockBeginDelete } };
   }),
 }));
 
@@ -58,6 +65,8 @@ const validMessage = {
 describe("processPoisonDeployment handler", () => {
   beforeEach(() => {
     mockCreateFailureRecord.mockReset();
+    mockBeginDelete.mockReset();
+    mockBeginDelete.mockResolvedValue(undefined);
   });
 
   it("writes a failure record for a valid poisoned message", async () => {
@@ -79,6 +88,7 @@ describe("processPoisonDeployment handler", () => {
     const ctx = makeContext();
     await processPoisonDeployment({ nonsense: true }, ctx);
     expect(mockCreateFailureRecord).not.toHaveBeenCalled();
+    expect(mockBeginDelete).not.toHaveBeenCalled();
     expect(ctx.error).toHaveBeenCalledWith(
       expect.stringContaining("unparseable message")
     );
@@ -87,6 +97,32 @@ describe("processPoisonDeployment handler", () => {
   it("parses a JSON string queue item", async () => {
     const ctx = makeContext();
     await processPoisonDeployment(JSON.stringify(validMessage), ctx);
+    expect(mockCreateFailureRecord).toHaveBeenCalledOnce();
+  });
+
+  it("deletes the orphaned resource group after recording the failure", async () => {
+    const ctx = makeContext();
+    await processPoisonDeployment(validMessage, ctx);
+    expect(mockBeginDelete).toHaveBeenCalledOnce();
+    expect(mockBeginDelete).toHaveBeenCalledWith(validMessage.resourceGroupName);
+    expect(ctx.log).toHaveBeenCalledWith(
+      expect.stringContaining(`Deleting orphaned resource group ${validMessage.resourceGroupName}`)
+    );
+  });
+
+  it("logs but does not throw when orphaned RG deletion fails", async () => {
+    mockBeginDelete.mockRejectedValueOnce(new Error("RG not found"));
+    const ctx = makeContext();
+    await expect(processPoisonDeployment(validMessage, ctx)).resolves.toBeUndefined();
+    expect(ctx.error).toHaveBeenCalledWith(
+      expect.stringContaining(`failed to delete orphaned RG ${validMessage.resourceGroupName}`)
+    );
+  });
+
+  it("still writes the failure record even if RG deletion later fails", async () => {
+    mockBeginDelete.mockRejectedValueOnce(new Error("boom"));
+    const ctx = makeContext();
+    await processPoisonDeployment(validMessage, ctx);
     expect(mockCreateFailureRecord).toHaveBeenCalledOnce();
   });
 });

@@ -68,7 +68,7 @@ describe("auth-core", () => {
     });
 
     it("returns null for cookie signed with different secret", async () => {
-      const { createSessionCookie, verifySessionCookie } = await import("@/lib/auth-core");
+      const { createSessionCookie } = await import("@/lib/auth-core");
       const user = { upn: "test@example.com", displayName: "Test User" };
       const cookie = await createSessionCookie(user);
       process.env.SESSION_SECRET = "another_secret_at_least_32_chars_long_yyy";

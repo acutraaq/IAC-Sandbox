@@ -19,4 +19,8 @@ globs: **/package.json, **/package-lock.json
 - `msw`, `jsdom`
 
 ## `functions/` — Production
-- `@azure/functions` (v4), `@azure/arm-resources`, `@azure/identity`, `zod`
+- `@azure/functions` (v4), `@azure/arm-resources`, `@azure/identity`, `@azure/storage-blob` (poison-queue failure records), `zod`
+
+## `functions/` — Development
+- `typescript`, `@types/node`, `vitest`
+- `eslint` (v10), `@eslint/js`, `typescript-eslint` — major version intentionally ahead of `web/`'s `eslint` (v9); `functions/` lint is not wired into the CI quality-gate sequence, only `tsc --noEmit` + `vitest run` are

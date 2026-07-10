@@ -12,7 +12,10 @@ env:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+  # Cancel superseded PR runs for fast feedback, but never cancel a run on
+  # main — that's a live deploy in progress, and cancelling it mid-way can
+  # leave the Function App or Web App half-deployed.
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
 
 jobs:
   changes:
@@ -34,6 +37,20 @@ jobs:
             functions:
               - 'functions/**'
               - '.github/workflows/ci.yml'
+
+  schema-drift:
+    name: Schema drift check
+    runs-on: ubuntu-latest
+    # Deliberately NOT gated by the changes/paths-filter job — a commit that
+    # touches only functions/src/modules/deployments/deployment.schema.ts (or
+    # only web/lib/deployments/schema.ts) must still be caught. Gating this on
+    # either path filter created a blind spot where an edit to just one side
+    # skipped the only check that would have caught the drift.
+    steps:
+      - uses: actions/checkout@v4
+      - name: Compare web and functions deployment schemas
+        run: |
+          diff -u <(sed '/^\/\//d' functions/src/modules/deployments/deployment.schema.ts | sed -n '1,/^export type DeploymentPayload/p' | sed 's/\.default({})//g' | sed 's/\.min(1)/.min(1)/g' | sed 's/, "[^"]*"//g') <(sed '/^\/\//d' web/lib/deployments/schema.ts | sed 's/\.default({})//g' | sed 's/\.min(1)/.min(1)/g' | sed 's/, "[^"]*"//g') || (echo "Schema drift detected — verify web/lib/deployments/schema.ts and functions/src/modules/deployments/deployment.schema.ts" && exit 1)
 
   web:
     name: Web
@@ -64,10 +81,6 @@ jobs:
 
       - name: Test
         run: npm run test:run
-
-      - name: Schema drift check
-        run: |
-          diff -u <(sed '/^\/\//d' ../functions/src/modules/deployments/deployment.schema.ts | sed -n '1,/^export type DeploymentPayload/p' | sed 's/\.default({})//g' | sed 's/\.min(1)/.min(1)/g' | sed 's/, "[^"]*"//g') <(sed '/^\/\//d' lib/deployments/schema.ts | sed 's/\.default({})//g' | sed 's/\.min(1)/.min(1)/g' | sed 's/, "[^"]*"//g') || (echo "Schema drift detected — verify web/lib/deployments/schema.ts and functions/src/modules/deployments/deployment.schema.ts" && exit 1)
 
       - name: Build
         run: npm run build

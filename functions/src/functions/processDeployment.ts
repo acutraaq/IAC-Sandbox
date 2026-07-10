@@ -2,6 +2,7 @@ import { app, InvocationContext } from "@azure/functions";
 import { executeBicepDeployment } from "../modules/deployments/bicep-executor.js";
 import { deploymentJobMessageSchema } from "../modules/deployments/deployment.schema.js";
 import { InvalidDeploymentConfigError } from "../modules/deployments/arm-template-builder.js";
+import { createFailureRecord } from "../modules/deployments/failure-store.js";
 import env from "../lib/env.js";
 
 export async function processDeployment(
@@ -29,6 +30,28 @@ export async function processDeployment(
     // Return without throwing: malformed messages should NOT trigger the
     // Functions runtime retry loop (they will never succeed). They are
     // effectively dropped; poison queue is reserved for executor failures.
+    // Still write a failure record (best-effort) so GET /api/deployments/:id
+    // can report "failed" instead of "accepted" forever — submissionId is
+    // generated server-side before enqueue, so it's present even when other
+    // fields fail validation.
+    const raw = rawMessage as Record<string, unknown> | null;
+    const submissionId = typeof raw?.submissionId === "string" ? raw.submissionId : undefined;
+    if (submissionId) {
+      try {
+        await createFailureRecord(env.AZURE_STORAGE_CONNECTION_STRING, {
+          submissionId,
+          resourceGroupName:
+            typeof raw?.resourceGroupName === "string" ? raw.resourceGroupName : "unknown",
+          error: `Invalid queue message: ${detail}`,
+          deployedBy: typeof raw?.deployedBy === "string" ? raw.deployedBy : "unknown",
+          failedAt: new Date().toISOString(),
+        });
+      } catch (writeErr) {
+        context.error(
+          `Failed to write failure record for malformed message ${submissionId}: ${writeErr instanceof Error ? writeErr.message : String(writeErr)}`
+        );
+      }
+    }
     return;
   }
   const { submissionId, resourceGroupName, location, payload, tags, deployedBy } = parsed.data;

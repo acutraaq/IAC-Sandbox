@@ -20,7 +20,7 @@ vi.mock("@/lib/server-env", () => ({
   },
 }));
 
-function mockQueueClient(approximateCount: number, exists = true) {
+function mockQueueClient(approximateCount: number) {
   return {
     getProperties: vi.fn().mockResolvedValue({ approximateMessagesCount: approximateCount }),
   };

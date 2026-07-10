@@ -50,4 +50,12 @@ describe("proxy", () => {
     expect(res.status).toBe(302);
     expect(res.headers.get("location")).toBe("http://localhost:3000/login?next=%2F");
   });
+
+  it("fails closed to /login instead of crashing when SESSION_SECRET is invalid", async () => {
+    process.env.SESSION_SECRET = "short";
+    const { proxy } = await import("@/proxy");
+    const res = await proxy(makeReq("/", { iac_session: "abcd.efgh" }));
+    expect(res.status).toBe(302);
+    expect(res.headers.get("location")).toBe("http://localhost:3000/login?next=%2F");
+  });
 });

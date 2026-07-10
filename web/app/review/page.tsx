@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useDeploymentStore } from "@/store/deploymentStore";
-import { submitDeployment, getMe, ApiError } from "@/lib/api";
+import { submitDeployment, getDeployment, getMe, ApiError } from "@/lib/api";
 import { generateReport } from "@/lib/report";
 import { ReviewSection } from "@/components/review/ReviewSection";
 import { ConfirmModal } from "@/components/review/ConfirmModal";
@@ -19,7 +19,15 @@ import { PageTransition } from "@/components/layout/PageTransition";
 
 export default function ReviewPage() {
   const router = useRouter();
-  const { mode, selectedTemplate, wizardState, setSubmissionResult, reset } = useDeploymentStore();
+  const {
+    mode,
+    selectedTemplate,
+    wizardState,
+    setSubmissionResult,
+    reset,
+    submissionId,
+    deployedResourceGroup,
+  } = useDeploymentStore();
 
   const [submitting, setSubmitting] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
@@ -37,6 +45,50 @@ export default function ReviewPage() {
   useEffect(() => {
     getMe().then(setUser);
   }, []);
+
+  // Silent background check: the UI intentionally shows no progress timeline
+  // (submission -> HOD approval happens outside this system, and a
+  // Submitted/Deploying/Complete bar was found to be misleading). But a
+  // deployment can still fail after submission with nothing telling anyone —
+  // so poll quietly and only speak up if it actually fails. Succeeding, or
+  // still being in progress, produces no visible change at all.
+  useEffect(() => {
+    if (!submissionId || !deployedResourceGroup) return;
+
+    let cancelled = false;
+    let attempts = 0;
+    let timeoutId: ReturnType<typeof setTimeout> | undefined;
+    const POLL_INTERVAL_MS = 3000;
+    const MAX_POLL_ATTEMPTS = 100; // ~5 minutes, then give up quietly
+
+    async function poll() {
+      attempts += 1;
+      try {
+        const result = await getDeployment(submissionId!, deployedResourceGroup!);
+        if (cancelled) return;
+        if (result.status === "failed") {
+          toast("error", result.errorMessage ?? "Deployment failed. Contact an administrator.");
+          return;
+        }
+        if (result.status === "succeeded") {
+          return;
+        }
+      } catch {
+        // Transient network/API error — keep trying until the attempt cap
+        // rather than surfacing noise for a single failed poll.
+      }
+      if (!cancelled && attempts < MAX_POLL_ATTEMPTS) {
+        timeoutId = setTimeout(poll, POLL_INTERVAL_MS);
+      }
+    }
+
+    timeoutId = setTimeout(poll, POLL_INTERVAL_MS);
+
+    return () => {
+      cancelled = true;
+      if (timeoutId) clearTimeout(timeoutId);
+    };
+  }, [submissionId, deployedResourceGroup]);
 
   function validateTags(): boolean {
     const result = tagsSchema.safeParse(tags);

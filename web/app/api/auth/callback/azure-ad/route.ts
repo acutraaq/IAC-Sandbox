@@ -7,6 +7,7 @@ import {
 import {
   createSessionCookie,
   SESSION_COOKIE_NAME,
+  secureCookieFlag,
 } from "@/lib/auth-core";
 
 function safeNext(raw: string): string {
@@ -68,7 +69,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       httpOnly: true,
       sameSite: "lax",
       path: "/",
-      secure: process.env.NODE_ENV === "production",
+      secure: secureCookieFlag(),
       maxAge: 60 * 60 * 24,
     });
     return res;

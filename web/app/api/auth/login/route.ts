@@ -6,7 +6,7 @@ import {
   AUTH_STATE_COOKIE,
   AUTH_STATE_TTL_SECONDS,
 } from "@/lib/msal";
-import { createSessionCookie, SESSION_COOKIE_NAME } from "@/lib/auth-core";
+import { createSessionCookie, SESSION_COOKIE_NAME, secureCookieFlag } from "@/lib/auth-core";
 
 function safeNext(raw: string | null): string {
   if (!raw || !raw.startsWith("/") || raw.startsWith("//") || raw.startsWith("/\\"))
@@ -41,7 +41,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
         httpOnly: true,
         sameSite: "lax",
         path: "/",
-        secure: process.env.NODE_ENV === "production",
+        secure: secureCookieFlag(),
         maxAge: 60 * 60 * 24,
       });
       return res;
@@ -61,7 +61,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       httpOnly: true,
       sameSite: "lax",
       path: "/api/auth",
-      secure: process.env.NODE_ENV === "production",
+      secure: secureCookieFlag(),
       maxAge: AUTH_STATE_TTL_SECONDS,
     });
     return res;

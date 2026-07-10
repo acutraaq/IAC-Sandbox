@@ -15,7 +15,8 @@ export interface BicepExecutorOptions {
   log?: (msg: string) => void;
 }
 
-const ARM_API = "2021-04-01";
+const ARM_API = "2024-03-01";
+const ARM_REQUEST_TIMEOUT_MS = 30_000;
 
 // ---------------------------------------------------------------------------
 // Main executor — fire-and-forget pattern
@@ -97,20 +98,33 @@ export async function executeBicepDeployment(
 
   const { _deployParameters, ...armTemplate } = template;
 
-  const res = await fetch(url, {
-    method: "PUT",
-    headers: {
-      Authorization: `Bearer ${tokenResult.token}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      properties: {
-        mode: "Incremental",
-        template: armTemplate as unknown as Record<string, unknown>,
-        parameters: _deployParameters ?? {},
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), ARM_REQUEST_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(url, {
+      method: "PUT",
+      headers: {
+        Authorization: `Bearer ${tokenResult.token}`,
+        "Content-Type": "application/json",
       },
-    }),
-  });
+      body: JSON.stringify({
+        properties: {
+          mode: "Incremental",
+          template: armTemplate as unknown as Record<string, unknown>,
+          parameters: _deployParameters ?? {},
+        },
+      }),
+      signal: controller.signal,
+    });
+  } catch (fetchErr) {
+    if (fetchErr instanceof Error && fetchErr.name === "AbortError") {
+      throw new Error(`[${id}] ARM deployment PUT timed out after ${ARM_REQUEST_TIMEOUT_MS}ms`, { cause: fetchErr });
+    }
+    throw fetchErr;
+  } finally {
+    clearTimeout(timeout);
+  }
 
   if (!res.ok) {
     const text = await res.text();

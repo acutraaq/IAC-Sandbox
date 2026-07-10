@@ -14,6 +14,11 @@ vi.mock("../../modules/deployments/bicep-executor.js", () => ({
   executeBicepDeployment,
 }));
 
+const createFailureRecord = vi.fn();
+vi.mock("../../modules/deployments/failure-store.js", () => ({
+  createFailureRecord,
+}));
+
 // @azure/functions registers a storage queue handler at module import via
 // app.storageQueue(...). Stub it so the side effect is a no-op under test.
 vi.mock("@azure/functions", () => ({
@@ -56,6 +61,7 @@ const validMessage = {
 describe("processDeployment handler", () => {
   beforeEach(() => {
     executeBicepDeployment.mockReset();
+    createFailureRecord.mockReset();
   });
 
   it("returns without throwing when the message fails Zod validation", async () => {
@@ -64,6 +70,28 @@ describe("processDeployment handler", () => {
     expect(executeBicepDeployment).not.toHaveBeenCalled();
     expect(ctx.error).toHaveBeenCalledWith(
       expect.stringContaining("Invalid queue message")
+    );
+    // No submissionId on the raw message — nothing to key a failure record on.
+    expect(createFailureRecord).not.toHaveBeenCalled();
+  });
+
+  it("writes a best-effort failure record when a malformed message still has a submissionId", async () => {
+    createFailureRecord.mockResolvedValue(undefined);
+    const ctx = makeContext();
+    await expect(
+      processDeployment(
+        { submissionId: "123e4567-e89b-12d3-a456-426614174000", resourceGroupName: "rg-test", deployedBy: "user@test.com" },
+        ctx
+      )
+    ).resolves.toBeUndefined();
+    expect(executeBicepDeployment).not.toHaveBeenCalled();
+    expect(createFailureRecord).toHaveBeenCalledWith(
+      expect.any(String),
+      expect.objectContaining({
+        submissionId: "123e4567-e89b-12d3-a456-426614174000",
+        resourceGroupName: "rg-test",
+        deployedBy: "user@test.com",
+      })
     );
   });
 

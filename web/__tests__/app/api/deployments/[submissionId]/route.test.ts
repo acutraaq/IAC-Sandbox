@@ -49,6 +49,49 @@ describe("GET /api/deployments/[submissionId]", () => {
     expect(res.status).toBe(400);
   });
 
+  it("returns accepted when the RG doesn't exist yet and no failure record exists", async () => {
+    mockResourceGroupsGet.mockRejectedValueOnce({ statusCode: 404 });
+    mockGetFailureRecord.mockResolvedValueOnce(null);
+    const { GET } = await import("@/app/api/deployments/[submissionId]/route");
+    const res = await GET(makeRequest(SUBMISSION_ID, "my-rg"), makeParams(SUBMISSION_ID));
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.status).toBe("accepted");
+  });
+
+  it("returns failed when the RG doesn't exist yet but an owned failure record exists (e.g. malformed queue message)", async () => {
+    mockResourceGroupsGet.mockRejectedValueOnce({ statusCode: 404 });
+    mockGetFailureRecord.mockResolvedValueOnce({
+      submissionId: SUBMISSION_ID,
+      resourceGroupName: "my-rg",
+      error: "Invalid queue message: tags.Cost Center: Required",
+      deployedBy: "demo@sandbox.local",
+      failedAt: "2026-07-01T00:00:00.000Z",
+    });
+    const { GET } = await import("@/app/api/deployments/[submissionId]/route");
+    const res = await GET(makeRequest(SUBMISSION_ID, "my-rg"), makeParams(SUBMISSION_ID));
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.status).toBe("failed");
+    expect(body.errorMessage).toContain("Invalid queue message");
+  });
+
+  it("does not leak another user's failure record when the RG doesn't exist yet", async () => {
+    mockResourceGroupsGet.mockRejectedValueOnce({ statusCode: 404 });
+    mockGetFailureRecord.mockResolvedValueOnce({
+      submissionId: SUBMISSION_ID,
+      resourceGroupName: "my-rg",
+      error: "Invalid queue message: tags.Cost Center: Required",
+      deployedBy: "someone-else@sandbox.local",
+      failedAt: "2026-07-01T00:00:00.000Z",
+    });
+    const { GET } = await import("@/app/api/deployments/[submissionId]/route");
+    const res = await GET(makeRequest(SUBMISSION_ID, "my-rg"), makeParams(SUBMISSION_ID));
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.status).toBe("accepted");
+  });
+
   it("returns accepted when ARM returns 404 and no failure record exists", async () => {
     mockDeploymentsGet.mockRejectedValueOnce({ statusCode: 404 });
     mockGetFailureRecord.mockResolvedValueOnce(null);

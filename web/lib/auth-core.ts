@@ -1,7 +1,12 @@
 import { z } from "zod";
 
 export const SESSION_COOKIE_NAME = "iac_session";
+export const SESSION_SECRET_MIN_LENGTH = 32;
 const SESSION_TTL_SECONDS = 60 * 60 * 24;
+
+export function secureCookieFlag(): boolean {
+  return process.env.NODE_ENV === "production";
+}
 
 export interface SessionUser {
   upn: string;
@@ -16,7 +21,7 @@ const sessionPayloadSchema = z.object({
 
 function getSecret(): string {
   const s = process.env.SESSION_SECRET;
-  if (!s || s.length < 32) {
+  if (!s || s.length < SESSION_SECRET_MIN_LENGTH) {
     throw new Error("SESSION_SECRET is not set or too short");
   }
   return s;

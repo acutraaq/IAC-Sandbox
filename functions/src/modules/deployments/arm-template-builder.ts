@@ -18,39 +18,35 @@ function generatePassword(): string {
 // ---------------------------------------------------------------------------
 // Subscription policy: COE-Allowed-Resources
 // Deny effect — any resource type NOT in this list will be rejected by Azure.
+//
+// This list gates the *generated* ARM resources (post-build), so it must
+// include companion types a single builder call emits alongside the
+// user-selected input type (Microsoft.Web/serverfarms alongside
+// Microsoft.Web/sites, Microsoft.Sql/servers/databases alongside
+// Microsoft.Sql/servers, Microsoft.App/managedEnvironments alongside
+// Microsoft.App/containerApps). It is intentionally narrower than a generic
+// subscription-wide allow-list and intentionally NOT a byte-for-byte mirror
+// of web/lib/deployments/policy.ts's ALLOWED_RESOURCE_TYPES, which gates the
+// *input* `resources[].type` field before any building happens — trim both
+// together when adding a new builder, but expect this one to carry a few
+// extra companion types.
 // ---------------------------------------------------------------------------
 
 const POLICY_ALLOWED_RESOURCE_TYPES = new Set([
-  "Microsoft.Compute/virtualMachines",
-  "Microsoft.Compute/virtualMachines/extensions",
-  "Microsoft.ContainerInstance/containerGroups",
-  "Microsoft.ContainerService/managedClusters",
-  "Microsoft.App/managedEnvironments",
-  "Microsoft.App/containerApps",
-  "Microsoft.Web/serverfarms",
   "Microsoft.Web/sites",
-  "Microsoft.Web/staticSites",
-  "Microsoft.Network/virtualNetworks",
-  "Microsoft.Network/virtualNetworks/subnets",
-  "Microsoft.Network/networkInterfaces",
-  "Microsoft.Network/privateEndpoints",
-  "Microsoft.Network/publicIPAddresses",
-  "Microsoft.Network/applicationGateways",
+  "Microsoft.Web/serverfarms",
+  "Microsoft.DBforPostgreSQL/flexibleServers",
   "Microsoft.Storage/storageAccounts",
+  "Microsoft.Network/virtualNetworks",
+  "Microsoft.KeyVault/vaults",
+  "Microsoft.App/containerApps",
+  "Microsoft.App/managedEnvironments",
+  "Microsoft.Web/staticSites",
+  "Microsoft.Logic/workflows",
+  "Microsoft.ServiceBus/namespaces",
+  "Microsoft.EventGrid/topics",
   "Microsoft.Sql/servers",
   "Microsoft.Sql/servers/databases",
-  "Microsoft.DocumentDB/databaseAccounts",
-  "Microsoft.DBforPostgreSQL/flexibleServers",
-  "Microsoft.DBforMySQL/flexibleServers",
-  "Microsoft.Synapse/workspaces",
-  "Microsoft.KeyVault/vaults",
-  "Microsoft.ManagedIdentity/userAssignedIdentities",
-  "Microsoft.EventGrid/topics",
-  "Microsoft.ServiceBus/namespaces",
-  "Microsoft.EventHub/namespaces",
-  "Microsoft.OperationalInsights/workspaces",
-  "Microsoft.ApiManagement/service",
-  "Microsoft.Logic/workflows",
 ]);
 
 /**

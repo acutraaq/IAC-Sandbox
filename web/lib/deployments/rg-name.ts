@@ -29,7 +29,11 @@ export function deriveResourceGroupName(
     base = payload.resources[0]?.name ?? "sandbox";
   }
 
-  const suffix = submissionId ? `-${submissionId.slice(0, 6)}` : "";
+  // Use the full UUID (dashes stripped) rather than a short slice — a 6-char
+  // prefix is only 24 bits and collides in practice at moderate submission
+  // volume; ARM would then silently merge into the colliding RG instead of
+  // rejecting the request.
+  const suffix = submissionId ? `-${submissionId.replace(/-/g, "")}` : "";
   return sanitise(base, suffix.length) + suffix + "-rg";
 }
 

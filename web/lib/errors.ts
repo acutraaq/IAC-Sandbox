@@ -4,7 +4,8 @@ export type ErrorCode =
   | "INTERNAL_ERROR"
   | "UNAUTHORIZED"
   | "FORBIDDEN"
-  | "CONFLICT";
+  | "CONFLICT"
+  | "TOO_MANY_REQUESTS";
 
 export interface ErrorDetail {
   path: string;
@@ -43,6 +44,10 @@ export class AppError extends Error {
 
   static unauthorized(message = "Authentication required"): AppError {
     return new AppError("UNAUTHORIZED", message, 401);
+  }
+
+  static tooManyRequests(message: string): AppError {
+    return new AppError("TOO_MANY_REQUESTS", message, 429);
   }
 }
 

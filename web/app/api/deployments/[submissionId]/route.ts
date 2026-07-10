@@ -49,7 +49,14 @@ export async function GET(
       }
     } catch (rgErr: unknown) {
       if (isArmError(rgErr) && rgErr.statusCode === 404) {
-        // RG not yet created — Function App still processing the queue message
+        // RG not yet created — either still queued, or it failed before
+        // reaching RG creation (e.g. malformed queue message, or the
+        // create/deploy call itself throwing and getting poison-queued).
+        // Check for a failure record before defaulting to "accepted" forever.
+        const failure = await getFailureRecord(submissionId);
+        if (failure && user?.upn === failure.deployedBy) {
+          return NextResponse.json({ submissionId, status: "failed", errorMessage: failure.error });
+        }
         return NextResponse.json({ submissionId, status: "accepted", errorMessage: null });
       }
       throw rgErr;

@@ -18,7 +18,14 @@ export async function proxy(request: NextRequest) {
   }
 
   const cookieValue = request.cookies.get(SESSION_COOKIE_NAME)?.value;
-  const session = await verifySessionCookie(cookieValue);
+  let session;
+  try {
+    session = await verifySessionCookie(cookieValue);
+  } catch {
+    // SESSION_SECRET missing/invalid (e.g. mid-rotation) — fail closed to a
+    // forced re-login instead of an uncaught 500 for every authenticated route.
+    session = null;
+  }
 
   if (!session) {
     const redirectUrl = new URL("/login", request.url);

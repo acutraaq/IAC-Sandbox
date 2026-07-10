@@ -5,7 +5,15 @@ globs: .github/**
 
 # CI/CD Deploy Approach
 
-Both `web` and `functions` jobs live in `.github/workflows/ci.yml`. A `changes` job runs first using `dorny/paths-filter@v3` to detect which paths changed — each job only runs when its relevant files are modified.
+`web`, `functions`, and `schema-drift` jobs live in `.github/workflows/ci.yml`. A `changes` job runs first using `dorny/paths-filter@v3` to detect which paths changed — `web`/`functions` only run when their relevant files are modified.
+
+## Schema drift job
+
+Deliberately NOT gated by the `changes` path filter — it always runs on every push/PR regardless of which side changed. It used to live inside the `web` job gated by `needs.changes.outputs.web`, which meant a commit touching only `functions/src/modules/deployments/deployment.schema.ts` skipped the only check that would have caught a web/functions schema mismatch. Compares `web/lib/deployments/schema.ts` against `functions/src/modules/deployments/deployment.schema.ts` via a `diff`/`sed` pipeline (not a semantic check — still a known gap, see HANDOFF.md).
+
+## Concurrency
+
+`cancel-in-progress` is conditional: `${{ github.ref != 'refs/heads/main' }}`. Superseded PR runs still cancel fast, but a push to `main` (which triggers a live Azure deploy) is never cancelled mid-way by a second push landing seconds later — that used to risk a half-deployed Function App or Web App.
 
 ## Web job
 1. `npm ci` → lint → type-check → test → `npm run build` (with dummy env vars)

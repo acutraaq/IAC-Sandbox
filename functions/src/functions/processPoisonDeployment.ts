@@ -1,5 +1,6 @@
 import { app, InvocationContext } from "@azure/functions";
 import { DefaultAzureCredential } from "@azure/identity";
+import { ResourceManagementClient } from "@azure/arm-resources";
 import { deploymentJobMessageSchema } from "../modules/deployments/deployment.schema.js";
 import { createFailureRecord } from "../modules/deployments/failure-store.js";
 import env from "../lib/env.js";
@@ -75,6 +76,20 @@ export async function processPoisonDeployment(
   } catch (err) {
     context.error(
       `processPoisonDeployment: failed to write failure record for ${submissionId}: ${err instanceof Error ? err.message : String(err)}`
+    );
+  }
+
+  // A poisoned message means the ARM deployment PUT either never succeeded
+  // or never happened at all — the RG (if it even exists) never received a
+  // working deployment. Safe to reclaim it rather than leave an empty,
+  // billed, tagged RG behind forever with nothing pointing back at it.
+  try {
+    const client = new ResourceManagementClient(credential, env.AZURE_SUBSCRIPTION_ID);
+    await client.resourceGroups.beginDelete(resourceGroupName);
+    context.log(`Deleting orphaned resource group ${resourceGroupName} for ${submissionId}`);
+  } catch (err) {
+    context.error(
+      `processPoisonDeployment: failed to delete orphaned RG ${resourceGroupName} for ${submissionId}: ${err instanceof Error ? err.message : String(err)}`
     );
   }
 }

@@ -22,8 +22,14 @@ vi.mock("@/lib/auth", () => ({
   getCurrentUser: vi.fn().mockResolvedValue({ upn: "user@epf.gov.my", displayName: "Test User" }),
 }));
 
+vi.mock("@/lib/deployments/rate-limit", () => ({
+  checkAndRecordSubmission: vi.fn().mockResolvedValue({ allowed: true }),
+}));
+
 import * as authModule from "@/lib/auth";
+import * as rateLimitModule from "@/lib/deployments/rate-limit";
 const mockGetCurrentUser = vi.mocked(authModule.getCurrentUser);
+const mockCheckAndRecordSubmission = vi.mocked(rateLimitModule.checkAndRecordSubmission);
 
 const validPayload = {
   mode: "template",
@@ -48,6 +54,8 @@ describe("POST /api/deployments", () => {
   beforeEach(() => {
     mockSendMessage.mockClear();
     mockGetCurrentUser.mockClear();
+    mockCheckAndRecordSubmission.mockClear();
+    mockCheckAndRecordSubmission.mockResolvedValue({ allowed: true });
   });
 
   it("returns 201 with submissionId and resourceGroup on valid payload", async () => {
@@ -114,5 +122,25 @@ describe("POST /api/deployments", () => {
     mockGetCurrentUser.mockResolvedValueOnce(null);
     const res = await POST(makeRequest(validPayload));
     expect(res.status).toBe(401);
+  });
+
+  it("returns 429 with Retry-After when the rate limit is exceeded", async () => {
+    mockCheckAndRecordSubmission.mockResolvedValueOnce({ allowed: false, retryAfterSeconds: 42 });
+    const res = await POST(makeRequest(validPayload));
+    expect(res.status).toBe(429);
+    expect(res.headers.get("Retry-After")).toBe("42");
+    const body = await res.json();
+    expect(body.error.code).toBe("TOO_MANY_REQUESTS");
+    expect(mockSendMessage).not.toHaveBeenCalled();
+  });
+
+  it("does not count invalid payloads against the rate limit", async () => {
+    await POST(makeRequest({ mode: "template", template: { slug: "logic-app", formValues: {} } }));
+    expect(mockCheckAndRecordSubmission).not.toHaveBeenCalled();
+  });
+
+  it("does not count policy-blocked submissions against the rate limit", async () => {
+    await POST(makeRequest({ ...validPayload, template: { slug: "virtual-machine", formValues: {} } }));
+    expect(mockCheckAndRecordSubmission).not.toHaveBeenCalled();
   });
 });

@@ -4,6 +4,7 @@ import userEvent from "@testing-library/user-event";
 import ReviewPage from "@/app/review/page";
 import { useDeploymentStore } from "@/store/deploymentStore";
 import * as api from "@/lib/api";
+import { toast } from "@/components/ui/Toast";
 
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ push: vi.fn(), replace: vi.fn() }),
@@ -27,6 +28,7 @@ vi.mock("next/link", () => ({
 
 vi.mock("@/lib/api", () => ({
   submitDeployment: vi.fn(),
+  getDeployment: vi.fn(),
   getMe: vi.fn().mockResolvedValue(null),
   ApiError: class ApiError extends Error {
     code: string;
@@ -46,6 +48,7 @@ vi.mock("@/components/ui/Toast", () => ({
 }));
 
 const mockSubmit = api.submitDeployment as ReturnType<typeof vi.fn>;
+const mockGetDeployment = api.getDeployment as ReturnType<typeof vi.fn>;
 
 function setupStore() {
   const store = useDeploymentStore.getState();
@@ -112,24 +115,56 @@ describe("ReviewPage — submission", () => {
     expect(screen.getByText(/HOD/i)).toBeInTheDocument();
   });
 
-  it("does not start polling after submission", async () => {
-    const intervalSpy = vi.spyOn(globalThis, "setInterval");
+  it("polls quietly and shows no toast while status stays in progress", async () => {
+    mockGetDeployment.mockResolvedValue({ submissionId: "SUB-TEST-123", status: "accepted", errorMessage: null });
     const user = userEvent.setup();
     const { container } = render(<ReviewPage />);
 
     await fillTagsAndSubmit(container, user);
+    await waitFor(() => expect(screen.getByRole("dialog")).toBeInTheDocument());
 
-    await waitFor(() =>
-      expect(screen.getByRole("dialog")).toBeInTheDocument(),
+    await waitFor(
+      () => expect(mockGetDeployment).toHaveBeenCalledWith("SUB-TEST-123", "sandbox-rg"),
+      { timeout: 5000 },
+    );
+    expect(toast).not.toHaveBeenCalledWith("error", expect.anything());
+  }, 15000);
+
+  it("shows an error toast and stops polling once the deployment fails", async () => {
+    mockGetDeployment
+      .mockResolvedValueOnce({ submissionId: "SUB-TEST-123", status: "accepted", errorMessage: null })
+      .mockResolvedValueOnce({ submissionId: "SUB-TEST-123", status: "failed", errorMessage: "Deployment blocked by policy" });
+    const user = userEvent.setup();
+    const { container } = render(<ReviewPage />);
+
+    await fillTagsAndSubmit(container, user);
+    await waitFor(() => expect(screen.getByRole("dialog")).toBeInTheDocument());
+
+    await waitFor(
+      () => expect(toast).toHaveBeenCalledWith("error", "Deployment blocked by policy"),
+      { timeout: 8000 },
     );
 
-    const pollingIntervals = intervalSpy.mock.calls.filter(
-      ([, delay]) => delay === 3000,
-    );
-    expect(pollingIntervals).toHaveLength(0);
+    const callsAfterFailure = mockGetDeployment.mock.calls.length;
+    await new Promise((r) => setTimeout(r, 3500));
+    expect(mockGetDeployment.mock.calls.length).toBe(callsAfterFailure);
+  }, 15000);
 
-    intervalSpy.mockRestore();
-  });
+  it("stays silent when the deployment succeeds", async () => {
+    mockGetDeployment.mockResolvedValueOnce({ submissionId: "SUB-TEST-123", status: "succeeded", errorMessage: null });
+    const user = userEvent.setup();
+    const { container } = render(<ReviewPage />);
+
+    await fillTagsAndSubmit(container, user);
+    await waitFor(() => expect(screen.getByRole("dialog")).toBeInTheDocument());
+
+    await waitFor(() => expect(mockGetDeployment).toHaveBeenCalledTimes(1), { timeout: 5000 });
+    expect(toast).not.toHaveBeenCalledWith("error", expect.anything());
+
+    const callsAfterSucceeded = mockGetDeployment.mock.calls.length;
+    await new Promise((r) => setTimeout(r, 3500));
+    expect(mockGetDeployment.mock.calls.length).toBe(callsAfterSucceeded);
+  }, 15000);
 
   it("shows tag validation errors when fields are empty", async () => {
     const user = userEvent.setup();

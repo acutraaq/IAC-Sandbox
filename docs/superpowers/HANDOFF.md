@@ -1,6 +1,6 @@
-# Session Handoff — 2026-07-01
+# Session Handoff — 2026-07-10
 
-> **Version:** 2.1.0 | **Last updated:** 2026-07-01 | **Status:** Active
+> **Version:** 2.2.0 | **Last updated:** 2026-07-10 | **Status:** Active
 > **Purpose:** Context for engineers starting a new session
 > **Related docs:** [Project Index](../README.md) | [CLAUDE.md](../../CLAUDE.md) | [Complete Spec](../project/SPEC.md)
 >
@@ -8,11 +8,56 @@
 
 ## TL;DR
 
-**Codebase optimization pass completed.** 12 targeted fixes applied across 11 files — no features added, no breaking changes. All 313 tests pass (239 web + 74 functions). Key highlights: policy sync fix (diagnosticSettings removed from web allow-list), queue message schema extracted to single source of truth, `DeploymentPayload` type now sourced from Zod schema only, `getMe()` added to api.ts, `templates.md` corrected (was listing 16 templates, only 3 are live).
+**Long-term risk audit + all 11 High severity findings fixed.** A deep multi-agent audit (59 agents) surfaced 28 findings across 8 risk dimensions, 26 confirmed after adversarial verification (2 refuted). All 11 High severity items are now fixed; 11 Medium + 4 Low remain open (see below). Two of the fixes were real feature builds, not just bug fixes — an expired-RG reaper timer function and a global submission rate limiter — both scoped in with the user before building since they involved destructive automation / a rate threshold. All 347 tests pass (254 web + 93 functions).
 
 ---
 
-## What was done in this session (2026-07-01)
+## What was done in this session (2026-07-10)
+
+### Audit
+Deep workflow-based audit (whole project, weighted toward the deployment pipeline): 8 finder dimensions → adversarial verify (1-3 refuters per finding by severity) → completeness critic. Findings ranked by 6-12 month blast radius, not by what's broken today. Full finding list preserved in conversation history; the highlights below are what got fixed.
+
+### Fixes — 11 High severity findings
+
+| Fix | File(s) | Why |
+|-----|---------|-----|
+| Fail closed on invalid `SESSION_SECRET` | `web/proxy.ts` | `verifySessionCookie()` threw uncaught on a missing/short secret — every authenticated route 500'd instead of redirecting to `/login`. A routine secret rotation was a full outage. |
+| Trim custom-mode resource-type allow-list | `web/lib/deployments/policy.ts`, `functions/src/modules/deployments/arm-template-builder.ts` | Web-side allow-list had 18/30 types with no builder case — passed validation, enqueued, then silently poison-queued. Trimmed to what `buildCustomResources` actually supports (11 input types); functions-side list kept a few extra companion types since it also gates *generated* resources like `Microsoft.Web/serverfarms`. |
+| Widen RG-name collision suffix | `web/lib/deployments/rg-name.ts` | Suffix was 6 hex chars (24 bits) sliced from the submissionId UUID — collided at moderate volume, and ARM would silently merge into the colliding RG. Now uses the full UUID (128 bits). |
+| Failure record on malformed queue message + poison-queue auto-delete | `functions/src/functions/processDeployment.ts`, `processPoisonDeployment.ts` | Zod-validation-drop wrote nothing, so `GET /api/deployments/:id` could never distinguish "still queued" from "silently dropped." Now writes a best-effort failure record. Poison handler now also deletes the orphaned RG — reasoned through every poison path (Zod-drop never creates an RG; RG-create failure leaves nothing to delete; PUT-rejected leaves an RG with zero provisioned resources) — nothing valuable is ever discarded. |
+| Check failure record before reporting `"accepted"` | `web/app/api/deployments/[submissionId]/route.ts` | RG-404 branch defaulted straight to `"accepted"` forever; now checks the failure record first (with an ownership check on `deployedBy` so it can't leak another user's failure reason). |
+| ARM API version + request timeout | `functions/src/modules/deployments/bicep-executor.ts` | Hardcoded `2021-04-01`, no timeout — bumped to `2024-03-01`, added a 30s `AbortController` timeout on the deployment PUT. |
+| Schema-drift check always runs | `.github/workflows/ci.yml` | Lived inside the path-filtered `web` job — a functions-only schema edit skipped the only check that would catch drift. Moved to its own unconditional job. |
+| `cancel-in-progress` doesn't kill main deploys | `.github/workflows/ci.yml` | Was unconditionally `true` — a second push to `main` could cancel a live Azure deploy mid-way. Now `${{ github.ref != 'refs/heads/main' }}`. |
+| Silent failure-only status check | `web/app/review/page.tsx` | Deployment status endpoint was fully built but dead code — no UI called it. **Did not** just restore the old 3-step progress timeline: git history showed it was deliberately removed (commit `1f4ca28`) because it was misleading vs. the real HOD-approval workflow. Instead built a background poll that stays invisible unless the deployment fails, then shows one error toast. Known limitation: page-scoped, stops if the user navigates away. |
+| Expired-RG reaper | new `functions/src/functions/reapExpiredDeployments.ts` | `Expiry Date` tag was validated but never enforced — resources billed forever past expiry. Daily timer function (03:00 UTC) deletes RGs past their `Expiry Date`, gated strictly on the presence of the app's own `iac-submissionId` tag so it never touches a resource group it didn't create. |
+| Submission rate limiting | new `web/lib/deployments/rate-limit.ts` | No cap on submissions — could exhaust Azure's per-region storage-account quota. Global rolling-window cap (20/hour) via a single blob + ETag optimistic concurrency; fails open on any storage error. Global (not per-user) since auth is still the shared placeholder identity. |
+
+Also fixed as quick wins during the initial audit pass (before the High-severity round): 2 lint warnings (unused vars in 2 test files), duplicated `SESSION_SECRET` min-length check (now one constant), duplicated `NODE_ENV` cookie-`secure` check across 3 auth routes (now one helper), `dependencies.md` doc drift (`@azure/storage-blob` was undocumented in functions prod deps).
+
+### Decisions made with the user before building
+- Orphan RG cleanup: auto-delete (not tag-only, not skip)
+- Dead status endpoint: build the failure-only silent poll (not full timeline restore, not docs-only)
+- Expiry Date enforcement: real timer-function auto-delete (not report-only)
+- Rate limit: yes, global ~20/hour cap
+
+### Test results
+- `web/` → **254 passed** (41 files), lint 0 errors, tsc 0 errors, build clean
+- `functions/` → **93 passed** (8 files), lint 0 errors, tsc 0 errors, build clean
+
+### What is NOT done (next session candidates)
+- **11 Medium + 4 Low severity findings from the 2026-07-10 audit**, not yet actioned:
+  - Medium: fixed no-backoff retry cadence (`host.json`); SQL/Postgres builders regenerate a random admin password on every build, breaking idempotency under redelivery; Zod-drop path fix and RG-created-before-outcome are related to already-fixed items but worth re-checking together; `proxy.ts` dot-suffix matcher + auth fail-open could form a bypass trap for future routes; `deployedBy`/my-deployments keyed on a mutable MSAL claim not an immutable identity; schema-drift diff is a hand-tuned `sed`/`diff` pipeline, not a semantic check; resource-type allow-list is still hand-duplicated across web/functions with no automated equality check (only trimmed this session, not de-duplicated); template-mode slug enforcement is a manual quadruple across services; no post-deploy health/smoke gate in CI; publish-profile (Basic Auth) deploy credentials have no rotation policy or failure alerting
+  - Low: hardcoded-feeling but now-current ARM API version will age again eventually; poison-queue failure blobs have no TTL/lifecycle policy; the reactivated 3s poll has no explicit max-attempts cap beyond the ~5 min built into `review/page.tsx` (worth hardening if the poll ever becomes app-wide); MSAL's default in-memory token cache has no eviction path
+- **Completeness-critic gaps flagged but not investigated:** no log aggregation/alerting for poison/failed deploys; no DR/backup for the storage account holding all queue + failure state; no npm audit/Dependabot/SBOM gate in CI; no monitoring of subscription-level ARM throttling/quota; **Function App managed identity has Contributor over the *entire* subscription, not scoped per-RG — combined with `deployedBy` having no ACL, once SSO activates any authenticated user could query another user's deployments.** This last one is worth prioritizing before SSO activation.
+- **Test hygiene (noticed, not fixed, out of this session's scope):** `processPoisonDeployment.test.ts`'s ARM-failure-reason lookup makes a real outbound network call in tests (relies on a dummy subscription ID 404ing) instead of mocking `fetch` — fragile, not something this session touched or broke.
+- **Silent-poll limitation:** the new review-page failure check is page-scoped and stops on navigation away — if broader coverage (surviving navigation, or a dedicated notifications view) is wanted, that's a bigger design conversation, not a quick follow-up.
+- **End-to-end verification** — still nobody has confirmed a real template submission progresses `accepted` → `running` → `succeeded` in `sub-epf-sandbox-internal`. Worth doing now that failure visibility actually works, to prove the whole loop including the new failure-only poll.
+- **Not committed yet** — everything in this session is working-tree only as of this writeup.
+
+---
+
+## What was done in the previous session (2026-07-01)
 
 ### Codebase optimization — 12 fixes across 11 files
 
@@ -108,8 +153,8 @@ No admin action outstanding. Env vars (`DEPLOYMENT_QUEUE`, `AZURE_STORAGE_CONNEC
 **Still open:** no real template submission has been observed progressing `accepted` → `running` → `succeeded` end-to-end. Next session should submit a storage-account or Template-flow Logic App and confirm the resource group appears in `sub-epf-sandbox-internal` with all 6 ARM tags.
 
 ### On hold
-- **Microsoft SSO** — fully implemented, not activating. Placeholder `demo@sandbox.local` is accepted state.
-- **Error UX** — surface ARM errors in review modal + my-stuff page (next planned sprint)
+- **Microsoft SSO** — fully implemented, not activating. Placeholder `demo@sandbox.local` is accepted state. **Before activating:** address the Function App MI subscription-wide Contributor + no-ACL-on-`deployedBy` gap noted in the 2026-07-10 session — right now that's low-risk because everyone shares one placeholder identity, but it becomes a real cross-user data leak once real identities exist.
+- **Error UX** — 2026-07-10 session added a silent failure-only toast on the review page (see Architecture in CLAUDE.md), but that's a narrow fix, not the full audit. Broader error UX (my-stuff page, richer error detail) still not scheduled.
 - **a11y audit** — lighthouse/axe-core, high/medium findings
 
 ---

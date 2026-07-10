@@ -5,6 +5,7 @@ import { AppError, toErrorResponse, logError } from "@/lib/errors";
 import { deploymentPayloadSchema } from "@/lib/deployments/schema";
 import { deriveResourceGroupName, deriveLocation } from "@/lib/deployments/rg-name";
 import { validateDeploymentPolicy } from "@/lib/deployments/policy";
+import { checkAndRecordSubmission } from "@/lib/deployments/rate-limit";
 import { getCurrentUser } from "@/lib/auth";
 import type { DeploymentPayload } from "@/lib/deployments/schema";
 
@@ -64,6 +65,19 @@ export async function POST(request: Request) {
         `Deployment blocked by subscription policy. Not permitted: ${policyViolation.blocked.join(", ")}`
       );
       return NextResponse.json(toErrorResponse(err, requestId), { status: err.statusCode });
+    }
+
+    const rateLimit = await checkAndRecordSubmission();
+    if (!rateLimit.allowed) {
+      const err = AppError.tooManyRequests(
+        "Too many deployments submitted recently. Please try again later."
+      );
+      return NextResponse.json(toErrorResponse(err, requestId), {
+        status: err.statusCode,
+        headers: rateLimit.retryAfterSeconds
+          ? { "Retry-After": String(rateLimit.retryAfterSeconds) }
+          : undefined,
+      });
     }
 
     const submissionId = crypto.randomUUID();

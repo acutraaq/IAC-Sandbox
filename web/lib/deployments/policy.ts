@@ -1,38 +1,23 @@
 import type { DeploymentPayload } from "./schema";
 
-// Mirrors POLICY_ALLOWED_RESOURCE_TYPES in functions/src/modules/deployments/arm-template-builder.ts
-// SYNC: keep in sync with the functions copy
+// Mirrors POLICY_ALLOWED_RESOURCE_TYPES in functions/src/modules/deployments/arm-template-builder.ts.
+// SYNC: keep in sync with the functions copy.
+// Scoped to exactly the resource types buildCustomResources() can build — not
+// the full COE-Allowed-Resources subscription policy — so an unsupported type
+// is rejected here (400) instead of passing validation, enqueueing, and then
+// throwing/poison-queueing inside the Function App.
 const ALLOWED_RESOURCE_TYPES = new Set([
-  "Microsoft.Compute/virtualMachines",
-  "Microsoft.Compute/virtualMachines/extensions",
-  "Microsoft.ContainerInstance/containerGroups",
-  "Microsoft.ContainerService/managedClusters",
-  "Microsoft.App/managedEnvironments",
-  "Microsoft.App/containerApps",
-  "Microsoft.Web/serverfarms",
   "Microsoft.Web/sites",
-  "Microsoft.Web/staticSites",
-  "Microsoft.Network/virtualNetworks",
-  "Microsoft.Network/virtualNetworks/subnets",
-  "Microsoft.Network/networkInterfaces",
-  "Microsoft.Network/privateEndpoints",
-  "Microsoft.Network/publicIPAddresses",
-  "Microsoft.Network/applicationGateways",
-  "Microsoft.Storage/storageAccounts",
-  "Microsoft.Sql/servers",
-  "Microsoft.Sql/servers/databases",
-  "Microsoft.DocumentDB/databaseAccounts",
   "Microsoft.DBforPostgreSQL/flexibleServers",
-  "Microsoft.DBforMySQL/flexibleServers",
-  "Microsoft.Synapse/workspaces",
+  "Microsoft.Storage/storageAccounts",
+  "Microsoft.Network/virtualNetworks",
   "Microsoft.KeyVault/vaults",
-  "Microsoft.ManagedIdentity/userAssignedIdentities",
-  "Microsoft.EventGrid/topics",
-  "Microsoft.ServiceBus/namespaces",
-  "Microsoft.EventHub/namespaces",
-  "Microsoft.OperationalInsights/workspaces",
-  "Microsoft.ApiManagement/service",
+  "Microsoft.App/containerApps",
+  "Microsoft.Web/staticSites",
   "Microsoft.Logic/workflows",
+  "Microsoft.ServiceBus/namespaces",
+  "Microsoft.EventGrid/topics",
+  "Microsoft.Sql/servers",
 ]);
 
 // Only slugs that have ARM builders in arm-template-builder.ts and are not policy-blocked
