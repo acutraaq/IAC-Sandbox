@@ -74,6 +74,17 @@ describe("validateTemplateAgainstPolicy", () => {
     expect(blocked).toContain("Microsoft.SomeBlockedService/things");
     expect(blocked).not.toContain("Microsoft.Web/staticSites");
   });
+
+  it("allows Microsoft.Web/connections", () => {
+    const t = buildArmTemplate(customPayload("Microsoft.Web/staticSites", "app"), { tenantId: TENANT_ID });
+    t.resources.push({
+      type: "Microsoft.Web/connections",
+      apiVersion: "2016-06-01",
+      name: "test-conn",
+      location: "malaysiawest",
+    });
+    expect(validateTemplateAgainstPolicy(t)).not.toContain("Microsoft.Web/connections");
+  });
 });
 
 // ---------------------------------------------------------------------------

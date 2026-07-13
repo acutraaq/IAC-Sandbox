@@ -47,6 +47,7 @@ const POLICY_ALLOWED_RESOURCE_TYPES = new Set([
   "Microsoft.EventGrid/topics",
   "Microsoft.Sql/servers",
   "Microsoft.Sql/servers/databases",
+  "Microsoft.Web/connections",
 ]);
 
 /**
