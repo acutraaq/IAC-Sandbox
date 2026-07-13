@@ -4,6 +4,8 @@ process.env.AZURE_SUBSCRIPTION_ID ??= "11111111-1111-1111-1111-111111111111";
 process.env.AZURE_TENANT_ID ??= "22222222-2222-2222-2222-222222222222";
 process.env.DEPLOYMENT_QUEUE ??= "test-queue";
 process.env.AZURE_STORAGE_CONNECTION_STRING ??= "test-connection-string";
+process.env.FOUNDRY_API_KEY ??= "test-foundry-key";
+process.env.FOUNDRY_RESOURCE_NAME ??= "test-foundry-resource";
 process.env.NODE_ENV = "test";
 
 const mockList = vi.hoisted(() => vi.fn());
