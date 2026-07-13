@@ -524,10 +524,34 @@ git commit -m "feat: auto-provision Azure OpenAI connection for logic-app templa
 **Files:**
 - Modify: `functions/src/modules/deployments/bicep-executor.ts:64-68`
 - Modify: `functions/src/__tests__/modules/deployments/bicep-executor.test.ts`
+- Modify: `functions/src/__tests__/functions/healthz.test.ts`
+- Modify: `functions/src/__tests__/functions/processDeployment.test.ts`
+- Modify: `functions/src/__tests__/functions/processPoisonDeployment.test.ts`
+- Modify: `functions/src/__tests__/functions/reapExpiredDeployments.test.ts`
 
 **Interfaces:**
 - Consumes: `env.FOUNDRY_API_KEY`, `env.FOUNDRY_RESOURCE_NAME` (Task 1), `buildArmTemplate(payload, opts)` with `opts.foundryApiKey`/`opts.foundryResourceName` (Task 3).
 - Produces: nothing new consumed by later tasks — this is the last functions-side task.
+
+**Plan correction (found during Task 3 review):** Task 1's env schema change made `FOUNDRY_API_KEY`/`FOUNDRY_RESOURCE_NAME` required, which breaks every test file that imports `env.ts` (directly or transitively) without stubbing them — not just `bicep-executor.test.ts`. Confirmed by running the full `functions/` suite after Task 3: `healthz.test.ts`, `processDeployment.test.ts`, `processPoisonDeployment.test.ts`, and `reapExpiredDeployments.test.ts` all fail with `Invalid environment variables: FOUNDRY_API_KEY: ... FOUNDRY_RESOURCE_NAME: ...` (20 tests total, 5 files). Each of these 4 files already has the identical `process.env.X ??= "..."` stub block at its top (lines 3-7 or 5-9) — Step 0 below adds the same 2-line fix to each, mirroring the fix `bicep-executor.test.ts` already needed. This is the only way Task 4's Step 5 "Full functions/ gate" can actually pass.
+
+- [ ] **Step 0: Fix the 4 other test files broken by Task 1's schema change**
+
+Add these two lines to the top-of-file `process.env` stub block in each of the 4 files below (same line, same position — immediately after the existing `AZURE_STORAGE_CONNECTION_STRING` stub line, before `NODE_ENV`):
+
+```typescript
+process.env.FOUNDRY_API_KEY ??= "test-foundry-key";
+process.env.FOUNDRY_RESOURCE_NAME ??= "test-foundry-resource";
+```
+
+Apply to:
+- `functions/src/__tests__/functions/healthz.test.ts` (after line 6)
+- `functions/src/__tests__/functions/processDeployment.test.ts` (after line 8)
+- `functions/src/__tests__/functions/processPoisonDeployment.test.ts` (after line 6)
+- `functions/src/__tests__/functions/reapExpiredDeployments.test.ts` (after line 6)
+
+Run (from `functions/`): `npx vitest run`
+Expected: the 20 previously-failing tests across these 4 files now PASS again (this step alone doesn't fix `bicep-executor.test.ts` — that's Steps 1-4 below). This step has no TDD red/green cycle of its own — it's restoring tests that Task 1 broke, not adding new behavior.
 
 - [ ] **Step 1: Write the failing test**
 
