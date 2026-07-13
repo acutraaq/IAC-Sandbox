@@ -29,13 +29,11 @@ export function deriveResourceGroupName(
     base = payload.resources[0]?.name ?? "sandbox";
   }
 
-  // 8 hex chars (32 bits) of the UUID (dashes stripped) — a 6-char prefix
-  // was only 24 bits and collided in practice at moderate submission volume;
-  // ARM would then silently merge into the colliding RG instead of rejecting
-  // the request. Global rate limit caps at 20 submissions/hour, so 32 bits
-  // keeps collision risk negligible at this app's actual volume.
-  const suffix = submissionId ? `-${submissionId.replace(/-/g, "").slice(0, 8)}` : "";
-  return sanitise(base, suffix.length) + suffix + "-rg";
+  // No uniqueness suffix — RG name is derived from the user-entered name only.
+  // Known tradeoff: two submissions with the same primary field value produce
+  // the same RG name, and ARM silently merges the second deployment into the
+  // first RG's resources instead of erroring.
+  return sanitise(base) + "-rg";
 }
 
 export function deriveLocation(payload: DeploymentPayload): string {

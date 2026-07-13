@@ -78,7 +78,7 @@ describe("deriveResourceGroupName", () => {
     expect(result).toBe("sandbox-rg");
   });
 
-  it("appends submissionId suffix when provided", () => {
+  it("ignores submissionId — no uniqueness suffix", () => {
     const result = deriveResourceGroupName(
       {
         mode: "template",
@@ -86,7 +86,7 @@ describe("deriveResourceGroupName", () => {
       },
       "123e4567-e89b-12d3-a456-426614174000"
     );
-    expect(result).toBe("mydata-123e4567-rg");
+    expect(result).toBe("mydata-rg");
   });
 
   it("total length does not exceed 90 characters", () => {
