@@ -121,6 +121,15 @@ describe("buildApprovalWorkflow (approval-workflow template)", () => {
     );
     expect(t.resources[0].name).toMatch(/^[a-z0-9-]+$/);
   });
+
+  it("does not pick up the Foundry pre-wired action (no foundry config passed for this slug)", () => {
+    const t = buildArmTemplate(
+      templatePayload("approval-workflow", { workflowName: "leave-approval" }),
+      { tenantId: TENANT_ID }
+    );
+    const def = (t.resources[0] as Record<string, unknown>).properties as { definition: { actions: Record<string, unknown> } };
+    expect(def.definition.actions).toEqual({});
+  });
 });
 
 // ---------------------------------------------------------------------------
@@ -146,6 +155,15 @@ describe("buildScheduledAutomation (scheduled-automation template)", () => {
     );
     const def = (t.resources[0] as Record<string, unknown>).properties as { definition: { triggers: { Recurrence: { recurrence: { frequency: string } } } } };
     expect(def.definition.triggers.Recurrence.recurrence.frequency).toBe("Day");
+  });
+
+  it("does not pick up the Foundry pre-wired action (no foundry config passed for this slug)", () => {
+    const t = buildArmTemplate(
+      templatePayload("scheduled-automation", { workflowName: "weekly-report" }),
+      { tenantId: TENANT_ID }
+    );
+    const def = (t.resources[0] as Record<string, unknown>).properties as { definition: { actions: Record<string, unknown> } };
+    expect(def.definition.actions).toEqual({});
   });
 });
 
@@ -280,6 +298,18 @@ describe("buildLogicAppTemplate (logic-app template)", () => {
     const props = conn.properties as { parameterValues: { azureOpenAIResourceName: string; azureOpenAIApiKey: string } };
     expect(props.parameterValues.azureOpenAIResourceName).toBe(FOUNDRY.foundryResourceName);
     expect(props.parameterValues.azureOpenAIApiKey).toBe("[parameters('azureopenaiApiKey')]");
+  });
+
+  it("ships the connector AND the pre-wired action together, not one or the other", () => {
+    const t = buildArmTemplate(
+      templatePayload("logic-app", { workflowName: "my-workflow" }),
+      { tenantId: TENANT_ID, ...FOUNDRY }
+    );
+    const conn = t.resources.find((r) => r.type === "Microsoft.Web/connections");
+    expect(conn).toBeDefined();
+    const logicApp = t.resources.find((r) => r.type === "Microsoft.Logic/workflows") as Record<string, unknown>;
+    const def = logicApp.properties as { definition: { actions: Record<string, unknown> } };
+    expect(def.definition.actions).toHaveProperty("Call_Foundry_Model");
   });
 });
 
