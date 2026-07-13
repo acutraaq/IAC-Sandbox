@@ -6,7 +6,7 @@
     "category": "automation",
     "icon": "Zap",
     "resourceType": "Logic App",
-    "resourceCount": 1,
+    "resourceCount": 2,
     "estimatedTime": "~1 minute",
     "steps": [
       {
@@ -32,7 +32,7 @@
     "category": "automation",
     "icon": "HardDrive",
     "resourceType": "Logic App + Storage Account",
-    "resourceCount": 2,
+    "resourceCount": 3,
     "estimatedTime": "~1 minute",
     "steps": [
       {

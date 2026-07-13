@@ -56,6 +56,8 @@ Portal path: `epf-sandbox-functions` → Configuration → Application settings
 | `DEPLOYMENT_QUEUE` | Full Azure Storage connection string for `coeiacsandbox8bfc` (same value as `AZURE_STORAGE_CONNECTION_STRING` on the App Service) |
 | `AZURE_STORAGE_CONNECTION_STRING` | Same as `DEPLOYMENT_QUEUE` — used by the poison-queue handler to write dead-letter failure records to blob storage |
 | `AzureWebJobsStorage` | Same storage connection string — required by the Functions runtime itself for internal state |
+| `FOUNDRY_API_KEY` | Azure AI Foundry / Azure OpenAI API key (shared resource used by every logic-app / logic-app-storage deployment) |
+| `FOUNDRY_RESOURCE_NAME` | Azure OpenAI resource name (the subdomain segment of the endpoint, e.g. `coe-ai-foundry-eus2` from `https://coe-ai-foundry-eus2.openai.azure.com`) |
 
 Click **Save** after any changes; allow the Function App to restart.
 
