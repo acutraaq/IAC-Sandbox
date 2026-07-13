@@ -1,7 +1,7 @@
 # Design: Auto-wired Azure OpenAI (Foundry) connection on Logic App templates
 
 **Date:** 2026-07-13
-**Status:** Superseded by Revision 2 (below) — the original `Microsoft.Web/connections` approach was implemented, merged, and deployed, then failed on first real deployment. Kept for history; do not implement §1-§Open risks below, see Revision 2 for what actually ships.
+**Status:** Superseded by Revision 3 (below) — the original `Microsoft.Web/connections` approach (§1-§Open risks) was implemented, merged, and deployed, then failed on first real deployment. Revision 2 replaced it with baked-in workflow parameters, no connector. Revision 3 brings the connector back (policy owner unblocked it) *and* keeps the workflow parameters, adding a fully pre-wired HTTP action so non-technical users need zero manual configuration either way. Kept for history; see Revision 3 for what actually ships.
 
 ## Purpose
 
@@ -366,3 +366,139 @@ connector.
 - No new `bicep-executor.test.ts` cases needed beyond what Revision 1 already
   added (that test only checks the deploy parameter propagates — the
   mechanism it verifies didn't change).
+
+---
+
+## Revision 3 (2026-07-13, same day): bring the connector back, keep the parameters, pre-wire the action
+
+**Status:** Active — this is what actually ships.
+
+### What happened
+
+The `COE-Allowed-Resources` policy blocker from Revision 2 is gone — the
+subscription's policy owner added `Microsoft.Web/connections` to the
+allow-list independently. That removes the reason Revision 2 dropped the
+connector in the first place.
+
+Separately, a new requirement surfaced: the workflow-parameters-only
+approach (Revision 2) still requires the user to manually build an HTTP
+action in the Designer (URI expression, headers, method) — acceptable for
+a technical user, not for the stated non-technical audience. Two
+independent asks converged: (1) bring back the connector now that policy
+allows it, since picking a connector from a dropdown is the easiest
+possible UX for a non-technical user building *additional* actions later,
+and (2) still pre-wire a working action into the deployed workflow, so
+*zero* configuration is needed even for the very first action.
+
+**Decision: do both.** Neither is a replacement for the other — the
+connector serves "user adds more AI actions later, wants a dropdown, not
+an expression editor"; the pre-wired HTTP action serves "user opens the
+Designer for the first time and the workflow already calls the model."
+
+### Components (Revision 3)
+
+- **`buildAzureOpenAiConnection()` is restored** — same shape as Revision 1
+  (`Microsoft.Web/connections`, `azureopenai` connector, API-key auth,
+  `parameterValues.azureOpenAIResourceName`/`azureOpenAIApiKey`). Re-added
+  to `POLICY_ALLOWED_RESOURCE_TYPES` in `arm-template-builder.ts` (this
+  app's own allow-list, independent of the Azure Policy that now permits
+  it at the subscription level — both must agree for the resource to
+  actually deploy).
+- **`buildLogicApp()` keeps the Revision 2 workflow-parameters addition**
+  (`foundryApiKey`, `foundryEndpoint`, still baked in via the same
+  `deployParams`/`[parameters('azureopenaiApiKey')]` mechanism) — nothing
+  about that mechanism changes.
+- **`buildLogicApp()`'s `actions: {}` is no longer always empty.** When
+  `foundry` config is present, a single pre-built action replaces the empty
+  object:
+  ```json
+  {
+    "Call_Foundry_Model": {
+      "type": "Http",
+      "inputs": {
+        "method": "POST",
+        "uri": "@{parameters('foundryEndpoint')}/openai/deployments/<modelDeploymentName>/chat/completions?api-version=2024-08-01-preview",
+        "headers": {
+          "Content-Type": "application/json",
+          "api-key": "@parameters('foundryApiKey')"
+        },
+        "body": { "messages": [{ "role": "user", "content": "Hello" }] }
+      },
+      "runAfter": {}
+    }
+  }
+  ```
+  This is Workflow Definition Language (evaluated by the Logic Apps runtime
+  at run time, `@{...}`/`@...` syntax) — not ARM template language. It's
+  baked into the JSON the same way the rest of `definition` already is;
+  `modelDeploymentName` is interpolated as a plain JS template-literal
+  string at build time (not secret, no need for a workflow parameter of its
+  own — same treatment `foundryResourceName` already got when building the
+  `foundryEndpoint` value).
+  `runAfter: {}` means "depends on nothing but the trigger" — the action
+  fires immediately when the workflow runs, no manual wiring needed.
+  The user can run this as-is (Testing tab → Run) or edit/replace it.
+- **New env var: `FOUNDRY_MODEL_DEPLOYMENT_NAME`** — the model deployment
+  name in the Foundry project (e.g. `gpt-5-mini`, but this is whatever name
+  the admin gave the deployment in Foundry, not necessarily the model
+  family name — check Foundry portal → Use a model → View deployments).
+  Same required-env-var pattern as `FOUNDRY_API_KEY`/`FOUNDRY_RESOURCE_NAME`
+  in `functions/src/lib/env.ts`, threaded through `bicep-executor.ts` into
+  `buildArmTemplate`'s `opts` exactly like the other two.
+- **`requireFoundryConfig()` extends to require all three values** —
+  `apiKey`, `resourceName`, `modelDeploymentName` — throws
+  `InvalidDeploymentConfigError` if any is missing, same as before.
+- **Switch cases (`"logic-app"`, `"logic-app-storage"`) build both the
+  connection resource and the now-action-populated Logic App** — `logic-app`
+  goes back to 2 resources (Logic App + connection), `logic-app-storage`
+  back to 3 (Logic App + Storage + connection) — Revision 1's resource
+  counts, since the connector resource is back.
+- **`web/data/templates.json`'s `resourceCount` reverts again** to `2`
+  (logic-app) / `3` (logic-app-storage) — undoing Revision 2's revert back
+  to `1`/`2`.
+- **Docs** (`CLAUDE.md`, `.claude/rules/templates.md`,
+  `.claude/rules/azure-infra.md`) updated to describe both mechanisms
+  coexisting, and the new `FOUNDRY_MODEL_DEPLOYMENT_NAME` env var added to
+  the admin checklist table.
+
+### User-facing behavior (Revision 3, final)
+
+User opens the Logic App Designer after deploy and finds:
+- A pre-built **HTTP action already calling the Foundry model** — runnable
+  immediately, no configuration.
+- An **"Azure OpenAI" connection already available** in the connector
+  picker, for when they want to add more AI actions using the managed
+  connector's friendlier UI (dropdown-based, no expressions) instead of
+  raw HTTP.
+
+Both paths are pre-authenticated. Neither requires the user to visit the
+Foundry portal, copy a key, or type an expression.
+
+### Out of scope (Revision 3)
+
+- No managed-identity/role-assignment path for the connector (API key
+  auth only, per Revision 1's original reasoning — still holds).
+- No Key Vault involvement (dropped in Revision 1, still true).
+- No change to `approval-workflow`/`scheduled-automation`/`static-web-app`
+  (still dormant, not in the active catalog).
+- The pre-wired HTTP action's prompt body (`"Hello"`) is a placeholder —
+  the user is expected to edit it for their actual use case. This design
+  only guarantees the *plumbing* (auth, endpoint, deployment path) works
+  out of the box, not the prompt content.
+
+### New testing requirements (Revision 3)
+
+- `arm-template-builder.test.ts`: `logic-app` reverts to asserting 2
+  resources again (Logic App + `Microsoft.Web/connections`), plus new
+  assertions that `properties.definition.actions` contains a non-empty
+  `Call_Foundry_Model` action with the expected `uri`/`headers` shape when
+  Foundry config is present, and remains `{}` when it's the
+  `approval-workflow`/`scheduled-automation` builder call sites, which
+  don't pass `foundry`. `logic-app-storage` reverts to asserting 3
+  resources.
+- `requireFoundryConfig()` tests extend to cover the third required field
+  (`modelDeploymentName` missing → same `InvalidDeploymentConfigError`).
+- `env.test.ts`: add cases for `FOUNDRY_MODEL_DEPLOYMENT_NAME` missing.
+- `bicep-executor.test.ts`: existing Foundry-path test updated to assert
+  `Microsoft.Web/connections` IS present again (inverse of the Revision 2
+  assertion), plus the action shape assertion.
