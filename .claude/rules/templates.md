@@ -11,8 +11,8 @@ globs: web/app/templates/**, web/data/**, web/lib/deployments/**
 
 | Category | Slug | Resource Type |
 |----------|------|---------------|
-| automation | `logic-app` | `Microsoft.Logic/workflows` (HTTP trigger, blank) |
-| automation | `logic-app-storage` | `Microsoft.Logic/workflows` (HTTP trigger) + `Microsoft.Storage/storageAccounts` |
+| automation | `logic-app` | `Microsoft.Logic/workflows` (HTTP trigger, blank) + `Microsoft.Web/connections` (Azure OpenAI) |
+| automation | `logic-app-storage` | `Microsoft.Logic/workflows` (HTTP trigger) + `Microsoft.Storage/storageAccounts` + `Microsoft.Web/connections` (Azure OpenAI) |
 
 Deployable slugs (allow-list in `web/lib/deployments/policy.ts` — **must exactly match what is in `templates.json`**):
 - `logic-app`, `logic-app-storage`

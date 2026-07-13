@@ -4,6 +4,8 @@ process.env.AZURE_SUBSCRIPTION_ID ??= "11111111-1111-1111-1111-111111111111";
 process.env.AZURE_TENANT_ID ??= "22222222-2222-2222-2222-222222222222";
 process.env.DEPLOYMENT_QUEUE ??= "test-queue";
 process.env.AZURE_STORAGE_CONNECTION_STRING ??= "DefaultEndpointsProtocol=https;AccountName=test;AccountKey=AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==;EndpointSuffix=core.windows.net";
+process.env.FOUNDRY_API_KEY ??= "test-foundry-key";
+process.env.FOUNDRY_RESOURCE_NAME ??= "test-foundry-resource";
 process.env.NODE_ENV = "test";
 
 const createOrUpdate = vi.hoisted(() => vi.fn());
@@ -151,5 +153,43 @@ describe("executeBicepDeployment", () => {
     ).rejects.toThrow(/blocked by subscription policy/);
 
     expect(createOrUpdate).not.toHaveBeenCalled();
+  });
+
+  it("includes the Azure OpenAI connection and its secure parameter for logic-app payloads", async () => {
+    let putBody: unknown;
+    const fetchFn = vi
+      .fn()
+      .mockImplementationOnce(async (_url: string, init: RequestInit) => {
+        putBody = JSON.parse(init.body as string);
+        return { ok: false, status: 400, text: async () => "stop" };
+      });
+    vi.stubGlobal("fetch", fetchFn);
+    createOrUpdate.mockResolvedValue({});
+
+    await expect(
+      executeBicepDeployment({
+        subscriptionId: "sub-1",
+        resourceGroupName: "rg-1",
+        deploymentName: "dep-ai",
+        payload: {
+          mode: "template",
+          tags: TAGS,
+          template: { slug: "logic-app", formValues: { workflowName: "ai-workflow" } },
+        },
+        location: "malaysiawest",
+        tags: TAGS,
+        deployedBy: "user@test.com",
+      })
+    ).rejects.toThrow();
+
+    const sent = putBody as {
+      properties: {
+        template: { resources: Array<{ type: string }> };
+        parameters: Record<string, { value: string }>;
+      };
+    };
+    const types = sent.properties.template.resources.map((r) => r.type);
+    expect(types).toContain("Microsoft.Web/connections");
+    expect(sent.properties.parameters.azureopenaiApiKey).toEqual({ value: process.env.FOUNDRY_API_KEY });
   });
 });

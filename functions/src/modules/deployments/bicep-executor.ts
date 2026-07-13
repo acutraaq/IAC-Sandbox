@@ -65,6 +65,8 @@ export async function executeBicepDeployment(
     tenantId: env.AZURE_TENANT_ID,
     tags: policyTags,
     submissionId: id,
+    foundryApiKey: env.FOUNDRY_API_KEY,
+    foundryResourceName: env.FOUNDRY_RESOURCE_NAME,
   });
 
   const blockedTypes = validateTemplateAgainstPolicy(template);

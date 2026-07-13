@@ -47,6 +47,7 @@ const POLICY_ALLOWED_RESOURCE_TYPES = new Set([
   "Microsoft.EventGrid/topics",
   "Microsoft.Sql/servers",
   "Microsoft.Sql/servers/databases",
+  "Microsoft.Web/connections",
 ]);
 
 /**
@@ -445,6 +446,55 @@ function buildLogicApp(
 }
 
 // ---------------------------------------------------------------------------
+// Azure OpenAI (Foundry) connection builder
+// ---------------------------------------------------------------------------
+// Shared Foundry resource — one Azure OpenAI-compatible endpoint used by
+// every logic-app / logic-app-storage deployment. API-key auth (not managed
+// identity): simpler, no per-deployment role assignment on the Foundry
+// resource. See docs/superpowers/specs/2026-07-13-logic-app-foundry-connection-design.md.
+// ---------------------------------------------------------------------------
+
+function requireFoundryConfig(
+  apiKey: string | undefined,
+  resourceName: string | undefined
+): { apiKey: string; resourceName: string } {
+  if (!apiKey || !resourceName) {
+    throw new InvalidDeploymentConfigError(
+      "Foundry API key/resource name not configured — set FOUNDRY_API_KEY and FOUNDRY_RESOURCE_NAME"
+    );
+  }
+  return { apiKey, resourceName };
+}
+
+function buildAzureOpenAiConnection(
+  name: string,
+  location: string,
+  resourceName: string,
+  apiKey: string,
+  deployParams: Record<string, { value: string }>
+): ArmResource {
+  const safeName = (sanitizeGenericName(name, 40) || "sandbox-workflow") + "-openai";
+  deployParams["azureopenaiApiKey"] = { value: apiKey };
+
+  return {
+    type: "Microsoft.Web/connections",
+    apiVersion: "2016-06-01",
+    name: safeName,
+    location,
+    properties: {
+      displayName: "Azure OpenAI (Foundry)",
+      api: {
+        id: `[concat(subscription().id, '/providers/Microsoft.Web/locations/${location}/managedApis/azureopenai')]`,
+      },
+      parameterValues: {
+        azureOpenAIResourceName: resourceName,
+        azureOpenAIApiKey: "[parameters('azureopenaiApiKey')]",
+      },
+    },
+  };
+}
+
+// ---------------------------------------------------------------------------
 // Static Web App builder
 // ---------------------------------------------------------------------------
 
@@ -526,7 +576,10 @@ function buildEventGridTopic(
 
 function buildTemplateResources(
   template: { slug: string; formValues: Record<string, unknown> },
-  suffix = ""
+  suffix = "",
+  deployParams: Record<string, { value: string }> = {},
+  foundryApiKey?: string,
+  foundryResourceName?: string
 ): ArmResource[] {
   const { slug, formValues } = template;
 
@@ -563,30 +616,28 @@ function buildTemplateResources(
           formValues
         ),
       ];
-    case "logic-app":
+    case "logic-app": {
+      const workflowName = typeof formValues.workflowName === "string" ? formValues.workflowName : "sandbox-workflow";
+      const foundry = requireFoundryConfig(foundryApiKey, foundryResourceName);
       return [
-        buildLogicApp(
-          typeof formValues.workflowName === "string" ? formValues.workflowName : "sandbox-workflow",
-          location,
-          formValues,
-          "http"
-        ),
+        buildLogicApp(workflowName, location, formValues, "http"),
+        buildAzureOpenAiConnection(workflowName, location, foundry.resourceName, foundry.apiKey, deployParams),
       ];
-    case "logic-app-storage":
+    }
+    case "logic-app-storage": {
+      const workflowName = typeof formValues.workflowName === "string" ? formValues.workflowName : "sandbox-workflow";
+      const foundry = requireFoundryConfig(foundryApiKey, foundryResourceName);
       return [
-        buildLogicApp(
-          typeof formValues.workflowName === "string" ? formValues.workflowName : "sandbox-workflow",
-          location,
-          formValues,
-          "http"
-        ),
+        buildLogicApp(workflowName, location, formValues, "http"),
         buildStorageAccount(
           typeof formValues.storageAccountName === "string" ? formValues.storageAccountName : "sandboxstorage",
           location,
           formValues,
           suffix
         ),
+        buildAzureOpenAiConnection(workflowName, location, foundry.resourceName, foundry.apiKey, deployParams),
       ];
+    }
     default:
       throw new Error(
         `Template slug "${slug}" has no ARM builder. ` +
@@ -720,14 +771,20 @@ function buildCustomResources(
 
 export function buildArmTemplate(
   payload: DeploymentPayload,
-  opts: { tenantId: string; tags?: Record<string, string>; submissionId?: string }
+  opts: {
+    tenantId: string;
+    tags?: Record<string, string>;
+    submissionId?: string;
+    foundryApiKey?: string;
+    foundryResourceName?: string;
+  }
 ): ArmTemplate {
   const uniqueSuffix = (opts.submissionId ?? "").replace(/-/g, "").slice(0, 8);
   const deployParams: Record<string, { value: string }> = {};
 
   const primaryResources =
     payload.mode === "template"
-      ? buildTemplateResources(payload.template, uniqueSuffix)
+      ? buildTemplateResources(payload.template, uniqueSuffix, deployParams, opts.foundryApiKey, opts.foundryResourceName)
       : buildCustomResources(payload.resources, opts.tenantId, uniqueSuffix, deployParams);
 
   // COE-Enforce-Tag-Resources: every individual resource must carry the 4 policy tags.
