@@ -161,9 +161,15 @@ submits the ARM PUT with `parameters: _deployParameters` (unchanged code path,
 already handles arbitrary `deployParams` entries generically) → Azure creates
 the Logic App and the Azure OpenAI connection in the same resource group.
 
-No changes to: `web/` (no new form fields — the Foundry connection is not a
-user-configurable input), `web/lib/deployments/schema.ts`,
-`web/lib/deployments/policy.ts`, `web/data/templates.json`.
+No changes to: `web/lib/deployments/schema.ts`, `web/lib/deployments/policy.ts`
+(no new form fields — the Foundry connection is not a user-configurable input).
+
+One small `web/` change is in scope: `web/data/templates.json`'s `resourceCount`
+field for `logic-app` and `logic-app-storage` bumps from `1`/`2` to `2`/`3`.
+Precedent already set by `logic-app-storage` itself — its `resourceCount: 2`
+counts every emitted ARM resource (Logic App + Storage Account), not just the
+"primary" one — so the new connection resource should count too, for display
+consistency.
 
 ## Error handling
 
