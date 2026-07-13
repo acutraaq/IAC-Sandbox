@@ -29,11 +29,12 @@ export function deriveResourceGroupName(
     base = payload.resources[0]?.name ?? "sandbox";
   }
 
-  // Use the full UUID (dashes stripped) rather than a short slice — a 6-char
-  // prefix is only 24 bits and collides in practice at moderate submission
-  // volume; ARM would then silently merge into the colliding RG instead of
-  // rejecting the request.
-  const suffix = submissionId ? `-${submissionId.replace(/-/g, "")}` : "";
+  // 8 hex chars (32 bits) of the UUID (dashes stripped) — a 6-char prefix
+  // was only 24 bits and collided in practice at moderate submission volume;
+  // ARM would then silently merge into the colliding RG instead of rejecting
+  // the request. Global rate limit caps at 20 submissions/hour, so 32 bits
+  // keeps collision risk negligible at this app's actual volume.
+  const suffix = submissionId ? `-${submissionId.replace(/-/g, "").slice(0, 8)}` : "";
   return sanitise(base, suffix.length) + suffix + "-rg";
 }
 
