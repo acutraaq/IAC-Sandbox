@@ -155,7 +155,7 @@ describe("executeBicepDeployment", () => {
     expect(createOrUpdate).not.toHaveBeenCalled();
   });
 
-  it("includes the Azure OpenAI connection and its secure parameter for logic-app payloads", async () => {
+  it("bakes the Foundry api key into the Logic App's own workflow parameters for logic-app payloads", async () => {
     let putBody: unknown;
     const fetchFn = vi
       .fn()
@@ -184,12 +184,20 @@ describe("executeBicepDeployment", () => {
 
     const sent = putBody as {
       properties: {
-        template: { resources: Array<{ type: string }> };
+        template: {
+          resources: Array<{
+            type: string;
+            properties: { parameters: Record<string, { value: string }> };
+          }>;
+        };
         parameters: Record<string, { value: string }>;
       };
     };
     const types = sent.properties.template.resources.map((r) => r.type);
-    expect(types).toContain("Microsoft.Web/connections");
+    expect(types).toContain("Microsoft.Logic/workflows");
+    expect(types).not.toContain("Microsoft.Web/connections");
+    const logicApp = sent.properties.template.resources.find((r) => r.type === "Microsoft.Logic/workflows");
+    expect(logicApp?.properties.parameters.foundryApiKey).toEqual({ value: "[parameters('azureopenaiApiKey')]" });
     expect(sent.properties.parameters.azureopenaiApiKey).toEqual({ value: process.env.FOUNDRY_API_KEY });
   });
 });

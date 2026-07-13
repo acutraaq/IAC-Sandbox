@@ -75,17 +75,6 @@ describe("validateTemplateAgainstPolicy", () => {
     expect(blocked).toContain("Microsoft.SomeBlockedService/things");
     expect(blocked).not.toContain("Microsoft.Web/staticSites");
   });
-
-  it("allows Microsoft.Web/connections", () => {
-    const t = buildArmTemplate(customPayload("Microsoft.Web/staticSites", "app"), { tenantId: TENANT_ID });
-    t.resources.push({
-      type: "Microsoft.Web/connections",
-      apiVersion: "2016-06-01",
-      name: "test-conn",
-      location: "malaysiawest",
-    });
-    expect(validateTemplateAgainstPolicy(t)).not.toContain("Microsoft.Web/connections");
-  });
 });
 
 // ---------------------------------------------------------------------------
@@ -202,12 +191,12 @@ describe("buildStaticWebApp (static-web-app template)", () => {
 // ---------------------------------------------------------------------------
 
 describe("buildLogicAppTemplate (logic-app template)", () => {
-  it("returns 2 resources: Logic App with HTTP trigger and Azure OpenAI connection", () => {
+  it("returns 1 resource: Logic App with HTTP trigger", () => {
     const t = buildArmTemplate(
       templatePayload("logic-app", { workflowName: "my-workflow" }),
       { tenantId: TENANT_ID, ...FOUNDRY }
     );
-    expect(t.resources).toHaveLength(2);
+    expect(t.resources).toHaveLength(1);
     expect(t.resources[0].type).toBe("Microsoft.Logic/workflows");
     const def = (t.resources[0] as Record<string, unknown>).properties as { definition: { triggers: Record<string, unknown> } };
     expect(def.definition.triggers).toHaveProperty("manual");
@@ -226,6 +215,30 @@ describe("buildLogicAppTemplate (logic-app template)", () => {
       buildArmTemplate(templatePayload("logic-app", { workflowName: "my-workflow" }), { tenantId: TENANT_ID })
     ).toThrow(/Foundry API key\/resource name not configured/);
   });
+
+  it("bakes the Foundry api key and endpoint into the workflow's own parameters", () => {
+    const t = buildArmTemplate(
+      templatePayload("logic-app", { workflowName: "my-workflow" }),
+      { tenantId: TENANT_ID, ...FOUNDRY }
+    );
+    const props = (t.resources[0] as Record<string, unknown>).properties as {
+      definition: { parameters: Record<string, { type: string }> };
+      parameters: Record<string, { value: string }>;
+    };
+    expect(props.definition.parameters.foundryApiKey).toEqual({ type: "securestring" });
+    expect(props.definition.parameters.foundryEndpoint).toEqual({ type: "string" });
+    expect(props.parameters.foundryApiKey).toEqual({ value: "[parameters('azureopenaiApiKey')]" });
+    expect(props.parameters.foundryEndpoint).toEqual({ value: `https://${FOUNDRY.foundryResourceName}.openai.azure.com` });
+  });
+
+  it("registers the api key as a secureString top-level deploy parameter", () => {
+    const t = buildArmTemplate(
+      templatePayload("logic-app", { workflowName: "my-workflow" }),
+      { tenantId: TENANT_ID, ...FOUNDRY }
+    );
+    expect(t.parameters.azureopenaiApiKey).toEqual({ type: "secureString" });
+    expect(t._deployParameters?.azureopenaiApiKey).toEqual({ value: FOUNDRY.foundryApiKey });
+  });
 });
 
 // ---------------------------------------------------------------------------
@@ -233,16 +246,29 @@ describe("buildLogicAppTemplate (logic-app template)", () => {
 // ---------------------------------------------------------------------------
 
 describe("buildLogicAppStorageTemplate (logic-app-storage template)", () => {
-  it("returns 3 resources: Logic App, Storage Account, and Azure OpenAI connection", () => {
+  it("returns 2 resources: Logic App and Storage Account", () => {
     const t = buildArmTemplate(
       templatePayload("logic-app-storage", { workflowName: "my-workflow", storageAccountName: "mystorage" }),
       { tenantId: TENANT_ID, ...FOUNDRY }
     );
-    expect(t.resources).toHaveLength(3);
+    expect(t.resources).toHaveLength(2);
     const types = t.resources.map((r) => r.type);
     expect(types).toContain("Microsoft.Logic/workflows");
     expect(types).toContain("Microsoft.Storage/storageAccounts");
-    expect(types).toContain("Microsoft.Web/connections");
+  });
+
+  it("bakes the Foundry api key and endpoint into the workflow's own parameters", () => {
+    const t = buildArmTemplate(
+      templatePayload("logic-app-storage", { workflowName: "wf", storageAccountName: "store" }),
+      { tenantId: TENANT_ID, ...FOUNDRY }
+    );
+    const logicApp = t.resources.find((r) => r.type === "Microsoft.Logic/workflows") as Record<string, unknown>;
+    const props = logicApp.properties as {
+      definition: { parameters: Record<string, { type: string }> };
+      parameters: Record<string, { value: string }>;
+    };
+    expect(props.definition.parameters.foundryApiKey).toEqual({ type: "securestring" });
+    expect(props.parameters.foundryEndpoint).toEqual({ value: `https://${FOUNDRY.foundryResourceName}.openai.azure.com` });
   });
 
   it("sanitizes all resource names independently", () => {
@@ -297,42 +323,6 @@ describe("buildLogicAppStorageTemplate (logic-app-storage template)", () => {
         { tenantId: TENANT_ID }
       )
     ).toThrow(/Foundry API key\/resource name not configured/);
-  });
-});
-
-// ---------------------------------------------------------------------------
-// Azure OpenAI (Foundry) connection
-// ---------------------------------------------------------------------------
-
-describe("buildAzureOpenAiConnection (logic-app / logic-app-storage)", () => {
-  it("builds a Microsoft.Web/connections resource with resource name and api key parameter", () => {
-    const t = buildArmTemplate(
-      templatePayload("logic-app", { workflowName: "my-workflow" }),
-      { tenantId: TENANT_ID, ...FOUNDRY }
-    );
-    const conn = t.resources.find((r) => r.type === "Microsoft.Web/connections") as Record<string, unknown>;
-    expect(conn).toBeDefined();
-    const props = conn.properties as { parameterValues: { azureOpenAIResourceName: string; azureOpenAIApiKey: string } };
-    expect(props.parameterValues.azureOpenAIResourceName).toBe(FOUNDRY.foundryResourceName);
-    expect(props.parameterValues.azureOpenAIApiKey).toBe("[parameters('azureopenaiApiKey')]");
-  });
-
-  it("registers the api key as a secureString deploy parameter", () => {
-    const t = buildArmTemplate(
-      templatePayload("logic-app", { workflowName: "my-workflow" }),
-      { tenantId: TENANT_ID, ...FOUNDRY }
-    );
-    expect(t.parameters.azureopenaiApiKey).toEqual({ type: "secureString" });
-    expect(t._deployParameters?.azureopenaiApiKey).toEqual({ value: FOUNDRY.foundryApiKey });
-  });
-
-  it("is included for logic-app-storage too", () => {
-    const t = buildArmTemplate(
-      templatePayload("logic-app-storage", { workflowName: "wf", storageAccountName: "store" }),
-      { tenantId: TENANT_ID, ...FOUNDRY }
-    );
-    const types = t.resources.map((r) => r.type);
-    expect(types).toContain("Microsoft.Web/connections");
   });
 });
 

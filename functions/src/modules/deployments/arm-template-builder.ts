@@ -47,7 +47,6 @@ const POLICY_ALLOWED_RESOURCE_TYPES = new Set([
   "Microsoft.EventGrid/topics",
   "Microsoft.Sql/servers",
   "Microsoft.Sql/servers/databases",
-  "Microsoft.Web/connections",
 ]);
 
 /**
@@ -391,11 +390,35 @@ function buildContainerApp(
 // Logic App builder
 // ---------------------------------------------------------------------------
 
+// ---------------------------------------------------------------------------
+// Azure OpenAI (Foundry) credentials — shared resource used by every
+// logic-app / logic-app-storage deployment. Baked directly into the Logic
+// App's own workflow-definition parameters (no companion resource) — the
+// original Microsoft.Web/connections design hit a subscription-level Azure
+// Policy Deny (COE-Allowed-Resources doesn't allow that resource type, and
+// editing the policy needed a different admin's permission). See
+// docs/superpowers/specs/2026-07-13-logic-app-foundry-connection-design.md
+// Revision 2 for the full story.
+// ---------------------------------------------------------------------------
+
+function requireFoundryConfig(
+  apiKey: string | undefined,
+  resourceName: string | undefined
+): { apiKey: string; resourceName: string } {
+  if (!apiKey || !resourceName) {
+    throw new InvalidDeploymentConfigError(
+      "Foundry API key/resource name not configured — set FOUNDRY_API_KEY and FOUNDRY_RESOURCE_NAME"
+    );
+  }
+  return { apiKey, resourceName };
+}
+
 function buildLogicApp(
   name: string,
   location: string,
   config: Record<string, unknown>,
-  triggerType: "http" | "recurrence"
+  triggerType: "http" | "recurrence",
+  foundry?: { apiKey: string; resourceName: string; deployParams: Record<string, { value: string }> }
 ): ArmResource {
   const safeName = sanitizeGenericName(name, 43) || "sandbox-workflow";
 
@@ -426,6 +449,17 @@ function buildLogicApp(
           };
         })();
 
+  const definitionParameters: Record<string, unknown> = {};
+  const resourceParameters: Record<string, unknown> = {};
+
+  if (foundry) {
+    foundry.deployParams["azureopenaiApiKey"] = { value: foundry.apiKey };
+    definitionParameters.foundryApiKey = { type: "securestring" };
+    definitionParameters.foundryEndpoint = { type: "string" };
+    resourceParameters.foundryApiKey = { value: "[parameters('azureopenaiApiKey')]" };
+    resourceParameters.foundryEndpoint = { value: `https://${foundry.resourceName}.openai.azure.com` };
+  }
+
   return {
     type: "Microsoft.Logic/workflows",
     apiVersion: "2019-05-01",
@@ -437,59 +471,12 @@ function buildLogicApp(
         $schema:
           "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
         contentVersion: "1.0.0.0",
+        parameters: definitionParameters,
         triggers: trigger,
         actions: {},
         outputs: {},
       },
-    },
-  };
-}
-
-// ---------------------------------------------------------------------------
-// Azure OpenAI (Foundry) connection builder
-// ---------------------------------------------------------------------------
-// Shared Foundry resource — one Azure OpenAI-compatible endpoint used by
-// every logic-app / logic-app-storage deployment. API-key auth (not managed
-// identity): simpler, no per-deployment role assignment on the Foundry
-// resource. See docs/superpowers/specs/2026-07-13-logic-app-foundry-connection-design.md.
-// ---------------------------------------------------------------------------
-
-function requireFoundryConfig(
-  apiKey: string | undefined,
-  resourceName: string | undefined
-): { apiKey: string; resourceName: string } {
-  if (!apiKey || !resourceName) {
-    throw new InvalidDeploymentConfigError(
-      "Foundry API key/resource name not configured — set FOUNDRY_API_KEY and FOUNDRY_RESOURCE_NAME"
-    );
-  }
-  return { apiKey, resourceName };
-}
-
-function buildAzureOpenAiConnection(
-  name: string,
-  location: string,
-  resourceName: string,
-  apiKey: string,
-  deployParams: Record<string, { value: string }>
-): ArmResource {
-  const safeName = (sanitizeGenericName(name, 40) || "sandbox-workflow") + "-openai";
-  deployParams["azureopenaiApiKey"] = { value: apiKey };
-
-  return {
-    type: "Microsoft.Web/connections",
-    apiVersion: "2016-06-01",
-    name: safeName,
-    location,
-    properties: {
-      displayName: "Azure OpenAI (Foundry)",
-      api: {
-        id: `[concat(subscription().id, '/providers/Microsoft.Web/locations/${location}/managedApis/azureopenai')]`,
-      },
-      parameterValues: {
-        azureOpenAIResourceName: resourceName,
-        azureOpenAIApiKey: "[parameters('azureopenaiApiKey')]",
-      },
+      parameters: resourceParameters,
     },
   };
 }
@@ -620,22 +607,20 @@ function buildTemplateResources(
       const workflowName = typeof formValues.workflowName === "string" ? formValues.workflowName : "sandbox-workflow";
       const foundry = requireFoundryConfig(foundryApiKey, foundryResourceName);
       return [
-        buildLogicApp(workflowName, location, formValues, "http"),
-        buildAzureOpenAiConnection(workflowName, location, foundry.resourceName, foundry.apiKey, deployParams),
+        buildLogicApp(workflowName, location, formValues, "http", { ...foundry, deployParams }),
       ];
     }
     case "logic-app-storage": {
       const workflowName = typeof formValues.workflowName === "string" ? formValues.workflowName : "sandbox-workflow";
       const foundry = requireFoundryConfig(foundryApiKey, foundryResourceName);
       return [
-        buildLogicApp(workflowName, location, formValues, "http"),
+        buildLogicApp(workflowName, location, formValues, "http", { ...foundry, deployParams }),
         buildStorageAccount(
           typeof formValues.storageAccountName === "string" ? formValues.storageAccountName : "sandboxstorage",
           location,
           formValues,
           suffix
         ),
-        buildAzureOpenAiConnection(workflowName, location, foundry.resourceName, foundry.apiKey, deployParams),
       ];
     }
     default:
