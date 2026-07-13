@@ -59,6 +59,8 @@ Portal path: `epf-sandbox-functions` → Configuration → Application settings
 | `FOUNDRY_API_KEY` | Azure AI Foundry / Azure OpenAI API key (shared resource used by every logic-app / logic-app-storage deployment) |
 | `FOUNDRY_RESOURCE_NAME` | Azure OpenAI resource name (the subdomain segment of the endpoint, e.g. `coe-ai-foundry-eus2` from `https://coe-ai-foundry-eus2.openai.azure.com`) |
 
+> **First real logic-app/logic-app-storage deploy also validates 3 unverified assumptions** (see `docs/superpowers/specs/2026-07-13-logic-app-foundry-connection-design.md` Open Risks): that subscription policy `COE-Allowed-Resources` permits `Microsoft.Web/connections`, that the `azureopenai` managed connector is available in `malaysiawest`, and that the connector's `parameterValues` key names (`azureOpenAIResourceName`/`azureOpenAIApiKey`) match what the live tenant expects. If that first deploy fails at the ARM layer, check these three before assuming a code bug — a missing/wrong `FOUNDRY_API_KEY` fails permanently (`InvalidDeploymentConfigError`, no retry), so a stuck-at-`accepted` deployment for these two slugs specifically should also prompt a check of this env var.
+
 Click **Save** after any changes; allow the Function App to restart.
 
 > ⚠️ If `DEPLOYMENT_QUEUE` or `AZURE_STORAGE_CONNECTION_STRING` is missing, `env.ts` throws on startup → Function host fails to load → queue trigger never activates → all messages stay stuck at `accepted` forever.
