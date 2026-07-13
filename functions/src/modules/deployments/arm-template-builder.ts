@@ -47,6 +47,7 @@ const POLICY_ALLOWED_RESOURCE_TYPES = new Set([
   "Microsoft.EventGrid/topics",
   "Microsoft.Sql/servers",
   "Microsoft.Sql/servers/databases",
+  "Microsoft.Web/connections",
 ]);
 
 /**
@@ -392,25 +393,36 @@ function buildContainerApp(
 
 // ---------------------------------------------------------------------------
 // Azure OpenAI (Foundry) credentials — shared resource used by every
-// logic-app / logic-app-storage deployment. Baked directly into the Logic
-// App's own workflow-definition parameters (no companion resource) — the
-// original Microsoft.Web/connections design hit a subscription-level Azure
-// Policy Deny (COE-Allowed-Resources doesn't allow that resource type, and
-// editing the policy needed a different admin's permission). See
+// logic-app / logic-app-storage deployment. Two mechanisms ship together:
+// (1) an auto-provisioned Microsoft.Web/connections resource (the
+// azureopenai managed connector, API-key auth) so a non-technical user can
+// pick "Azure OpenAI" from the connector dropdown for any *future* action
+// they add, and (2) the same key/endpoint baked directly into the Logic
+// App's own workflow-definition parameters, backing a pre-wired HTTP
+// action that's already there and runnable with zero configuration. See
 // docs/superpowers/specs/2026-07-13-logic-app-foundry-connection-design.md
-// Revision 2 for the full story.
+// Revision 3 for the full story (why both, not just one).
 // ---------------------------------------------------------------------------
 
 function requireFoundryConfig(
   apiKey: string | undefined,
-  resourceName: string | undefined
-): { apiKey: string; resourceName: string } {
-  if (!apiKey || !resourceName) {
+  resourceName: string | undefined,
+  modelDeploymentName: string | undefined
+): { apiKey: string; resourceName: string; modelDeploymentName: string } {
+  if (!apiKey || !resourceName || !modelDeploymentName) {
     throw new InvalidDeploymentConfigError(
-      "Foundry API key/resource name not configured — set FOUNDRY_API_KEY and FOUNDRY_RESOURCE_NAME"
+      "Foundry API key/resource name/model deployment name not configured — " +
+      "set FOUNDRY_API_KEY, FOUNDRY_RESOURCE_NAME, and FOUNDRY_MODEL_DEPLOYMENT_NAME"
     );
   }
-  return { apiKey, resourceName };
+  return { apiKey, resourceName, modelDeploymentName };
+}
+
+interface FoundryConfig {
+  apiKey: string;
+  resourceName: string;
+  modelDeploymentName: string;
+  deployParams: Record<string, { value: string }>;
 }
 
 function buildLogicApp(
@@ -418,7 +430,7 @@ function buildLogicApp(
   location: string,
   config: Record<string, unknown>,
   triggerType: "http" | "recurrence",
-  foundry?: { apiKey: string; resourceName: string; deployParams: Record<string, { value: string }> }
+  foundry?: FoundryConfig
 ): ArmResource {
   const safeName = sanitizeGenericName(name, 43) || "sandbox-workflow";
 
@@ -453,6 +465,24 @@ function buildLogicApp(
     foundry.deployParams["azureopenaiApiKey"] = { value: foundry.apiKey };
   }
 
+  const actions = foundry
+    ? {
+        Call_Foundry_Model: {
+          type: "Http",
+          inputs: {
+            method: "POST",
+            uri: `@{parameters('foundryEndpoint')}/openai/deployments/${foundry.modelDeploymentName}/chat/completions?api-version=2024-08-01-preview`,
+            headers: {
+              "Content-Type": "application/json",
+              "api-key": "@parameters('foundryApiKey')",
+            },
+            body: { messages: [{ role: "user", content: "Hello" }] },
+          },
+          runAfter: {},
+        },
+      }
+    : {};
+
   return {
     type: "Microsoft.Logic/workflows",
     apiVersion: "2019-05-01",
@@ -471,7 +501,7 @@ function buildLogicApp(
           },
         }),
         triggers: trigger,
-        actions: {},
+        actions,
         outputs: {},
       },
       ...(foundry && {
@@ -480,6 +510,34 @@ function buildLogicApp(
           foundryEndpoint: { value: `https://${foundry.resourceName}.openai.azure.com` },
         },
       }),
+    },
+  };
+}
+
+function buildAzureOpenAiConnection(
+  name: string,
+  location: string,
+  resourceName: string,
+  apiKey: string,
+  deployParams: Record<string, { value: string }>
+): ArmResource {
+  const safeName = (sanitizeGenericName(name, 40) || "sandbox-workflow") + "-openai";
+  deployParams["azureopenaiApiKey"] = { value: apiKey };
+
+  return {
+    type: "Microsoft.Web/connections",
+    apiVersion: "2016-06-01",
+    name: safeName,
+    location,
+    properties: {
+      displayName: "Azure OpenAI (Foundry)",
+      api: {
+        id: `[concat(subscription().id, '/providers/Microsoft.Web/locations/${location}/managedApis/azureopenai')]`,
+      },
+      parameterValues: {
+        azureOpenAIResourceName: resourceName,
+        azureOpenAIApiKey: "[parameters('azureopenaiApiKey')]",
+      },
     },
   };
 }
@@ -569,7 +627,8 @@ function buildTemplateResources(
   suffix = "",
   deployParams: Record<string, { value: string }> = {},
   foundryApiKey?: string,
-  foundryResourceName?: string
+  foundryResourceName?: string,
+  foundryModelDeploymentName?: string
 ): ArmResource[] {
   const { slug, formValues } = template;
 
@@ -608,14 +667,15 @@ function buildTemplateResources(
       ];
     case "logic-app": {
       const workflowName = typeof formValues.workflowName === "string" ? formValues.workflowName : "sandbox-workflow";
-      const foundry = requireFoundryConfig(foundryApiKey, foundryResourceName);
+      const foundry = requireFoundryConfig(foundryApiKey, foundryResourceName, foundryModelDeploymentName);
       return [
         buildLogicApp(workflowName, location, formValues, "http", { ...foundry, deployParams }),
+        buildAzureOpenAiConnection(workflowName, location, foundry.resourceName, foundry.apiKey, deployParams),
       ];
     }
     case "logic-app-storage": {
       const workflowName = typeof formValues.workflowName === "string" ? formValues.workflowName : "sandbox-workflow";
-      const foundry = requireFoundryConfig(foundryApiKey, foundryResourceName);
+      const foundry = requireFoundryConfig(foundryApiKey, foundryResourceName, foundryModelDeploymentName);
       return [
         buildLogicApp(workflowName, location, formValues, "http", { ...foundry, deployParams }),
         buildStorageAccount(
@@ -624,6 +684,7 @@ function buildTemplateResources(
           formValues,
           suffix
         ),
+        buildAzureOpenAiConnection(workflowName, location, foundry.resourceName, foundry.apiKey, deployParams),
       ];
     }
     default:
@@ -765,6 +826,7 @@ export function buildArmTemplate(
     submissionId?: string;
     foundryApiKey?: string;
     foundryResourceName?: string;
+    foundryModelDeploymentName?: string;
   }
 ): ArmTemplate {
   const uniqueSuffix = (opts.submissionId ?? "").replace(/-/g, "").slice(0, 8);
@@ -772,7 +834,14 @@ export function buildArmTemplate(
 
   const primaryResources =
     payload.mode === "template"
-      ? buildTemplateResources(payload.template, uniqueSuffix, deployParams, opts.foundryApiKey, opts.foundryResourceName)
+      ? buildTemplateResources(
+          payload.template,
+          uniqueSuffix,
+          deployParams,
+          opts.foundryApiKey,
+          opts.foundryResourceName,
+          opts.foundryModelDeploymentName
+        )
       : buildCustomResources(payload.resources, opts.tenantId, uniqueSuffix, deployParams);
 
   // COE-Enforce-Tag-Resources: every individual resource must carry the 4 policy tags.

@@ -67,6 +67,7 @@ export async function executeBicepDeployment(
     submissionId: id,
     foundryApiKey: env.FOUNDRY_API_KEY,
     foundryResourceName: env.FOUNDRY_RESOURCE_NAME,
+    foundryModelDeploymentName: env.FOUNDRY_MODEL_DEPLOYMENT_NAME,
   });
 
   const blockedTypes = validateTemplateAgainstPolicy(template);

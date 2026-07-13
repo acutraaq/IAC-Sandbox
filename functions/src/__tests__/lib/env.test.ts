@@ -8,6 +8,7 @@ const baseEnv = {
   AZURE_STORAGE_CONNECTION_STRING: "DefaultEndpointsProtocol=https;AccountName=test;AccountKey=FQ==",
   FOUNDRY_API_KEY: "test-foundry-key",
   FOUNDRY_RESOURCE_NAME: "test-foundry-resource",
+  FOUNDRY_MODEL_DEPLOYMENT_NAME: "test-foundry-model",
 };
 
 function clearEnv() {
@@ -74,5 +75,15 @@ describe("functions/src/lib/env", () => {
     Object.assign(process.env, vars);
     const { default: env } = await import("../../lib/env.js");
     expect(() => env.FOUNDRY_RESOURCE_NAME).toThrow("Invalid environment variables");
+  });
+
+  it("throws when FOUNDRY_MODEL_DEPLOYMENT_NAME is missing", async () => {
+    vi.resetModules();
+    clearEnv();
+    const vars = { ...baseEnv };
+    delete (vars as Record<string, unknown>).FOUNDRY_MODEL_DEPLOYMENT_NAME;
+    Object.assign(process.env, vars);
+    const { default: env } = await import("../../lib/env.js");
+    expect(() => env.FOUNDRY_MODEL_DEPLOYMENT_NAME).toThrow("Invalid environment variables");
   });
 });

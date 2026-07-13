@@ -10,6 +10,7 @@ const envSchema = z.object({
   AZURE_STORAGE_CONNECTION_STRING: z.string().min(1, "AZURE_STORAGE_CONNECTION_STRING is required"),
   FOUNDRY_API_KEY: z.string().min(1, "FOUNDRY_API_KEY is required"),
   FOUNDRY_RESOURCE_NAME: z.string().min(1, "FOUNDRY_RESOURCE_NAME is required"),
+  FOUNDRY_MODEL_DEPLOYMENT_NAME: z.string().min(1, "FOUNDRY_MODEL_DEPLOYMENT_NAME is required"),
 });
 
 let parsedData: z.infer<typeof envSchema> | undefined;

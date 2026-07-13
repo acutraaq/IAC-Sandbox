@@ -6,6 +6,7 @@ process.env.DEPLOYMENT_QUEUE ??= "test-queue";
 process.env.AZURE_STORAGE_CONNECTION_STRING ??= "DefaultEndpointsProtocol=https;AccountName=test;AccountKey=AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==;EndpointSuffix=core.windows.net";
 process.env.FOUNDRY_API_KEY ??= "test-foundry-key";
 process.env.FOUNDRY_RESOURCE_NAME ??= "test-foundry-resource";
+process.env.FOUNDRY_MODEL_DEPLOYMENT_NAME ??= "test-foundry-model";
 process.env.NODE_ENV = "test";
 
 const mockCreateFailureRecord = vi.hoisted(() => vi.fn());

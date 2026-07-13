@@ -6,6 +6,7 @@ process.env.DEPLOYMENT_QUEUE ??= "test-queue";
 process.env.AZURE_STORAGE_CONNECTION_STRING ??= "DefaultEndpointsProtocol=https;AccountName=test;AccountKey=AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==;EndpointSuffix=core.windows.net";
 process.env.FOUNDRY_API_KEY ??= "test-foundry-key";
 process.env.FOUNDRY_RESOURCE_NAME ??= "test-foundry-resource";
+process.env.FOUNDRY_MODEL_DEPLOYMENT_NAME ??= "test-foundry-model";
 process.env.NODE_ENV = "test";
 
 const createOrUpdate = vi.hoisted(() => vi.fn());
@@ -155,7 +156,7 @@ describe("executeBicepDeployment", () => {
     expect(createOrUpdate).not.toHaveBeenCalled();
   });
 
-  it("bakes the Foundry api key into the Logic App's own workflow parameters for logic-app payloads", async () => {
+  it("bakes the Foundry api key into the Logic App's own workflow parameters and creates the connector for logic-app payloads", async () => {
     let putBody: unknown;
     const fetchFn = vi
       .fn()
@@ -195,7 +196,7 @@ describe("executeBicepDeployment", () => {
     };
     const types = sent.properties.template.resources.map((r) => r.type);
     expect(types).toContain("Microsoft.Logic/workflows");
-    expect(types).not.toContain("Microsoft.Web/connections");
+    expect(types).toContain("Microsoft.Web/connections");
     const logicApp = sent.properties.template.resources.find((r) => r.type === "Microsoft.Logic/workflows");
     expect(logicApp?.properties.parameters.foundryApiKey).toEqual({ value: "[parameters('azureopenaiApiKey')]" });
     expect(sent.properties.parameters.azureopenaiApiKey).toEqual({ value: process.env.FOUNDRY_API_KEY });

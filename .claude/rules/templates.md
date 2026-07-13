@@ -11,13 +11,13 @@ globs: web/app/templates/**, web/data/**, web/lib/deployments/**
 
 | Category | Slug | Resource Type |
 |----------|------|---------------|
-| automation | `logic-app` | `Microsoft.Logic/workflows` (HTTP trigger, blank; Azure OpenAI key/endpoint baked in as workflow parameters `foundryApiKey`/`foundryEndpoint` — no separate connection resource, see note below) |
-| automation | `logic-app-storage` | `Microsoft.Logic/workflows` (HTTP trigger, same baked-in Foundry parameters) + `Microsoft.Storage/storageAccounts` |
+| automation | `logic-app` | `Microsoft.Logic/workflows` (HTTP trigger, pre-wired with a working "Call_Foundry_Model" HTTP action; Foundry key/endpoint baked in as workflow parameters `foundryApiKey`/`foundryEndpoint`) + `Microsoft.Web/connections` (Azure OpenAI connector, for any additional actions the user adds) |
+| automation | `logic-app-storage` | Same Logic App as above + `Microsoft.Storage/storageAccounts` + `Microsoft.Web/connections` (Azure OpenAI) |
 
 Deployable slugs (allow-list in `web/lib/deployments/policy.ts` — **must exactly match what is in `templates.json`**):
 - `logic-app`, `logic-app-storage`
 
-> The Foundry key/endpoint were originally going to ship as a `Microsoft.Web/connections` resource (an Azure API connection, selectable in the Logic App Designer). That hit a subscription-level `COE-Allowed-Resources` policy `Deny` on first real deploy and needed a different admin's permission to fix — so the design was changed to bake the values directly into the Logic App's own workflow-definition parameters instead, which needs no new resource type. See `docs/superpowers/specs/2026-07-13-logic-app-foundry-connection-design.md` Revision 2.
+> The Foundry connection went through 3 revisions the same day: (1) connector-only — hit a subscription-level `COE-Allowed-Resources` policy `Deny` on first real deploy; (2) workflow-parameters-only, no connector — worked, but still needed manual HTTP-action setup for a non-technical user; (3) **both together** — the policy owner separately unblocked `Microsoft.Web/connections`, so the connector came back (dropdown-friendly for future actions) alongside a fully pre-wired HTTP action (zero-config out of the box). See `docs/superpowers/specs/2026-07-13-logic-app-foundry-connection-design.md` Revision 3 for the full story.
 
 Policy-blocked slugs: none (both active slugs are deployable).
 

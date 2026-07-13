@@ -4,7 +4,11 @@ import type { DeploymentPayload } from "../../../modules/deployments/deployment.
 
 const TENANT_ID = "test-tenant-id";
 const TAGS = { "Cost Center": "CC01", "Project ID": "PID01", "Project Owner": "owner@test.com", "Expiry Date": "2025-12-31" };
-const FOUNDRY = { foundryApiKey: "test-foundry-key", foundryResourceName: "test-foundry-resource" };
+const FOUNDRY = {
+  foundryApiKey: "test-foundry-key",
+  foundryResourceName: "test-foundry-resource",
+  foundryModelDeploymentName: "test-foundry-model",
+};
 
 function templatePayload(slug: string, formValues: Record<string, unknown> = {}): DeploymentPayload {
   return { mode: "template", tags: TAGS, template: { slug, formValues } };
@@ -191,12 +195,12 @@ describe("buildStaticWebApp (static-web-app template)", () => {
 // ---------------------------------------------------------------------------
 
 describe("buildLogicAppTemplate (logic-app template)", () => {
-  it("returns 1 resource: Logic App with HTTP trigger", () => {
+  it("returns 2 resources: Logic App with HTTP trigger and Azure OpenAI connection", () => {
     const t = buildArmTemplate(
       templatePayload("logic-app", { workflowName: "my-workflow" }),
       { tenantId: TENANT_ID, ...FOUNDRY }
     );
-    expect(t.resources).toHaveLength(1);
+    expect(t.resources).toHaveLength(2);
     expect(t.resources[0].type).toBe("Microsoft.Logic/workflows");
     const def = (t.resources[0] as Record<string, unknown>).properties as { definition: { triggers: Record<string, unknown> } };
     expect(def.definition.triggers).toHaveProperty("manual");
@@ -213,7 +217,16 @@ describe("buildLogicAppTemplate (logic-app template)", () => {
   it("throws InvalidDeploymentConfigError when Foundry config is missing", () => {
     expect(() =>
       buildArmTemplate(templatePayload("logic-app", { workflowName: "my-workflow" }), { tenantId: TENANT_ID })
-    ).toThrow(/Foundry API key\/resource name not configured/);
+    ).toThrow(/Foundry API key\/resource name\/model deployment name not configured/);
+  });
+
+  it("throws InvalidDeploymentConfigError when only the model deployment name is missing", () => {
+    expect(() =>
+      buildArmTemplate(
+        templatePayload("logic-app", { workflowName: "my-workflow" }),
+        { tenantId: TENANT_ID, foundryApiKey: FOUNDRY.foundryApiKey, foundryResourceName: FOUNDRY.foundryResourceName }
+      )
+    ).toThrow(/Foundry API key\/resource name\/model deployment name not configured/);
   });
 
   it("bakes the Foundry api key and endpoint into the workflow's own parameters", () => {
@@ -231,6 +244,23 @@ describe("buildLogicAppTemplate (logic-app template)", () => {
     expect(props.parameters.foundryEndpoint).toEqual({ value: `https://${FOUNDRY.foundryResourceName}.openai.azure.com` });
   });
 
+  it("pre-wires a working HTTP action that calls the Foundry model", () => {
+    const t = buildArmTemplate(
+      templatePayload("logic-app", { workflowName: "my-workflow" }),
+      { tenantId: TENANT_ID, ...FOUNDRY }
+    );
+    const def = (t.resources[0] as Record<string, unknown>).properties as {
+      definition: { actions: Record<string, { type: string; inputs: { method: string; uri: string; headers: Record<string, string> } }> };
+    };
+    expect(def.definition.actions).toHaveProperty("Call_Foundry_Model");
+    const action = def.definition.actions.Call_Foundry_Model;
+    expect(action.type).toBe("Http");
+    expect(action.inputs.method).toBe("POST");
+    expect(action.inputs.uri).toContain(FOUNDRY.foundryModelDeploymentName);
+    expect(action.inputs.uri).toContain("@{parameters('foundryEndpoint')}");
+    expect(action.inputs.headers["api-key"]).toBe("@parameters('foundryApiKey')");
+  });
+
   it("registers the api key as a secureString top-level deploy parameter", () => {
     const t = buildArmTemplate(
       templatePayload("logic-app", { workflowName: "my-workflow" }),
@@ -239,6 +269,18 @@ describe("buildLogicAppTemplate (logic-app template)", () => {
     expect(t.parameters.azureopenaiApiKey).toEqual({ type: "secureString" });
     expect(t._deployParameters?.azureopenaiApiKey).toEqual({ value: FOUNDRY.foundryApiKey });
   });
+
+  it("builds a Microsoft.Web/connections resource with resource name and api key parameter", () => {
+    const t = buildArmTemplate(
+      templatePayload("logic-app", { workflowName: "my-workflow" }),
+      { tenantId: TENANT_ID, ...FOUNDRY }
+    );
+    const conn = t.resources.find((r) => r.type === "Microsoft.Web/connections") as Record<string, unknown>;
+    expect(conn).toBeDefined();
+    const props = conn.properties as { parameterValues: { azureOpenAIResourceName: string; azureOpenAIApiKey: string } };
+    expect(props.parameterValues.azureOpenAIResourceName).toBe(FOUNDRY.foundryResourceName);
+    expect(props.parameterValues.azureOpenAIApiKey).toBe("[parameters('azureopenaiApiKey')]");
+  });
 });
 
 // ---------------------------------------------------------------------------
@@ -246,15 +288,16 @@ describe("buildLogicAppTemplate (logic-app template)", () => {
 // ---------------------------------------------------------------------------
 
 describe("buildLogicAppStorageTemplate (logic-app-storage template)", () => {
-  it("returns 2 resources: Logic App and Storage Account", () => {
+  it("returns 3 resources: Logic App, Storage Account, and Azure OpenAI connection", () => {
     const t = buildArmTemplate(
       templatePayload("logic-app-storage", { workflowName: "my-workflow", storageAccountName: "mystorage" }),
       { tenantId: TENANT_ID, ...FOUNDRY }
     );
-    expect(t.resources).toHaveLength(2);
+    expect(t.resources).toHaveLength(3);
     const types = t.resources.map((r) => r.type);
     expect(types).toContain("Microsoft.Logic/workflows");
     expect(types).toContain("Microsoft.Storage/storageAccounts");
+    expect(types).toContain("Microsoft.Web/connections");
   });
 
   it("bakes the Foundry api key and endpoint into the workflow's own parameters", () => {
@@ -322,7 +365,7 @@ describe("buildLogicAppStorageTemplate (logic-app-storage template)", () => {
         templatePayload("logic-app-storage", { workflowName: "wf", storageAccountName: "store" }),
         { tenantId: TENANT_ID }
       )
-    ).toThrow(/Foundry API key\/resource name not configured/);
+    ).toThrow(/Foundry API key\/resource name\/model deployment name not configured/);
   });
 });
 
