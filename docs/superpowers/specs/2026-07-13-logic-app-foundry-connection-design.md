@@ -1,7 +1,7 @@
 # Design: Auto-wired Azure OpenAI (Foundry) connection on Logic App templates
 
 **Date:** 2026-07-13
-**Status:** Draft — pending user review
+**Status:** Superseded by Revision 2 (below) — the original `Microsoft.Web/connections` approach was implemented, merged, and deployed, then failed on first real deployment. Kept for history; do not implement §1-§Open risks below, see Revision 2 for what actually ships.
 
 ## Purpose
 
@@ -230,3 +230,139 @@ deployment history, only that future deployments pick up the new value.
    should be confirmed via the live connector metadata endpoint (see
    Components §2) rather than assumed from documentation, which only
    describes human-readable field names.
+
+---
+
+## Revision 2 (2026-07-13, same day): drop the connector entirely
+
+**Status:** Active — this is what actually ships.
+
+### What happened
+
+Risk #1 above was real, not theoretical. First real deployment of the
+Revision-1 design produced an Activity Log entry: `'deny' Policy action` on
+`Microsoft.Web/connections`, from the `COE-Allowed-Resources` custom policy
+definition (`066af5f7af7e450cadea3b04`). That policy is a hardcoded `Deny`
+on any resource `type` not in a fixed allow-list — confirmed via `View
+definition`, `Microsoft.Web/connections` is absent from the list. The
+assignment has zero parameters (the allow-list is baked into the policy
+*rule* itself, not a parameter), so there's no assignment-level override.
+
+Fixing it requires either editing the custom policy definition (owned by
+`ahmad-adib@epf.gov.my`, needs `Resource Policy Contributor` or higher — the
+deploying user didn't have this) or a scoped Policy Exemption (same
+permission tier). Both are governance actions outside this app's control,
+and — critically — outside what this design should ever require just to
+ship a feature. **Decision: stop depending on a resource type that needs a
+policy-owner favor. Redesign around only resource types already allowed.**
+
+### New architecture: no companion resource at all
+
+Instead of a separate `Microsoft.Web/connections` resource, the Foundry
+credentials are baked directly into the `Microsoft.Logic/workflows` resource
+itself — via the Logic App's own **workflow-definition parameters**, a
+first-class part of the Consumption Logic App schema (`definition.parameters`
+declares the parameter and its type; the resource's `properties.parameters`
+supplies the deploy-time value — same two-part shape ARM already uses
+everywhere else, just scoped to the workflow instead of a connector).
+
+This requires zero new resource types — `Microsoft.Logic/workflows` was
+already on the `COE-Allowed-Resources` list from day one. No policy edit, no
+policy exemption, no new admin ask at all.
+
+**Auth model also changes:** managed-identity auth (the alternative
+considered and dropped in Revision 1) was reconsidered here too, since it
+would need a `Microsoft.Authorization/roleAssignments` resource scoped to
+the Foundry Cognitive Services account — which lives in a different
+subscription/resource group than `sub-epf-sandbox-internal`, and would
+require the Function App's MI to hold `User Access Administrator` (or
+`Owner`) on that specific external resource. Given the current session
+already hit one governance wall on this feature, and the user assessed this
+second permission ask as equally likely to stall, this path was **not**
+pursued. Revision 2 stays with API-key auth, now carried as a Logic
+App–scoped `securestring` parameter instead of a connector parameter.
+
+### Components (Revision 2)
+
+- **`buildLogicApp()` gains an optional 5th parameter**,
+  `foundry?: { apiKey: string; resourceName: string; deployParams: Record<string, { value: string }> }`.
+  When present:
+  - `deployParams["azureopenaiApiKey"] = { value: apiKey }` (unchanged
+    mechanism from Revision 1 — `buildArmTemplate()` still types any
+    `deployParams` key as a `securestring` top-level ARM template parameter).
+  - The returned resource's `properties.definition.parameters` gains:
+    ```json
+    {
+      "foundryApiKey": { "type": "securestring" },
+      "foundryEndpoint": { "type": "string" }
+    }
+    ```
+  - The returned resource's `properties.parameters` (sibling to
+    `definition`, supplies the actual values) gains:
+    ```json
+    {
+      "foundryApiKey": { "value": "[parameters('azureopenaiApiKey')]" },
+      "foundryEndpoint": { "value": "https://<resourceName>.openai.azure.com" }
+    }
+    ```
+  - `approval-workflow`/`scheduled-automation`'s existing calls (4 args, no
+    `foundry`) are unaffected — the parameter is optional and those two
+    slugs never pass it.
+- **`buildAzureOpenAiConnection()` is deleted entirely** — no
+  `Microsoft.Web/connections` resource is ever built.
+- **`POLICY_ALLOWED_RESOURCE_TYPES` loses `"Microsoft.Web/connections"`** —
+  added in Revision 1, now dead weight since nothing emits that type.
+- **`requireFoundryConfig()` is unchanged** — same guard, same
+  `InvalidDeploymentConfigError`, same call sites in the `"logic-app"` /
+  `"logic-app-storage"` switch cases, just now passed into `buildLogicApp()`
+  instead of a separate `buildAzureOpenAiConnection()` call.
+- **`bicep-executor.ts` is unchanged** — it already threads
+  `foundryApiKey`/`foundryResourceName` into `buildArmTemplate()`'s `opts`;
+  that data flow doesn't care which builder consumes the values downstream.
+- **`web/data/templates.json`'s `resourceCount` reverts** to `1` (logic-app)
+  / `2` (logic-app-storage) — back to their pre-feature values, since no
+  companion resource is created anymore. The Revision-1 bump to `2`/`3` is
+  undone.
+- **Docs (`CLAUDE.md`, `.claude/rules/templates.md`,
+  `.claude/rules/azure-infra.md`) get corrected** to describe workflow
+  parameters instead of an API connection — the `FOUNDRY_API_KEY` /
+  `FOUNDRY_RESOURCE_NAME` env vars stay exactly as they were (same source,
+  same Function App setting, just consumed differently downstream).
+
+### User-facing behavior change
+
+Previously (Revision 1): user opens the Logic App Designer, adds an action,
+picks the pre-existing "Azure OpenAI" connection from a dropdown — zero
+typing.
+
+Now (Revision 2): user opens the Logic App Designer, adds a plain **HTTP**
+action (native, not a connector), and references `@parameters('foundryApiKey')`
+and `@parameters('foundryEndpoint')` from the dynamic-content picker when
+filling in the request URL and auth header. Slightly more manual than a
+connector dropdown, but still means the user never has to leave the
+Designer to fetch a key from the Foundry portal — the stated goal from the
+original ask is preserved, just via native HTTP instead of a managed
+connector.
+
+### Out of scope (Revision 2, supersedes Revision 1's list)
+
+- No `Microsoft.Web/connections` resource, ever, for these two slugs.
+- No managed-identity/role-assignment path (considered, dropped — see
+  Auth model above).
+- No Key Vault involvement (already dropped in Revision 1, still true).
+- No change to `approval-workflow`/`scheduled-automation`/`static-web-app`
+  (still dormant, not in the active catalog).
+
+### New testing requirements
+
+- `arm-template-builder.test.ts`: `logic-app` reverts to asserting 1
+  resource (Logic App only), now also asserting
+  `properties.parameters.foundryApiKey.value === "[parameters('azureopenaiApiKey')]"`
+  and `properties.definition.parameters.foundryApiKey.type === "securestring"`.
+  `logic-app-storage` reverts to asserting 2 resources (Logic App +
+  Storage), same parameter assertions on the Logic App resource. The
+  `Microsoft.Web/connections`-specific describe block from Revision 1 is
+  deleted, not left dangling.
+- No new `bicep-executor.test.ts` cases needed beyond what Revision 1 already
+  added (that test only checks the deploy parameter propagates — the
+  mechanism it verifies didn't change).
