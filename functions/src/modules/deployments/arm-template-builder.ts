@@ -449,15 +449,8 @@ function buildLogicApp(
           };
         })();
 
-  const definitionParameters: Record<string, unknown> = {};
-  const resourceParameters: Record<string, unknown> = {};
-
   if (foundry) {
     foundry.deployParams["azureopenaiApiKey"] = { value: foundry.apiKey };
-    definitionParameters.foundryApiKey = { type: "securestring" };
-    definitionParameters.foundryEndpoint = { type: "string" };
-    resourceParameters.foundryApiKey = { value: "[parameters('azureopenaiApiKey')]" };
-    resourceParameters.foundryEndpoint = { value: `https://${foundry.resourceName}.openai.azure.com` };
   }
 
   return {
@@ -471,12 +464,22 @@ function buildLogicApp(
         $schema:
           "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
         contentVersion: "1.0.0.0",
-        parameters: definitionParameters,
+        ...(foundry && {
+          parameters: {
+            foundryApiKey: { type: "securestring" },
+            foundryEndpoint: { type: "string" },
+          },
+        }),
         triggers: trigger,
         actions: {},
         outputs: {},
       },
-      parameters: resourceParameters,
+      ...(foundry && {
+        parameters: {
+          foundryApiKey: { value: "[parameters('azureopenaiApiKey')]" },
+          foundryEndpoint: { value: `https://${foundry.resourceName}.openai.azure.com` },
+        },
+      }),
     },
   };
 }
