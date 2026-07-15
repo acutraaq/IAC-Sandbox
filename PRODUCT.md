@@ -1,36 +1,34 @@
-# Product
+# IAC Sandbox — PRODUCT.md
 
 ## Register
-
-product
+**Product** — authenticated tool UI. Design serves the task. Users are in flow; they don't want choreography.
 
 ## Users
-
-Non-technical project staff at EPF (Employees Provident Fund, Malaysia) — business and project owners who need Azure cloud resources provisioned for their projects but do not manage infrastructure themselves. Occasional users; they may open the tool once per project, not daily. They understand what they need (storage, a database, a web app) but not how Azure works under the hood. A HOD approver may also review the generated proof document outside the system.
+EPF (Employees Provident Fund, Malaysia) internal staff. Non-technical. They need Azure cloud resources but have no ARM template knowledge. Their context: office environment, standard corporate monitor, mid-day usage, task-focused workflow. They fill in a form, they want their resources — not a product tour.
 
 ## Product Purpose
+Internal Azure Infrastructure-as-Code deployment platform. Only one flow is reachable from the UI today:
+- **Template flow**: guided wizard over a 2-template catalog (`logic-app`, `logic-app-storage`), automation category only, region locked to Malaysia West
 
-Sandbox IAC is an internal Azure Infrastructure-as-Code deployment platform. It abstracts away ARM and Azure Portal complexity so non-expert EPF staff can configure and submit Azure infrastructure deployments in minutes. Three flows: Template (wizard using predefined templates), Custom Builder (resource-by-resource configuration), and Custom Request (copy-paste document sent to the IAC team for manual provisioning after HOD approval). ARM is the source of truth — no database.
+The Custom Builder (resource-by-resource, auto-deploy) and Custom Request (copy-paste document, no deploy) frontend flows have been removed — no `/builder` or `/request` route exists. The backend still accepts and executes `mode: "custom"` payloads sent directly to the API; this is dormant code, not an active flow.
+
+Submission -> queue -> Azure Function -> ARM deployment via managed identity. HOD approval is manual and outside the system.
 
 ## Brand Personality
+Technical. Precise. Minimal. Engineering-native. The interface should feel like a well-maintained internal tool — not a SaaS landing page that got themed dark. No delight for its own sake. No friendly marketing language. Trust through clarity, not warmth.
 
-Clear, guided, trustworthy. The tool should feel like a knowledgeable colleague walking you through a process — calm, structured, never overwhelming. References: Vercel Dashboard for typographic hierarchy and clean confidence; Notion for approachability and readability with a mixed-technical audience.
+## Anti-References
+- Consumer SaaS (gradients, hero metrics, feature marketing, mascots)
+- Azure Portal-style heavy UI (too many panels, too much chrome)
+- Neon cyberpunk aesthetics (too aggressive for corporate internal tool)
+- Over-animated dashboards (motion should be invisible)
 
-## Anti-references
+## Accessibility Needs
+Corporate workforce — may include older users unfamiliar with dense UI. Standard WCAG AA minimum. Keyboard navigation required. Focus states must be visible. Form labels always visible (not placeholder-only).
 
-- **Generic SharePoint / intranet** — boxy, low-density, corporate blue, form-from-2012 energy.
-- **Dense AWS console** — overwhelming navigation, too many options surfaced at once. This tool exists precisely to abstract that away.
-- **Flashy SaaS marketing** — gradients, glassmorphism, hero metrics, decorative animation. Performative, not trustworthy.
-- **Neon / cyberpunk dark** — glowing neons on black. Wrong register for a government-adjacent enterprise tool.
-
-## Design Principles
-
-1. **Clarity over density.** Surface only what's needed for this step. Infrastructure complexity lives in the backend — it must not leak into the UI.
-2. **Guide, don't gatekeep.** Every screen should make the next action obvious. Non-technical users should never feel stuck or unsure what to do next.
-3. **Earn trust through precision.** Correct labels, honest status, no false confidence. Infrastructure has real consequences — the UI must reflect that gravity without inducing anxiety.
-4. **Restrained by default.** Dark, structured, professional. Decoration earns its place only when it aids comprehension or reduces cognitive load.
-5. **Consistent affordances across flows.** Template, Builder, and Request flows feel like one coherent system. Similar actions look and behave the same regardless of which flow the user entered.
-
-## Accessibility & Inclusion
-
-WCAG 2.1 AA. Keyboard navigation throughout. Screen reader support with ARIA labels and `role` attributes. Reduced-motion safe animations (all keyframes respect `prefers-reduced-motion`). High-contrast text on all interactive states.
+## Strategic Design Principles
+1. The form IS the product — every wizard step and tag field must be frictionless
+2. State vocabulary over decoration — hover, active, error, success, loading are the design language
+3. Familiar affordances — don't reinvent buttons, modals, or forms
+4. Proof artifact (the copy-paste HOD approval text) is a first-class deliverable — style it accordingly
+5. Deployment status = anxiety moment — the review/confirm flow needs calm, clear progress signals

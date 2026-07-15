@@ -17,7 +17,7 @@ globs: web/app/templates/**, web/data/**, web/lib/deployments/**
 Deployable slugs (allow-list in `web/lib/deployments/policy.ts` — **must exactly match what is in `templates.json`**):
 - `logic-app`, `logic-app-storage`
 
-> The Foundry connection went through 3 revisions the same day: (1) connector-only — hit a subscription-level `COE-Allowed-Resources` policy `Deny` on first real deploy; (2) workflow-parameters-only, no connector — worked, but still needed manual HTTP-action setup for a non-technical user; (3) **both together** — the policy owner separately unblocked `Microsoft.Web/connections`, so the connector came back (dropdown-friendly for future actions) alongside a fully pre-wired HTTP action (zero-config out of the box). See `docs/superpowers/specs/2026-07-13-logic-app-foundry-connection-design.md` Revision 3 for the full story.
+> The Foundry connection went through 3 revisions the same day: (1) connector-only — hit a subscription-level `COE-Allowed-Resources` policy `Deny` on first real deploy; (2) workflow-parameters-only, no connector — worked, but still needed manual HTTP-action setup for a non-technical user; (3) **both together** — the policy owner separately unblocked `Microsoft.Web/connections`, so the connector came back (dropdown-friendly for future actions) alongside a fully pre-wired HTTP action (zero-config out of the box). See `docs/superpowers/archive/specs/2026-07-13-logic-app-foundry-connection-design.md` Revision 3 for the full story.
 
 Policy-blocked slugs: none (both active slugs are deployable).
 

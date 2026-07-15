@@ -25,7 +25,7 @@ Runs the full Vitest suite across both `web/` and `functions/`. All tests must p
 cd web && npx vitest run
 ```
 
-Expected: 170 tests across 25 files, all passing.
+Expected: 254 tests across 41 files, all passing.
 
 ## Functions Tests
 
@@ -33,7 +33,7 @@ Expected: 170 tests across 25 files, all passing.
 cd functions && npx vitest run
 ```
 
-Expected: 78 tests across 3 files, all passing.
+Expected: 108 tests across 8 files, all passing.
 
 **On failure:** the error includes the test name, file path, and line number. Fix the failing implementation — do not delete or skip the test.
 

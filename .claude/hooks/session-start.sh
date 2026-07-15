@@ -17,7 +17,16 @@ if [ -n "$ahead_behind" ]; then
   echo "  vs upstream : $ahead ahead, $behind behind"
 fi
 echo ""
-echo "Reminders (see CLAUDE.md):"
-echo "  - MSAL: placeholder login is live; real SSO blocked on App Registration creds"
-echo "  - Managed identity setup pending — verify with GET /api/healthz/arm"
-echo "  - Run tests from web/ or functions/ (not repo root)"
+echo "MANDATORY: read CLAUDE.md in full before doing anything, then docs/superpowers/HANDOFF.md."
+echo "(Reminders below are pulled live from CLAUDE.md so they can't go stale — this is not a substitute for reading it.)"
+echo ""
+
+claude_md="$(dirname "$0")/../../CLAUDE.md"
+if [ -f "$claude_md" ]; then
+  grep -E '^\*\*(What is live and working|Latest session|What is designed but not built|SSO status|What needs admin action)( \([^)]*\))?:\*\*' "$claude_md"
+else
+  echo "(CLAUDE.md not found at expected path — read it manually)"
+fi
+
+echo ""
+echo "Standing gotcha: run tests from web/ or functions/ (not repo root)."

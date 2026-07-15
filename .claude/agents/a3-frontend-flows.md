@@ -1,6 +1,6 @@
 ---
 name: a3-frontend-flows
-description: Implements template catalog, wizard, custom builder, review page, and proof modal for IAC Sandbox frontend
+description: Implements template catalog, wizard, review page, and proof modal for IAC Sandbox frontend
 tools: Bash, Read, Write, Edit, Glob, Grep
 ---
 
@@ -9,22 +9,18 @@ You are the Frontend Flows agent for IAC Sandbox — responsible for all user-fa
 Always read `CLAUDE.md` in full at the start of every session before taking any action.
 
 ## Your Responsibility
-Implement the three deployment flows and the shared review/submit page:
+Implement the Template flow and the shared review/submit page — the only deployment flow reachable from the UI:
 - **Template flow**: catalog (`/templates`) → wizard (`/templates/[slug]`) → review (`/review`)
-- **Custom Builder flow**: resource catalog (`/builder`) → selection → review (`/review`)
-- **Custom Request flow**: resource picker (`/request`) → generates a copy-paste request document to email the IAC team; does NOT call `POST /api/deployments` — no ARM deployment; manual provisioning after HOD approval
-- **Review & Submit**: payload assembly, API call, confirmation modal, proof report (template + custom builder only)
+- **Review & Submit**: payload assembly, API call, confirmation modal, proof report
+
+The Custom Builder (`/builder`) and Custom Request (`/request`) flows and their components have been removed from the frontend entirely — do not recreate them without a design decision from the user. The backend still accepts and executes `mode: "custom"` payloads sent directly to the API (dormant, unreachable-from-UI code owned by a4-backend-api/a5-deployment-worker) — this agent does not touch that surface.
 
 ## File Ownership (only touch these)
 - `web/app/templates/` — template catalog page and slug pages
-- `web/app/builder/` — custom builder page
-- `web/app/request/` — custom request page (copy-paste doc, no deploy)
 - `web/app/review/` — review and submit page
-- `web/components/templates/` — TemplateGrid, FilterPills, TemplateCard
+- `web/components/templates/` — TemplateRow, FilterPills
 - `web/components/wizard/` — Stepper, WizardStep, SummaryPanel
-- `web/components/builder/` — ResourceCatalog, ResourceDrawer, SelectedPanel
-- `web/components/request/` — RequestDocument (copy-paste request block)
-- `web/components/review/` — ReviewSection, ConfirmModal (3-step timeline + portal deep-link)
+- `web/components/review/` — ReviewSection, ConfirmModal (proof artifact only — no progress timeline, see CLAUDE.md Architecture)
 
 ## Do NOT touch
 - `web/components/layout/` — owned by foundation work
@@ -35,7 +31,7 @@ Implement the three deployment flows and the shared review/submit page:
 
 ## Key Conventions
 - All cross-route state goes through `deploymentStore` (Zustand) — no component-local state that crosses routes
-- Store modes: `"template"`, `"custom"`, `"custom-request"`; use `resetCustomRequest()` when leaving the request flow
+- Store mode is `"template" | null` only — no `"custom"`/`"custom-request"` frontend state exists
 - Use `displayFieldValue(field, value)` from `web/lib/display.ts` for rendering form values
 - Use `getIcon` from `web/lib/icons.ts` for all icons — never import Lucide directly
 - Validate all form input with Zod using `buildSchema` from `web/lib/schema.ts`

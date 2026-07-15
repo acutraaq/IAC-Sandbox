@@ -1,6 +1,6 @@
-# Session Handoff — 2026-07-10
+# Session Handoff — 2026-07-13
 
-> **Version:** 2.2.0 | **Last updated:** 2026-07-10 | **Status:** Active
+> **Version:** 2.3.0 | **Last updated:** 2026-07-13 | **Status:** Active
 > **Purpose:** Context for engineers starting a new session
 > **Related docs:** [Project Index](../README.md) | [CLAUDE.md](../../CLAUDE.md) | [Complete Spec](../project/SPEC.md)
 >
@@ -8,7 +8,33 @@
 
 ## TL;DR
 
-**Long-term risk audit + all 11 High severity findings fixed.** A deep multi-agent audit (59 agents) surfaced 28 findings across 8 risk dimensions, 26 confirmed after adversarial verification (2 refuted). All 11 High severity items are now fixed; 11 Medium + 4 Low remain open (see below). Two of the fixes were real feature builds, not just bug fixes — an expired-RG reaper timer function and a global submission rate limiter — both scoped in with the user before building since they involved destructive automation / a rate threshold. All 347 tests pass (254 web + 93 functions).
+**2026-07-13:** Foundry connection design reached Revision 3 (connector + pre-wired HTTP action ship together) and the RG-name uniqueness suffix was removed entirely at the user's request, in exchange for short, readable RG names. 254 web + 108 functions tests pass. Everything through this date is committed to `main`.
+
+**2026-07-10:** Long-term risk audit + all 11 High severity findings fixed. A deep multi-agent audit (59 agents) surfaced 28 findings across 8 risk dimensions, 26 confirmed after adversarial verification (2 refuted). All 11 High severity items are now fixed; 11 Medium + 4 Low remain open (see below). Two of the fixes were real feature builds, not just bug fixes — an expired-RG reaper timer function and a global submission rate limiter — both scoped in with the user before building since they involved destructive automation / a rate threshold.
+
+---
+
+## What was done in this session (2026-07-13)
+
+### Foundry connection — Revision 3
+The Azure OpenAI (Foundry) connection design went through 3 revisions the same period: (1) connector-only (`Microsoft.Web/connections`) — hit a subscription-level `COE-Allowed-Resources` policy `Deny` on first real deployment; (2) workflow-parameters-only, no connector — worked but still needed manual HTTP-action setup; (3) **both together** — the policy owner separately unblocked `Microsoft.Web/connections`, so the connector came back (dropdown-pickable for future actions) alongside a fully pre-wired `Call_Foundry_Model` HTTP action baked into the Logic App's own workflow parameters (`foundryApiKey`/`foundryEndpoint`). See `docs/superpowers/archive/specs/2026-07-13-logic-app-foundry-connection-design.md` for the full history.
+
+### RG-name simplification
+The full-UUID collision-resistant suffix added in the 2026-07-10 audit was walked back in two steps, both explicit user requests, same day:
+1. Shortened from the full 32-char UUID to 8 chars (`dfc6cd4`) — reasoning: the 20/hour rate-limit cap makes 32 bits of collision resistance plenty, and the full UUID made RG names unwieldy.
+2. Then dropped entirely (`a38b4b0`) — user wanted short, readable RG names (e.g. `my-logic-app-rg`).
+
+**Known, accepted tradeoff:** two submissions with the same primary field value (e.g. the same `workflowName`) now produce the identical RG name; ARM silently merges the second deployment's resources into the first RG instead of erroring. This is intentional, not a bug — see the code comment in `web/lib/deployments/rg-name.ts`.
+
+### Doc cleanup (this pass)
+- Removed the stale "LAW + KV auto-injected into every deployment" claim from `CLAUDE.md` — that supporting-resource bundling was removed in commit `a2b7eea` (before the 2026-07-10 session), but the doc line survived. RG groups now only ever contain the resources their template/slug explicitly builds.
+- Archived `docs/superpowers/specs/2026-07-06-logic-app-templates-design.md`, `docs/superpowers/specs/2026-07-13-logic-app-foundry-connection-design.md`, and their matching implementation plans in `docs/superpowers/plans/` — both fully implemented and committed, so they no longer belong in the "active" directories.
+- Corrected `.claude/agents/a3-frontend-flows.md` and `.claude/agents/a8-qa-security.md` — both still described the removed `/builder`, `/request`, and `/my-stuff` routes and a light/dark theme toggle that doesn't exist; updated to match the Template-flow-only reality.
+- Corrected root and `web/` `PRODUCT.md` — both still described the removed Custom Builder/Custom Request flows and a stale 16-template/7-category catalog.
+
+### Test results
+- `web/` → **254 passed** (41 files)
+- `functions/` → **108 passed** (8 files) — up from 93 due to the Foundry connection test suite additions
 
 ---
 
@@ -53,7 +79,7 @@ Also fixed as quick wins during the initial audit pass (before the High-severity
 - **Test hygiene (noticed, not fixed, out of this session's scope):** `processPoisonDeployment.test.ts`'s ARM-failure-reason lookup makes a real outbound network call in tests (relies on a dummy subscription ID 404ing) instead of mocking `fetch` — fragile, not something this session touched or broke.
 - **Silent-poll limitation:** the new review-page failure check is page-scoped and stops on navigation away — if broader coverage (surviving navigation, or a dedicated notifications view) is wanted, that's a bigger design conversation, not a quick follow-up.
 - **End-to-end verification** — still nobody has confirmed a real template submission progresses `accepted` → `running` → `succeeded` in `sub-epf-sandbox-internal`. Worth doing now that failure visibility actually works, to prove the whole loop including the new failure-only poll.
-- **Not committed yet** — everything in this session is working-tree only as of this writeup.
+- **Committed** — all of this session's fixes landed on `main` (confirmed by the 2026-07-13 session above building on top of them).
 
 ---
 

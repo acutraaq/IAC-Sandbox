@@ -27,7 +27,7 @@ Run and enforce quality gates. You do not write feature code — you verify it.
 cd web
 npm run lint          # must exit 0 — zero errors
 npx tsc --noEmit      # must exit 0 — zero errors
-npx vitest run        # all tests must pass (206 tests across 33 files)
+npx vitest run        # all tests must pass (254 tests across 41 files)
 npm run build         # .next/ must be produced (standalone output)
 ```
 
@@ -35,7 +35,7 @@ npm run build         # .next/ must be produced (standalone output)
 # Functions — run from functions/
 cd functions
 npx tsc --noEmit      # must exit 0 — zero errors
-npx vitest run        # all tests must pass (78 tests across 3 files)
+npx vitest run        # all tests must pass (108 tests across 8 files)
 ```
 
 If any step fails, stop and report the exact error. Do not proceed to the next step.
@@ -44,13 +44,12 @@ If any step fails, stop and report the exact error. Do not proceed to the next s
 
 ## Smoke Test Checklist (manual, after build)
 Start dev server (`npm run dev` from `web/`) and verify:
-- [ ] Template flow: home → /templates → pick a template → complete wizard → /review → submit → proof modal appears with copyable text
-- [ ] Custom Builder flow: home → /builder → add resources → /review → submit → proof modal appears
-- [ ] Custom Request flow: home → /request → pick resources → request document renders with copyable text; no API call is made
-- [ ] My Stuff page: /my-stuff → lists deployed resource groups from ARM
-- [ ] Theme toggle: switch dark↔light, reload — theme persists (localStorage key: `sandbox-theme`)
-- [ ] Keyboard navigation: Tab through all modals and drawers; Escape closes them; Enter/Space activates cards
+- [ ] Template flow: home → /templates → pick a template (`logic-app` or `logic-app-storage`) → complete wizard → /review → submit → proof modal appears with copyable text
+- [ ] Review page silently polls `GET /api/deployments/:id`; no visible progress timeline appears unless the deployment fails (by design — see CLAUDE.md Architecture)
+- [ ] Keyboard navigation: Tab through all modals; Escape closes them; Enter/Space activates cards
 - [ ] No console errors (check DevTools console) on any happy path
+
+There is no `/builder`, `/request`, `/my-stuff` route, or theme toggle — the app is dark-only and Template-flow-only. Do not add these to the checklist without confirming they've been reintroduced in `CLAUDE.md` first.
 
 ## Security Checklist
 - [ ] No hardcoded secrets, tokens, or credentials in any source file
