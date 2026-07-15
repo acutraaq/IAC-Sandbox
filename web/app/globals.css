@@ -19,14 +19,14 @@
   --color-text-muted: rgba(55, 42, 22, 0.62);
   --color-text-faint: rgba(55, 42, 22, 0.32);
 
-  /* Primary — burnt sienna / terracotta */
-  --color-primary: #A8430E;
-  --color-primary-hover: #C45018;
+  /* Primary — dusty azure */
+  --color-primary: #3D6FA8;
+  --color-primary-hover: #4A82C4;
 
   /* Accent */
-  --color-accent: #A8430E;
-  --color-accent-hover: #C45018;
-  --color-accent-glow: rgba(168, 67, 14, 0.14);
+  --color-accent: #3D6FA8;
+  --color-accent-hover: #4A82C4;
+  --color-accent-glow: rgba(61, 111, 168, 0.14);
 
   /* Secondary — muted sage */
   --color-coral: #4E7A55;
@@ -37,8 +37,8 @@
   --color-success: #2D6A35;
   --color-warning: #B45309;
 
-  /* Terminal chrome — keep warm amber for mono glyphs */
-  --color-prompt: #A8430E;
+  /* Terminal chrome — azure prompt glyph */
+  --color-prompt: #3D6FA8;
   --color-comment: rgba(90, 65, 30, 0.45);
   --color-amber: #B45309;
   --color-amber-glow: rgba(180, 83, 9, 0.12);
