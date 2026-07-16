@@ -73,7 +73,7 @@ export function Navbar({ user }: NavbarProps = {}) {
                     aria-hidden="true"
                     className="absolute -bottom-0.5 left-2 right-2 h-0.5 rounded-full bg-accent"
                     style={{
-                      boxShadow: "0 0 6px rgba(11,189,232,0.35)",
+                      boxShadow: "0 0 6px rgba(61,111,168,0.35)",
                     }}
                     transition={{ duration: 0.15, ease: [0.22, 1, 0.36, 1] }}
                   />
