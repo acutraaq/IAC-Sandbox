@@ -10,6 +10,7 @@ import { UserMenu } from "./UserMenu";
 const navLinks = [
   { href: "/", label: "Home" },
   { href: "/templates", label: "Templates" },
+  { href: "/learn", label: "Learn" },
 ];
 
 export interface NavbarProps {

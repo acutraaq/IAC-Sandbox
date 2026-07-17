@@ -40,10 +40,11 @@ describe("Navbar", () => {
     expect(screen.getByRole("link", { name: "Sandbox home" })).toBeInTheDocument();
   });
 
-  it("renders Home and Templates nav links", () => {
+  it("renders Home, Templates, and Learn nav links", () => {
     render(<Navbar />);
     expect(screen.getByRole("link", { name: "Home" })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Templates" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Learn" })).toBeInTheDocument();
   });
 
   it("marks Home as aria-current=page when on /", () => {
