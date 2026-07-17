@@ -9,10 +9,10 @@ export function VibeWorkflowDiagram() {
         aria-hidden="true"
         role="presentation"
       >
-        {STAGES.map((_, i) => {
+        {STAGES.map((stage, i) => {
           const x = 10 + i * 98;
           return (
-            <g key={i}>
+            <g key={stage}>
               <rect
                 x={x}
                 y="20"

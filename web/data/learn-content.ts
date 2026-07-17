@@ -17,7 +17,7 @@ export interface LearnTopic {
   learnMoreLabel: string;
 }
 
-export const LEARN_TOPICS: LearnTopic[] = [
+export const LEARN_TOPICS: readonly LearnTopic[] = [
   {
     slug: "canvas-apps",
     title: "Canvas apps",
