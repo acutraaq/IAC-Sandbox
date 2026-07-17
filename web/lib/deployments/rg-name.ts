@@ -14,7 +14,6 @@ export const SLUG_PRIMARY_FIELD: Record<string, string> = {
 
 export function deriveResourceGroupName(
   payload: DeploymentPayloadWithoutTags,
-  submissionId?: string,
 ): string {
   let base: string;
 

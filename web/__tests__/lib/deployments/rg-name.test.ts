@@ -78,25 +78,11 @@ describe("deriveResourceGroupName", () => {
     expect(result).toBe("sandbox-rg");
   });
 
-  it("ignores submissionId — no uniqueness suffix", () => {
-    const result = deriveResourceGroupName(
-      {
-        mode: "template",
-        template: { slug: "logic-app", formValues: { workflowName: "mydata" } },
-      },
-      "123e4567-e89b-12d3-a456-426614174000"
-    );
-    expect(result).toBe("mydata-rg");
-  });
-
   it("total length does not exceed 90 characters", () => {
-    const result = deriveResourceGroupName(
-      {
-        mode: "template",
-        template: { slug: "logic-app", formValues: { workflowName: "a".repeat(100) } },
-      },
-      "123e4567-e89b-12d3-a456-426614174000"
-    );
+    const result = deriveResourceGroupName({
+      mode: "template",
+      template: { slug: "logic-app", formValues: { workflowName: "a".repeat(100) } },
+    });
     expect(result.length).toBeLessThanOrEqual(90);
   });
 });

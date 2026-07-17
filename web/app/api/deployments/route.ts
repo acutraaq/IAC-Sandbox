@@ -81,7 +81,7 @@ export async function POST(request: Request) {
     }
 
     const submissionId = crypto.randomUUID();
-    const resourceGroupName = deriveResourceGroupName(payload, submissionId);
+    const resourceGroupName = deriveResourceGroupName(payload);
     const location = deriveLocation(payload);
 
     const message: DeploymentJobMessage = {
