@@ -71,11 +71,11 @@ const HOLD        = 2600;
 // ── Colour helpers ────────────────────────────────────────────────────────────
 function lineColor(kind: LineKind) {
   switch (kind) {
-    case "cmd":     return "text-[#EAD9C0]";
-    case "info":    return "text-[#B09070]";
-    case "success": return "text-[#7A9A40]";
-    case "error":   return "text-[#F87171]";
-    case "tag":     return "text-[#C47820]";
+    case "cmd":     return "text-[var(--term-text)]";
+    case "info":    return "text-[var(--term-text-dim)]";
+    case "success": return "text-[var(--term-success)]";
+    case "error":   return "text-[var(--term-error)]";
+    case "tag":     return "text-[var(--term-accent)]";
     default:        return "text-transparent";
   }
 }
@@ -140,7 +140,7 @@ export function TerminalHero() {
   return (
     <div
       className="relative overflow-hidden rounded-xl border border-border shadow-2xl"
-      style={{ background: "#1E1208" }}
+      style={{ background: "var(--term-bg)" }}
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
       onFocus={() => setPaused(true)}
@@ -149,7 +149,7 @@ export function TerminalHero() {
       {/* ── Window chrome ── */}
       <div
         className="flex items-center gap-0 border-b px-4 py-2.5"
-        style={{ background: "#160E05", borderColor: "rgba(160,100,40,0.22)" }}
+        style={{ background: "var(--term-bg-deep)", borderColor: "var(--term-border)" }}
       >
         {/* Traffic lights */}
         <div className="flex items-center gap-1.5 mr-3">
@@ -159,14 +159,14 @@ export function TerminalHero() {
         </div>
 
         {/* Session title */}
-        <span className="flex-1 text-center font-mono text-xs" style={{ color: "#7A6040" }}>
+        <span className="flex-1 text-center font-mono text-xs" style={{ color: "var(--term-muted)" }}>
           epf@sandbox — bash
         </span>
 
         {/* Status pill */}
         <span
           className="font-mono text-xs px-2 py-0.5 rounded"
-          style={{ background: "rgba(180,100,20,0.12)", color: paused ? "#7A6040" : "#C47820" }}
+          style={{ background: "rgba(47,168,184,0.12)", color: paused ? "var(--term-muted)" : "var(--term-accent)" }}
         >
           {paused ? "paused" : "● live"}
         </span>
@@ -177,7 +177,7 @@ export function TerminalHero() {
         role="tablist"
         aria-label="Deployment scenarios"
         className="flex items-center gap-0 overflow-x-auto border-b"
-        style={{ background: "#1A1008", borderColor: "rgba(160,100,40,0.15)" }}
+        style={{ background: "var(--term-bg-panel)", borderColor: "var(--term-border-faint)" }}
       >
         {SCENARIOS.map((s, i) => {
           const active = i === activeIdx;
@@ -191,8 +191,8 @@ export function TerminalHero() {
               onClick={() => handleTabClick(i)}
               className="relative shrink-0 px-4 py-2 font-mono text-xs transition-colors duration-150"
               style={{
-                color: active ? "#EAD9C0" : "#5A4028",
-                background: active ? "#1E1208" : "transparent",
+                color: active ? "var(--term-text)" : "var(--term-faint)",
+                background: active ? "var(--term-bg)" : "transparent",
                 borderRight: "1px solid rgba(255,255,255,0.05)",
               }}
             >
@@ -201,7 +201,7 @@ export function TerminalHero() {
                   layoutId="tab-indicator"
                   aria-hidden="true"
                   className="absolute inset-x-0 top-0 h-[2px]"
-                  style={{ background: "#C47820" }}
+                  style={{ background: "var(--term-accent)" }}
                   transition={{ type: "spring", stiffness: 500, damping: 35 }}
                 />
               )}
@@ -217,15 +217,15 @@ export function TerminalHero() {
         role="tabpanel"
         aria-live="polite"
         className="min-h-[260px] p-4 font-mono text-[12px] leading-[1.8] md:min-h-[300px] md:p-5"
-        style={{ color: "#B09070" }}
+        style={{ color: "var(--term-text-dim)" }}
       >
         {/* Prompt line */}
         <div className="mb-1 flex flex-wrap items-baseline gap-0">
-          <span style={{ color: "#7A9A40" }}>epf</span>
-          <span style={{ color: "#5A4028" }}>@</span>
-          <span style={{ color: "#C47820" }}>sandbox</span>
-          <span style={{ color: "#5A4028" }}>:~</span>
-          <span style={{ color: "#7A9A40" }} className="mr-2">$</span>
+          <span style={{ color: "var(--term-success)" }}>epf</span>
+          <span style={{ color: "var(--term-faint)" }}>@</span>
+          <span style={{ color: "var(--term-accent)" }}>sandbox</span>
+          <span style={{ color: "var(--term-faint)" }}>:~</span>
+          <span style={{ color: "var(--term-success)" }} className="mr-2">$</span>
           {/* Command types out on first line */}
           <AnimatePresence mode="wait">
             <motion.span
@@ -233,7 +233,7 @@ export function TerminalHero() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ duration: 0.2 }}
-              style={{ color: "#EAD9C0" }}
+              style={{ color: "var(--term-text)" }}
             >
               {scenario.lines.find((l) => l.kind === "cmd")?.text ?? ""}
             </motion.span>
@@ -259,9 +259,9 @@ export function TerminalHero() {
             >
               {line.kind === "tag" ? (
                 <>
-                  <span className="mr-2 select-none" style={{ color: "#4A3018" }}>│</span>
-                  <span style={{ color: "#7A6040" }} className="mr-2 shrink-0">{line.tag}</span>
-                  <span style={{ color: "#C47820" }}>{line.text}</span>
+                  <span className="mr-2 select-none" style={{ color: "var(--term-dim)" }}>│</span>
+                  <span style={{ color: "var(--term-muted)" }} className="mr-2 shrink-0">{line.tag}</span>
+                  <span style={{ color: "var(--term-accent)" }}>{line.text}</span>
                 </>
               ) : (
                 <>
@@ -277,7 +277,7 @@ export function TerminalHero() {
                 <span
                   aria-hidden="true"
                   className="ml-1 inline-block h-[0.85em] w-[0.55em] animate-terminal-cursor-blink align-middle motion-reduce:animate-none"
-                  style={{ background: "#EAD9C0", opacity: 0.9 }}
+                  style={{ background: "var(--term-text)", opacity: 0.9 }}
                 />
               )}
             </motion.div>
@@ -288,9 +288,9 @@ export function TerminalHero() {
       {/* ── Status bar ── */}
       <div
         className="flex items-center justify-between border-t px-4 py-1.5"
-        style={{ background: "#160E05", borderColor: "rgba(160,100,40,0.15)" }}
+        style={{ background: "var(--term-bg-deep)", borderColor: "var(--term-border-faint)" }}
       >
-        <span className="font-mono text-xs" style={{ color: "#4A3018" }}>
+        <span className="font-mono text-xs" style={{ color: "var(--term-dim)" }}>
           sub-epf-sandbox-internal · southeastasia
         </span>
 
@@ -302,7 +302,7 @@ export function TerminalHero() {
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.2 }}
               className="font-mono text-xs px-2 py-0.5 rounded"
-              style={{ background: "rgba(100,140,40,0.12)", color: "#7A9A40" }}
+              style={{ background: "rgba(100,140,40,0.12)", color: "var(--term-success)" }}
             >
               ● ARM running
             </motion.span>
@@ -312,7 +312,7 @@ export function TerminalHero() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               className="font-mono text-xs"
-              style={{ color: "#4A3018" }}
+              style={{ color: "var(--term-dim)" }}
             >
               {done ? "complete" : "deploying..."}
             </motion.span>

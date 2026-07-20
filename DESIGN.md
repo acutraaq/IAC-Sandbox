@@ -1,6 +1,6 @@
 ---
 name: IAC Sandbox
-description: Internal Azure IaC deployment tool — warm cream paper canvas with a dusty-azure accent and an amber CRT-terminal easter egg
+description: Internal Azure IaC deployment tool — warm cream paper canvas with a dusty-azure accent and a cyan CRT-terminal easter egg
 colors:
   warm-cream-paper: "#F7F2E8"
   deep-cream: "#EEE8D8"
@@ -22,12 +22,12 @@ colors:
   success-green: "#2D6A35"
   warning-amber: "#B45309"
   cream-on-accent: "#FDF8F0"
-  terminal-bg: "#1E1208"
-  terminal-bg-deep: "#160E05"
-  terminal-text: "#EAD9C0"
-  terminal-muted: "#7A6040"
-  terminal-dim: "#4A3018"
-  terminal-accent: "#C47820"
+  terminal-bg: "#0A1620"
+  terminal-bg-deep: "#071018"
+  terminal-text: "#C9D8E0"
+  terminal-muted: "#5C7686"
+  terminal-dim: "#34495A"
+  terminal-accent: "#2FA8B8"
   terminal-success: "#7A9A40"
 typography:
   display:
@@ -113,7 +113,7 @@ components:
 
 A deployment tool that reads like a warm paper form on an engineer's desk, not a SaaS dashboard. The canvas is cream, the ink is charcoal, and the one moment of color — a dusty, muted azure — is reserved for the thing the user is actually about to do: submit, confirm, deploy. Every other pixel stays quiet on purpose, because per PRODUCT.md the users are non-technical EPF staff filling in a form mid-workday who "want their resources, not a product tour."
 
-One deliberate exception: `TerminalHero` and `AsciiTerminal` drop into a dark amber CRT palette inside their own bounded card, evoking an old terminal session. It's an isolated motif, not a second theme — the moment it ends, the page returns to cream paper.
+One deliberate exception: `TerminalHero` and `AsciiTerminal` drop into a dark cyan-teal CRT palette inside their own bounded card, evoking an old terminal session. It's an isolated motif, not a second theme — the moment it ends, the page returns to cream paper.
 
 This system explicitly rejects: consumer-SaaS gradients and hero-metric tiles, Azure Portal-style panel-on-panel chrome, neon cyberpunk saturation, and dashboards that animate for their own sake — motion here should be nearly invisible (per PRODUCT.md's anti-references).
 
@@ -122,7 +122,7 @@ This system explicitly rejects: consumer-SaaS gradients and hero-metric tiles, A
 - Single accent (dusty azure) carries interactive/primary meaning; nothing else competes for it
 - Flat surfaces, tonal layering instead of shadows
 - Mono type reserved for machine-generated or terminal-flavored strings only
-- One contained dark/amber motif (`TerminalHero`, `AsciiTerminal`), never bleeding into the rest of the page
+- One contained dark/cyan motif (`TerminalHero`, `AsciiTerminal`), never bleeding into the rest of the page
 
 ## 2. Colors
 
@@ -148,7 +148,7 @@ Strategy: **Restrained**. One accent, tinted-cream neutral scale, a muted sage s
 - **Error** (`#B91C1C`), **Success** (`#2D6A35`), **Warning** (`#B45309`) — status only, never decorative.
 
 ### Terminal Exception
-- **Terminal Amber** family (`#1E1208` bg, `#EAD9C0` text, `#C47820` accent, `#7A9A40` success, `#7A6040`/`#4A3018` muted/dim): scoped entirely to `TerminalHero.tsx` and `AsciiTerminal.tsx`. Currently hardcoded per-component rather than tokenized — both files duplicate the same ~10 values verbatim. Consolidating into shared CSS vars (`--terminal-bg`, `--terminal-text`, etc.) is an open cleanup, not yet done.
+- **Terminal Cyan** family (`#0A1620` bg, `#C9D8E0` text, `#2FA8B8` accent, `#7A9A40` success, `#5C7686`/`#34495A` muted/dim): scoped entirely to `TerminalHero.tsx` and `AsciiTerminal.tsx`. Tokenized as shared CSS vars in `globals.css` (`--term-bg`, `--term-bg-deep`, `--term-bg-panel`, `--term-text`, `--term-text-dim`, `--term-muted`, `--term-dim`, `--term-faint`, `--term-accent`, `--term-success`, `--term-error`, `--term-border`, `--term-border-faint`) — both components reference the same vars, no duplicated hex. Was amber until this palette swap; cyan chosen (not the app's dusty-azure) to stay ~25° hue away from `--color-accent` so the terminal illustration never reads as the app's one actionable color (see One Ink Rule below). macOS traffic-light dots (`#FF5F57`/`#FFBD2E`/`#28C840`) stay literal, intentionally outside the token set (universal OS convention, not a design decision).
 
 ### Named Rules
 **The One Ink Rule.** Dusty azure is the only color allowed to signal "primary action." Sage, amber, and semantic colors never substitute for it, even in disabled or secondary contexts.
@@ -218,7 +218,7 @@ Flat by default, no ambient shadows on cards. Depth comes from cream tonal layer
 - **Close affordance:** fully rounded hit target, minimum 40px tap size.
 
 ### Terminal Motif (signature component)
-`TerminalHero` / `AsciiTerminal` render a self-contained dark amber terminal card (mac traffic-light dots, blinking cursor, typewriter prompt lines) as a bounded illustration of the product's technical register — not a second app theme. Colors are currently hardcoded per-file rather than tokenized (see Colors → Terminal Exception).
+`TerminalHero` / `AsciiTerminal` render a self-contained dark amber terminal card (mac traffic-light dots, blinking cursor, typewriter prompt lines) as a bounded illustration of the product's technical register — not a second app theme. Colors are tokenized as shared `--term-*` CSS vars (see Colors → Terminal Exception).
 
 ## 6. Do's and Don'ts
 
@@ -227,7 +227,7 @@ Flat by default, no ambient shadows on cards. Depth comes from cream tonal layer
 - **Do** reserve dusty azure (`#3D6FA8`) for primary actions, links, and focus rings only.
 - **Do** keep motion nearly invisible: 150ms state transitions, 350–420ms entrances, ease-out-expo, no bounce or elastic easing (per PRODUCT.md: "motion should be invisible").
 - **Do** keep labels always visible on form fields, never placeholder-only (accessibility requirement).
-- **Do** treat the terminal amber motif as a contained illustration, bounded to its own card.
+- **Do** treat the terminal cyan motif as a contained illustration, bounded to its own card.
 
 ### Don't:
 - **Don't** introduce consumer-SaaS patterns: gradients, hero-metric tiles, feature-marketing copy, mascots (explicit PRODUCT.md anti-reference).
@@ -235,5 +235,5 @@ Flat by default, no ambient shadows on cards. Depth comes from cream tonal layer
 - **Don't** reach for neon or cyberpunk saturation anywhere outside the bounded terminal motif (explicit PRODUCT.md anti-reference).
 - **Don't** over-animate: no choreographed entrances, no scroll-driven sequences, no decorative looping motion outside status indicators (explicit PRODUCT.md anti-reference).
 - **Don't** use `border-left`/`border-right` as a colored accent stripe anywhere.
-- **Don't** let the terminal amber palette leak into any component outside `TerminalHero`/`AsciiTerminal`.
+- **Don't** let the terminal cyan palette leak into any component outside `TerminalHero`/`AsciiTerminal`.
 - **Don't** use pure `#000`/`#fff` or untinted gray — every neutral in this system carries a sepia or cream tint.

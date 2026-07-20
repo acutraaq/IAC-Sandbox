@@ -13,23 +13,23 @@ interface AsciiTerminalProps {
 }
 
 const LINE_COLOR: Record<string, string> = {
-  prompt:  "#C47820",
-  text:    "#EAD9C0",
-  success: "#7A9A40",
-  muted:   "#7A6040",
-  accent:  "#C47820",
+  prompt:  "var(--term-accent)",
+  text:    "var(--term-text)",
+  success: "var(--term-success)",
+  muted:   "var(--term-muted)",
+  accent:  "var(--term-accent)",
 };
 
 export function AsciiTerminal({ title, lines, asciiArt, className }: AsciiTerminalProps) {
   return (
     <div
       className={`relative overflow-hidden rounded-xl border shadow-lg ${className ?? ""}`}
-      style={{ background: "#1E1208", borderColor: "rgba(160,100,40,0.22)" }}
+      style={{ background: "var(--term-bg)", borderColor: "var(--term-border)" }}
     >
       {/* Window chrome */}
       <div
         className="flex items-center gap-0 border-b px-4 py-2.5"
-        style={{ background: "#160E05", borderColor: "rgba(160,100,40,0.22)" }}
+        style={{ background: "var(--term-bg-deep)", borderColor: "var(--term-border)" }}
       >
         <div className="flex items-center gap-1.5 mr-3">
           <span aria-hidden="true" className="h-3 w-3 rounded-full" style={{ background: "#FF5F57" }} />
@@ -37,7 +37,7 @@ export function AsciiTerminal({ title, lines, asciiArt, className }: AsciiTermin
           <span aria-hidden="true" className="h-3 w-3 rounded-full" style={{ background: "#28C840" }} />
         </div>
         {title && (
-          <span className="font-mono text-xs" style={{ color: "#7A6040" }}>
+          <span className="font-mono text-xs" style={{ color: "var(--term-muted)" }}>
             {title}
           </span>
         )}
@@ -48,7 +48,7 @@ export function AsciiTerminal({ title, lines, asciiArt, className }: AsciiTermin
         {asciiArt && (
           <pre
             className="mb-4 leading-[1.5] overflow-x-auto"
-            style={{ color: "#4A3018", fontSize: "10px" }}
+            style={{ color: "var(--term-dim)", fontSize: "10px" }}
           >
             {asciiArt}
           </pre>

@@ -43,6 +43,23 @@
   --color-amber: #B45309;
   --color-amber-glow: rgba(180, 83, 9, 0.12);
   --color-on-primary: #FDF8F0;
+
+  /* Terminal motif — cool cyan-teal CRT palette, bounded to TerminalHero/AsciiTerminal only.
+     Hue kept ~25deg away from --color-accent (dusty azure) so the terminal illustration
+     never reads as the app's one actionable color (see DESIGN.md One Ink Rule). */
+  --term-bg: #0A1620;
+  --term-bg-deep: #071018;
+  --term-bg-panel: #0D1B26;
+  --term-text: #C9D8E0;
+  --term-text-dim: #8CA3B0;
+  --term-muted: #5C7686;
+  --term-dim: #34495A;
+  --term-faint: #46606E;
+  --term-accent: #2FA8B8;
+  --term-success: #7A9A40;
+  --term-error: #F87171;
+  --term-border: rgba(47, 168, 184, 0.22);
+  --term-border-faint: rgba(47, 168, 184, 0.15);
 }
 
 /* ── Tailwind v4 theme tokens ── */
