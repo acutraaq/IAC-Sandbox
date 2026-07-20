@@ -121,7 +121,9 @@
       "Bash(npx eslint *)",
       "Bash(python -c \"import json,sys; d=json.load\\(sys.stdin\\); print\\(d['devDependencies'].get\\('vitest', 'N/A'\\)\\)\")",
       "Bash(GIT_SSL_NO_VERIFY=true git fetch origin)",
-      "Bash(git worktree *)",
+      "Bash(git worktree list)",
+      "Bash(git worktree add .worktrees/* *)",
+      "Bash(git worktree remove .worktrees/*)",
       "Bash(grep -rn \"^\\\\s*/\\\\*[^*]\" web functions --include=\"*.ts\" --include=\"*.tsx\" --exclude-dir=node_modules --exclude-dir=.next --exclude-dir=dist)",
       "Bash(grep -v \"/\\\\*\\\\*\")",
       "Bash(git status *)",
@@ -134,7 +136,6 @@
       "Bash(find .github/workflows -type f)",
       "Bash(grep -rn \"healthz\\\\|smoke\\\\|slot\" .github/workflows/)",
       "Bash(xargs grep -l \"beginCreateOrUpdate\\\\|class Deployments\")",
-      "Read(//c//**)",
       "Bash(npm view *)",
       "Bash(xargs -I{} echo {})",
       "Bash(xargs grep -l \"bicep-executor\\\\|processPoisonDeployment\\\\|failure-store\")",
@@ -150,7 +151,7 @@
       "Bash(grep -rn \"class RestError\" node_modules/@azure/core-rest-pipeline/dist/commonjs/restError.d.ts)"
     ],
     "additionalDirectories": [
-      "\\tmp"
+      "C:\\Users\\AB3968\\AppData\\Local\\Temp\\claude"
     ]
   },
   "hooks": {
