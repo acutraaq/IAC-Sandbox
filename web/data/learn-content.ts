@@ -3,6 +3,9 @@ export type LearnDiagramKind = "app-type-comparison" | "vibe-workflow" | "copilo
 export interface LearnStep {
   title: string;
   detail: string;
+  subSteps?: string[];
+  expectedResult?: string;
+  pitfall?: string;
 }
 
 export interface LearnTopic {
