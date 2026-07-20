@@ -1,3 +1,299 @@
+# Learn Tab Step Detail Implementation Plan
+
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+
+**Goal:** Add optional sub-steps, expected-result, and pitfall detail to every step in the Learn tab's Power Platform guides, rendered inline in the existing static step list.
+
+**Architecture:** Extend the existing `LearnStep` type (`web/data/learn-content.ts`) with three optional fields (`subSteps`, `expectedResult`, `pitfall`), fill them in for all 5 topics' steps, and render them conditionally inside the existing `StepWalkthrough.tsx` component — no new components, no interaction-model change (steps stay a flat, always-visible ordered list).
+
+**Tech Stack:** Next.js 16 App Router, TypeScript strict mode, Vitest + React Testing Library, Tailwind CSS v4.
+
+## Global Constraints
+
+- TypeScript strict mode — no `any`, no unguarded type assertions (CLAUDE.md Coding Conventions).
+- `npx tsc --noEmit` must produce 0 errors, run from `web/` (CLAUDE.md Quality Gates).
+- `npm run lint` must produce 0 errors, run from `web/` (CLAUDE.md Quality Gates).
+- `npx vitest run` must show all tests passing, run from `web/` — NOT from repo root (CLAUDE.md Gotchas).
+- Tests co-located next to the file they cover (CLAUDE.md Coding Conventions) — matches the existing `StepWalkthrough.test.tsx`, `GuideSection.test.tsx` pattern already in `web/components/learn/`.
+- No screenshots/images added — per `docs/superpowers/specs/2026-07-20-learn-step-detail-design.md`, the existing topic-level `learnMoreUrl` remains the only path to real product screenshots.
+- No change to the flat, always-visible step list interaction model — no accordion, no one-step-at-a-time navigation (explicit user decision in the design spec).
+
+---
+
+### Task 1: Extend `LearnStep` type and render sub-steps / expected result / pitfall in `StepWalkthrough`
+
+**Files:**
+- Modify: `web/data/learn-content.ts:3-6` (the `LearnStep` interface)
+- Modify: `web/components/learn/StepWalkthrough.tsx`
+- Modify: `web/components/learn/StepWalkthrough.test.tsx`
+
+**Interfaces:**
+- Produces: `LearnStep` gains three new optional fields — `subSteps?: string[]`, `expectedResult?: string`, `pitfall?: string` — consumed by `StepWalkthrough.tsx` and, in Task 2, by the content in `learn-content.ts`.
+- Consumes: nothing new from other tasks — `StepWalkthrough` already receives `steps: LearnStep[]` via its existing `StepWalkthroughProps`.
+
+- [ ] **Step 1: Write the failing tests**
+
+Replace the full contents of `web/components/learn/StepWalkthrough.test.tsx` with:
+
+```tsx
+import { describe, it, expect } from "vitest";
+import { render, screen } from "@testing-library/react";
+import { StepWalkthrough } from "./StepWalkthrough";
+
+const STEPS = [
+  { title: "First step", detail: "Do the first thing." },
+  { title: "Second step", detail: "Do the second thing." },
+];
+
+describe("StepWalkthrough", () => {
+  it("renders every step's title and detail", () => {
+    render(<StepWalkthrough steps={STEPS} />);
+    expect(screen.getByText("First step")).toBeInTheDocument();
+    expect(screen.getByText("Do the first thing.")).toBeInTheDocument();
+    expect(screen.getByText("Second step")).toBeInTheDocument();
+    expect(screen.getByText("Do the second thing.")).toBeInTheDocument();
+  });
+
+  it("renders as an ordered list", () => {
+    render(<StepWalkthrough steps={STEPS} />);
+    expect(screen.getByRole("list").tagName).toBe("OL");
+    expect(screen.getAllByRole("listitem")).toHaveLength(2);
+  });
+
+  it("numbers each step starting at 1", () => {
+    render(<StepWalkthrough steps={STEPS} />);
+    expect(screen.getByText("01")).toBeInTheDocument();
+    expect(screen.getByText("02")).toBeInTheDocument();
+  });
+
+  it("renders sub-steps as a nested list when present", () => {
+    const steps = [
+      {
+        title: "Start your app",
+        detail: "Select Create.",
+        subSteps: ["Select Blank canvas app", "Choose the environment"],
+      },
+    ];
+    render(<StepWalkthrough steps={steps} />);
+    expect(screen.getByText("Select Blank canvas app")).toBeInTheDocument();
+    expect(screen.getByText("Choose the environment")).toBeInTheDocument();
+  });
+
+  it("renders the expected result when present", () => {
+    const steps = [
+      {
+        title: "Preview your app",
+        detail: "Select Play.",
+        expectedResult: "The app runs full-screen as an end user would see it.",
+      },
+    ];
+    render(<StepWalkthrough steps={steps} />);
+    expect(
+      screen.getByText("The app runs full-screen as an end user would see it.")
+    ).toBeInTheDocument();
+  });
+
+  it("renders the pitfall when present", () => {
+    const steps = [
+      {
+        title: "Sign in",
+        detail: "Go to make.powerapps.com.",
+        pitfall: "Signing in with a personal account shows no environments.",
+      },
+    ];
+    render(<StepWalkthrough steps={steps} />);
+    expect(
+      screen.getByText("Signing in with a personal account shows no environments.")
+    ).toBeInTheDocument();
+  });
+
+  it("renders cleanly with no optional fields", () => {
+    render(<StepWalkthrough steps={STEPS} />);
+    expect(screen.queryByText(/You should see:/)).not.toBeInTheDocument();
+  });
+});
+```
+
+- [ ] **Step 2: Run the tests to verify the new ones fail**
+
+Run (from `web/`): `npx vitest run StepWalkthrough`
+Expected: the 3 new tests (sub-steps, expected result, pitfall) FAIL — `subSteps`/`expectedResult`/`pitfall` aren't valid props on `LearnStep` yet and nothing renders them. TypeScript may also flag the test file for passing extra properties once the type isn't updated — that's expected at this point.
+
+- [ ] **Step 3: Extend the `LearnStep` type**
+
+In `web/data/learn-content.ts`, replace:
+
+```ts
+export interface LearnStep {
+  title: string;
+  detail: string;
+}
+```
+
+with:
+
+```ts
+export interface LearnStep {
+  title: string;
+  detail: string;
+  subSteps?: string[];
+  expectedResult?: string;
+  pitfall?: string;
+}
+```
+
+- [ ] **Step 4: Implement rendering in `StepWalkthrough.tsx`**
+
+Replace the full contents of `web/components/learn/StepWalkthrough.tsx` with:
+
+```tsx
+import type { LearnStep } from "@/data/learn-content";
+
+interface StepWalkthroughProps {
+  steps: LearnStep[];
+}
+
+export function StepWalkthrough({ steps }: StepWalkthroughProps) {
+  return (
+    <ol className="space-y-5">
+      {steps.map((step, i) => (
+        <li key={step.title} className="flex gap-4">
+          <span
+            className="font-mono text-sm font-semibold text-text-faint select-none"
+            aria-hidden="true"
+          >
+            {String(i + 1).padStart(2, "0")}
+          </span>
+          <div>
+            <p className="text-sm font-semibold text-text">{step.title}</p>
+            <p className="mt-0.5 text-sm leading-relaxed text-text-muted">{step.detail}</p>
+
+            {step.subSteps && step.subSteps.length > 0 && (
+              <ol className="mt-2 list-[lower-alpha] space-y-1 pl-5 text-sm leading-relaxed text-text-muted">
+                {step.subSteps.map((subStep) => (
+                  <li key={subStep}>{subStep}</li>
+                ))}
+              </ol>
+            )}
+
+            {step.expectedResult && (
+              <p className="mt-2 text-sm leading-relaxed text-text-faint">
+                <span className="font-semibold text-text-muted">You should see:</span>{" "}
+                {step.expectedResult}
+              </p>
+            )}
+
+            {step.pitfall && (
+              <p className="mt-2 rounded-md border border-warning/25 bg-warning/10 px-3 py-2 text-sm leading-relaxed text-text-muted">
+                {step.pitfall}
+              </p>
+            )}
+          </div>
+        </li>
+      ))}
+    </ol>
+  );
+}
+```
+
+- [ ] **Step 5: Run the tests to verify they pass**
+
+Run (from `web/`): `npx vitest run StepWalkthrough`
+Expected: all 7 tests in `StepWalkthrough.test.tsx` PASS.
+
+- [ ] **Step 6: Type-check**
+
+Run (from `web/`): `npx tsc --noEmit`
+Expected: 0 errors.
+
+- [ ] **Step 7: Commit**
+
+```bash
+git add web/data/learn-content.ts web/components/learn/StepWalkthrough.tsx web/components/learn/StepWalkthrough.test.tsx
+git commit -m "feat: render optional sub-steps, expected result, and pitfalls in Learn tab steps"
+```
+
+---
+
+### Task 2: Enrich all 5 Learn topics with sub-steps, expected results, and pitfalls
+
+**Files:**
+- Modify: `web/data/learn-content.ts:20-209` (all 5 entries in `LEARN_TOPICS`)
+- Create: `web/data/learn-content.test.ts`
+
+**Interfaces:**
+- Consumes: `LearnStep` type from Task 1 (`subSteps?: string[]`, `expectedResult?: string`, `pitfall?: string`).
+- Produces: nothing new consumed by later tasks — this is the last task in the plan.
+
+- [ ] **Step 1: Write the failing content-invariant test**
+
+Create `web/data/learn-content.test.ts`:
+
+```ts
+import { describe, it, expect } from "vitest";
+import { LEARN_TOPICS } from "./learn-content";
+
+describe("LEARN_TOPICS content invariants", () => {
+  it("has 5 topics", () => {
+    expect(LEARN_TOPICS).toHaveLength(5);
+  });
+
+  it("gives every step a non-empty title and detail", () => {
+    for (const topic of LEARN_TOPICS) {
+      for (const step of topic.steps) {
+        expect(step.title.length).toBeGreaterThan(0);
+        expect(step.detail.length).toBeGreaterThan(0);
+      }
+    }
+  });
+
+  it("never has an empty subSteps array when the field is present", () => {
+    for (const topic of LEARN_TOPICS) {
+      for (const step of topic.steps) {
+        if (step.subSteps) {
+          expect(step.subSteps.length).toBeGreaterThan(0);
+          for (const subStep of step.subSteps) {
+            expect(subStep.length).toBeGreaterThan(0);
+          }
+        }
+      }
+    }
+  });
+
+  it("never has a blank expectedResult or pitfall string when the field is present", () => {
+    for (const topic of LEARN_TOPICS) {
+      for (const step of topic.steps) {
+        if (step.expectedResult !== undefined) {
+          expect(step.expectedResult.trim().length).toBeGreaterThan(0);
+        }
+        if (step.pitfall !== undefined) {
+          expect(step.pitfall.trim().length).toBeGreaterThan(0);
+        }
+      }
+    }
+  });
+
+  it("gives at least one step per topic an expectedResult or a pitfall", () => {
+    for (const topic of LEARN_TOPICS) {
+      const enriched = topic.steps.some(
+        (step) => step.expectedResult !== undefined || step.pitfall !== undefined
+      );
+      expect(enriched).toBe(true);
+    }
+  });
+});
+```
+
+- [ ] **Step 2: Run the test to verify it fails**
+
+Run (from `web/`): `npx vitest run learn-content`
+Expected: the last test ("gives at least one step per topic...") FAILS, since no topic has any `expectedResult`/`pitfall` filled in yet. The other invariant tests PASS (they hold vacuously with no optional fields set).
+
+- [ ] **Step 3: Replace `LEARN_TOPICS` with the enriched content**
+
+Replace the full contents of `web/data/learn-content.ts` with:
+
+```ts
 export type LearnDiagramKind = "app-type-comparison" | "vibe-workflow" | "copilot-decision";
 
 export interface LearnStep {
@@ -368,3 +664,31 @@ export const LEARN_TOPICS: readonly LearnTopic[] = [
     learnMoreLabel: "Agent Builder in Microsoft 365 Copilot",
   },
 ];
+```
+
+- [ ] **Step 4: Run the content-invariant test to verify it passes**
+
+Run (from `web/`): `npx vitest run learn-content`
+Expected: all 5 tests in `learn-content.test.ts` PASS.
+
+- [ ] **Step 5: Run the full Learn tab test suite**
+
+Run (from `web/`): `npx vitest run learn`
+Expected: all test files under `web/components/learn/`, `web/data/learn-content.test.ts`, and `web/__tests__/app/learn/` PASS (this re-runs `LearnTabs.test.tsx` and `GuideSection.test.tsx`, which reference `LEARN_TOPICS` directly and must still pass against the enriched content).
+
+- [ ] **Step 6: Run the full quality gate**
+
+Run (from `web/`):
+```bash
+npm run lint
+npx tsc --noEmit
+npx vitest run
+```
+Expected: lint 0 errors, tsc 0 errors, full suite passes (274 pre-existing tests + the new ones added in this plan).
+
+- [ ] **Step 7: Commit**
+
+```bash
+git add web/data/learn-content.ts web/data/learn-content.test.ts
+git commit -m "feat: add sub-steps, expected results, and pitfalls to all Learn tab guides"
+```
