@@ -28,14 +28,15 @@ export function StepWalkthrough({ steps }: StepWalkthroughProps) {
             )}
 
             {step.expectedResult && (
-              <p className="mt-2 text-sm leading-relaxed text-text-faint">
-                <span className="font-semibold text-text-muted">You should see:</span>{" "}
+              <p className="mt-2 text-sm leading-relaxed text-text-muted">
+                <span className="font-semibold">You should see:</span>{" "}
                 {step.expectedResult}
               </p>
             )}
 
             {step.pitfall && (
               <p className="mt-2 rounded-md border border-warning/25 bg-warning/10 px-3 py-2 text-sm leading-relaxed text-text-muted">
+                <span className="sr-only">Watch out: </span>
                 {step.pitfall}
               </p>
             )}
