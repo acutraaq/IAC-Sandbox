@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Check, ChevronDown } from "lucide-react";
 import type { LearnStep } from "@/data/learn-content";
 
@@ -9,20 +9,22 @@ interface StepWalkthroughProps {
   topicSlug?: string;
 }
 
+function readCompleted(storageKey: string): Set<number> {
+  if (typeof window === "undefined") return new Set();
+  try {
+    const raw = window.localStorage.getItem(storageKey);
+    return raw ? new Set(JSON.parse(raw)) : new Set();
+  } catch {
+    return new Set();
+  }
+}
+
+// Parent must render this with `key={topicSlug}` so switching topics remounts
+// fresh state instead of needing a setState-in-effect reset.
 export function StepWalkthrough({ steps, topicSlug = "default" }: StepWalkthroughProps) {
   const storageKey = `learn-progress-${topicSlug}`;
-  const [completed, setCompleted] = useState<Set<number>>(new Set());
+  const [completed, setCompleted] = useState<Set<number>>(() => readCompleted(storageKey));
   const [openIndex, setOpenIndex] = useState(0);
-
-  useEffect(() => {
-    setOpenIndex(0);
-    try {
-      const raw = window.localStorage.getItem(storageKey);
-      setCompleted(raw ? new Set(JSON.parse(raw)) : new Set());
-    } catch {
-      setCompleted(new Set());
-    }
-  }, [storageKey]);
 
   function toggleComplete(index: number, event: React.MouseEvent) {
     event.stopPropagation();

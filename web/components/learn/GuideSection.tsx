@@ -41,7 +41,7 @@ export function GuideSection({ topic }: GuideSectionProps) {
       )}
 
       <div className="mt-6">
-        <StepWalkthrough steps={topic.steps} topicSlug={topic.slug} />
+        <StepWalkthrough key={topic.slug} steps={topic.steps} topicSlug={topic.slug} />
       </div>
 
       {topic.callouts && topic.callouts.length > 0 && (
