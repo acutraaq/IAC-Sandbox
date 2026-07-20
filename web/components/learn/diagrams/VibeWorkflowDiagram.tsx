@@ -5,7 +5,7 @@ export function VibeWorkflowDiagram() {
     <figure className="rounded-lg border border-border bg-surface p-4">
       <svg
         viewBox="0 0 500 80"
-        className="w-full text-text-faint"
+        className="aspect-[500/80] w-full text-text-faint"
         aria-hidden="true"
         role="presentation"
       >

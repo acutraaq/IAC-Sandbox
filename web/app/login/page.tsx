@@ -31,7 +31,7 @@ export default function LoginPage() {
           </div>
           <p className="mt-8 font-mono text-xs text-text-faint">
             <span className="text-comment"># </span>
-            v1.0.0 · placeholder-session-active
+            v1.0.0 · sub-epf-sandbox-internal
           </p>
         </div>
       </div>

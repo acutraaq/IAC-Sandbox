@@ -24,6 +24,22 @@ export const metadata: Metadata = {
   title: "Sandbox IAC",
   description:
     "Deploy cloud resources in minutes. Pick a template or build your own configuration.",
+  icons: {
+    icon: "/favicon.ico",
+  },
+  openGraph: {
+    title: "Sandbox IAC",
+    description:
+      "Deploy cloud resources in minutes. Pick a template or build your own configuration.",
+    siteName: "Sandbox IAC",
+    type: "website",
+  },
+  twitter: {
+    card: "summary",
+    title: "Sandbox IAC",
+    description:
+      "Deploy cloud resources in minutes. Pick a template or build your own configuration.",
+  },
 };
 
 export default async function RootLayout({

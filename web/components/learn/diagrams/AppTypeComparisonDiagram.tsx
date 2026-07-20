@@ -3,7 +3,7 @@ export function AppTypeComparisonDiagram() {
     <figure className="rounded-lg border border-border bg-surface p-4">
       <svg
         viewBox="0 0 320 200"
-        className="w-full text-text-faint"
+        className="aspect-[320/200] w-full text-text-faint"
         aria-hidden="true"
         role="presentation"
       >
